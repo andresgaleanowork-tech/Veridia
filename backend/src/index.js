@@ -25,14 +25,18 @@ const app = express();
 const PORT = process.env.PORT || 3456;
 
 // === SECURITY ===
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
-    scriptSrc: ["'self'"],
+    scriptSrc: isProduction ? ["'self'"] : ["'self'", "'unsafe-inline'", "'unsafe-eval'", "http://localhost:5173"],
     styleSrc: ["'self'", "'unsafe-inline'"],
     imgSrc: ["'self'", "data:"],
     fontSrc: ["'self'"],
-    connectSrc: ["'self'", "https://api.usda.gov", "https://generativelanguage.googleapis.com"]
+    connectSrc: isProduction
+      ? ["'self'", "https://api.usda.gov", "https://generativelanguage.googleapis.com"]
+      : ["'self'", "http://localhost:5173", "http://localhost:3457", "ws://localhost:5173"]
   }
 }));
 
