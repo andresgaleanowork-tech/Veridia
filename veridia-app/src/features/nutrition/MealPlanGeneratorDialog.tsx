@@ -8,6 +8,21 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { useToast } from '@/components/ui/Toast';
+import type { MealPlan } from '@/types';
+
+interface GeneratedMealPlanDay {
+  day: number;
+  meals: Array<{
+    type: string;
+    foods: Array<{ name: string; portion: number }>;
+    totalCalories: number;
+  }>;
+  totalCalories: number;
+}
+
+interface GenerateMealPlanResponse {
+  plan: GeneratedMealPlanDay[];
+}
 
 interface MealPlanGeneratorDialogProps {
   open: boolean;
@@ -23,16 +38,16 @@ export function MealPlanGeneratorDialog({ open, onClose, patientId }: MealPlanGe
     dietType: 'balanced',
     durationDays: 7,
   });
-  const [generatedPlan, setGeneratedPlan] = useState<any>(null);
+  const [generatedPlan, setGeneratedPlan] = useState<GeneratedMealPlanDay[] | null>(null);
   const { addToast } = useToast();
   const qc = useQueryClient();
 
   const generateMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: { calories: number; macros: { protein: number; carbs: number; fat: number }; allergens: string[]; dietType: string; durationDays: number }) => {
       const res = await api.post('/meal-plans/generator/generate', { ...data, patientId });
       return res.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: GenerateMealPlanResponse) => {
       setGeneratedPlan(data.plan);
       qc.invalidateQueries({ queryKey: ['meal-plans'] });
       addToast('success', 'Plan generado exitosamente');
@@ -108,16 +123,16 @@ export function MealPlanGeneratorDialog({ open, onClose, patientId }: MealPlanGe
       ) : (
         <div className="space-y-4">
           <div className="text-sm text-text-2">
-            Plan generado: {generatedPlan.length} días | Total promedio: {Math.round(generatedPlan.reduce((sum: number, d: any) => sum + d.totalCalories, 0) / generatedPlan.length)} kcal/día
+            Plan generado: {generatedPlan.length} días | Total promedio: {Math.round(generatedPlan.reduce((sum: number, d: GeneratedMealPlanDay) => sum + d.totalCalories, 0) / generatedPlan.length)} kcal/día
           </div>
-          {generatedPlan.map((day: any) => (
+          {generatedPlan.map((day: GeneratedMealPlanDay) => (
             <Card key={day.day} className="p-4">
               <h4 className="font-semibold text-text mb-2">Día {day.day}</h4>
               <div className="space-y-2">
-                {day.meals.map((meal: any, idx: number) => (
+                {day.meals.map((meal: GeneratedMealPlanDay['meals'][0], idx: number) => (
                   <div key={idx} className="text-sm">
                     <span className="text-text-3">{meal.type}:</span>
-                    <span className="text-text ml-2">{meal.foods.map((f: any) => `${f.name} (${f.portion}g)`).join(', ')}</span>
+                    <span className="text-text ml-2">{meal.foods.map((f: GeneratedMealPlanDay['meals'][0]['foods'][0]) => `${f.name} (${f.portion}g)`).join(', ')}</span>
                     <span className="text-text-3 ml-2">({meal.totalCalories} kcal)</span>
                   </div>
                 ))}

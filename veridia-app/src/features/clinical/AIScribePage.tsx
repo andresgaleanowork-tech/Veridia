@@ -9,11 +9,12 @@ import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { useToast } from '@/components/ui/Toast';
 import type { Patient } from '@/types';
+import type { SoapNote } from './types';
 
 export function AIScribePage() {
   const [selectedPatient, setSelectedPatient] = useState('');
   const [transcription, setTranscription] = useState('');
-  const [soapNote, setSoapNote] = useState<any>(null);
+  const [soapNote, setSoapNote] = useState<SoapNote | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const { addToast } = useToast();
@@ -54,7 +55,7 @@ export function AIScribePage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+    mutationFn: async ({ id, data }: { id: string; data: { subjective: string; objective: string; assessment: string; plan: string; status: string } }) => {
       const res = await api.put(`/ai-scribe/note/${id}`, data);
       return res.data;
     },
@@ -79,7 +80,7 @@ export function AIScribePage() {
     transcribeMutation.mutate({ patientId: selectedPatient, text: transcription || undefined });
   };
 
-  const handleSave = (note: any) => {
+  const handleSave = (note: { id: string; subjective: string; objective: string; assessment: string; plan: string }) => {
     updateMutation.mutate({ id: note.id, data: { ...note, status: 'finalized' } });
   };
 
@@ -167,7 +168,7 @@ export function AIScribePage() {
           <Card className="p-8 text-center text-text-3">No hay notas para este paciente</Card>
         ) : (
           <div className="space-y-3">
-            {notes.map((note: any) => (
+            {notes.map((note: { id: string; created_at: string; transcription?: string; soap_note?: SoapNote }) => (
               <Card key={note.id} className="p-4">
                 <div className="flex items-start justify-between">
                   <div>

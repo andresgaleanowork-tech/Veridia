@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Select } from '@/components/ui/Select';
 import { useToast } from '@/components/ui/Toast';
+import type { TelehealthSession, Appointment } from '@/types';
 
 export function TelehealthPage() {
   const [selectedAppointment, setSelectedAppointment] = useState('');
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<TelehealthSession | null>(null);
   const { addToast } = useToast();
 
   const { data: appointments } = useQuery({
@@ -25,7 +26,7 @@ export function TelehealthPage() {
       const res = await api.post('/telehealth/start', data);
       return res.data.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: TelehealthSession) => {
       setSession(data);
       addToast('success', 'Sesión iniciada');
     },
@@ -58,7 +59,7 @@ export function TelehealthPage() {
                 onValueChange={setSelectedAppointment}
                 options={[
                   { value: '', label: 'Seleccionar turno...' },
-                  ...(appointments?.filter((a: any) => a.estado !== 'Cancelada' && a.estado !== 'Realizada').map((apt: any) => ({ value: apt.id, label: `${apt.fecha} ${apt.hora} - ${apt.paciente_nombre || 'Paciente'}` })) || []),
+                  ...(appointments?.filter((a: Appointment) => a.estado !== 'Cancelada' && a.estado !== 'Realizada').map((apt: Appointment) => ({ value: apt.id, label: `${apt.fecha} ${apt.hora} - ${apt.paciente_nombre || 'Paciente'}` })) || []),
                 ]}
               />
             </div>
