@@ -1,6 +1,6 @@
 // Seed initial users (run after migrate)
 require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const { pool } = require('../config/db');
 
 const DEV = process.env.NODE_ENV !== 'production';
