@@ -74,7 +74,7 @@ export function ReportGeneratorDialog({ open, onClose, patient, onGenerated }: R
   };
 
   return (
-    <Dialog open={open} onClose={onClose} title="Generar Informe" maxWidth="max-w-2xl">
+    <Dialog open={open} onClose={onClose} title="Generar Informe" size="xl">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="text-xs text-text-3 mb-1 block">Tipo de informe</label>

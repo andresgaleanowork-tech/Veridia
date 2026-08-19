@@ -40,7 +40,7 @@ export function StripeCheckout({ open, onClose, patientId, amount }: StripeCheck
   };
 
   return (
-    <Dialog open={open} onClose={onClose} title="Pagar con Stripe" maxWidth="sm">
+    <Dialog open={open} onClose={onClose} title="Pagar con Stripe" size="sm">
       <div className="space-y-4">
         <div className="text-center">
           <div className="text-3xl font-bold text-text">${amount.toFixed(2)}</div>

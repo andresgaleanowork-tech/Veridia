@@ -12,7 +12,7 @@ interface EquivalencesModalProps {
 
 export function EquivalencesModal({ open, onClose }: EquivalencesModalProps) {
   return (
-    <Dialog open={open} onClose={onClose} title="Equivalencias de Alimentos" maxWidth="max-w-2xl">
+    <Dialog open={open} onClose={onClose} title="Equivalencias de Alimentos" size="xl">
       <p className="text-sm text-text-3 mb-4">
         Tabla de intercambios: alimentos con valor nutricional similar que pueden sustituirse entre sí.
       </p>

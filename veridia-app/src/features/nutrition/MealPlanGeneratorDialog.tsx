@@ -62,7 +62,7 @@ export function MealPlanGeneratorDialog({ open, onClose, patientId }: MealPlanGe
   };
 
   return (
-    <Dialog open={open} onClose={onClose} title="Generar Plan Alimentario" maxWidth="lg">
+    <Dialog open={open} onClose={onClose} title="Generar Plan Alimentario" size="lg">
       {!generatedPlan ? (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
