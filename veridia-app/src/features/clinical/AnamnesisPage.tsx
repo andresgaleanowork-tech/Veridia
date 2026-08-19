@@ -342,20 +342,20 @@ export function AnamnesisPage() {
                       <label className="text-xs font-medium text-text-3 mb-1.5 block">{q.text}</label>
                       {q.type === 'text' && (
                         <Input
-                          {...(register(`respuestas.${q.id}`) as any)}
+                          {...register(`respuestas.${q.id}`)}
                           placeholder={q.placeholder}
                         />
                       )}
                       {q.type === 'textarea' && (
                         <Textarea
-                          {...(register(`respuestas.${q.id}`) as any)}
+                          {...register(`respuestas.${q.id}`)}
                           placeholder={q.placeholder}
                         />
                       )}
                       {q.type === 'number' && (
                         <Input
                           type="number"
-                          {...(register(`respuestas.${q.id}`, { valueAsNumber: true }) as any)}
+                          {...register(`respuestas.${q.id}`, { valueAsNumber: true })}
                         />
                       )}
                       {q.type === 'select' && (
