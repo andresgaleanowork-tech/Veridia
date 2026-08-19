@@ -72,8 +72,7 @@ export function PatientsPage() {
     try {
       await api.delete(`/patients/${row.id}`);
       addToast('success', 'Paciente eliminado');
-    } catch (err) {
-      console.error(err);
+    } catch {
       addToast('error', 'Error al eliminar paciente');
     }
   };

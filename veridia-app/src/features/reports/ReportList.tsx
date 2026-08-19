@@ -4,12 +4,14 @@ import api from '@/lib/api';
 import type { Report } from '@/types';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
 
 interface ReportListProps {
   patientId?: string;
 }
 
 export function ReportList({ patientId }: ReportListProps) {
+  const { addToast } = useToast();
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ['reports', 'list', patientId],
     queryFn: async (): Promise<Report[]> => {
@@ -29,8 +31,8 @@ export function ReportList({ patientId }: ReportListProps) {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (e) {
-      console.error('Download failed', e);
+    } catch {
+      addToast('error', 'Error al descargar reporte');
     }
   };
 

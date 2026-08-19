@@ -2,6 +2,7 @@ import axios, { type AxiosError, type AxiosInstance, type AxiosResponse } from '
 import { z } from 'zod';
 import type { PaginatedResponse, FitnessActivity, FitnessSummary, Report, ReportTemplate, ReportType } from '@/types';
 import * as schemas from '@/lib/schemas';
+import { captureError } from '@/lib/errorReporting';
 
 // ---------------------------------------------------------------------------
 // Ampliación de tipos de Axios
@@ -164,10 +165,14 @@ export function validateResponse<T>(schema: z.ZodSchema<T>, data: unknown): Vali
   if (result.success) {
     return { success: true, data: result.data };
   }
-  console.error('[API Validation Failed]', {
-    schema: schema.description || 'unknown',
-    errors: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
-    received: JSON.stringify(data).slice(0, 500),
+  captureError(new Error('API Validation Failed'), {
+    component: 'api',
+    operation: 'validateResponse',
+    additionalData: {
+      schema: schema.description || 'unknown',
+      errors: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+      received: JSON.stringify(data).slice(0, 500),
+    },
   });
   return { success: false, error: result.error };
 }
@@ -274,30 +279,54 @@ function handleResponseError(error: AxiosError<ApiEnvelope<unknown>>): void {
 
   switch (status) {
     case 401:
-      console.warn('Sesión expirada o inválida.');
+      captureError(new Error('Sesión expirada o inválida.'), {
+        component: 'api',
+        operation: 'handleResponseError',
+        additionalData: { status: 401 },
+      });
       break;
     case 403:
-      console.error('Sin permisos para acceder a este recurso.');
+      captureError(new Error('Sin permisos para acceder a este recurso.'), {
+        component: 'api',
+        operation: 'handleResponseError',
+        additionalData: { status: 403 },
+      });
       break;
     case 404:
-      console.warn('Recurso no encontrado.');
+      captureError(new Error('Recurso no encontrado.'), {
+        component: 'api',
+        operation: 'handleResponseError',
+        additionalData: { status: 404 },
+      });
       break;
     case 422: {
       const msg = validationMessages.length > 0
         ? `Validación fallida: ${validationMessages.join('; ')}`
         : message || 'Datos inválidos.';
-      console.warn(msg);
+      captureError(new Error(msg), {
+        component: 'api',
+        operation: 'handleResponseError',
+        additionalData: { status: 422, validationMessages },
+      });
       break;
     }
     case 500:
     case 502:
     case 503:
     case 504:
-      console.error('Error del servidor. Intente nuevamente más tarde.');
+      captureError(new Error('Error del servidor. Intente nuevamente más tarde.'), {
+        component: 'api',
+        operation: 'handleResponseError',
+        additionalData: { status },
+      });
       break;
     default:
       if (status && status >= 400) {
-        console.error(message || 'Error inesperado.');
+        captureError(new Error(message || 'Error inesperado.'), {
+          component: 'api',
+          operation: 'handleResponseError',
+          additionalData: { status },
+        });
       }
       break;
   }

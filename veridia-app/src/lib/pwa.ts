@@ -73,7 +73,6 @@ export function registerServiceWorker(): void {
     })
     .catch((err) => {
       // SW registration failed — app still works online.
-      console.warn('[PWA] Service worker registration failed:', err);
     });
 }
 

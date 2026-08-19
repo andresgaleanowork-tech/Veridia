@@ -1,6 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, RefreshCw, Home, Copy, Mail } from 'lucide-react';
+import { captureError } from '@/lib/errorReporting';
 
 interface ErrorBoundaryContextValue {
   error: Error | null;
@@ -64,7 +65,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         ? localStorage.getItem('veridia_request_id') || crypto.randomUUID?.() || `req_${Date.now()}`
         : `req_${Date.now()}`;
 
-    console.error('ErrorBoundary captured an error:', error, errorInfo);
+    captureError(error, {
+      component: 'ErrorBoundary',
+      operation: 'componentDidCatch',
+      additionalData: { errorInfo: errorInfo?.componentStack },
+    });
 
     this.setState({
       error,

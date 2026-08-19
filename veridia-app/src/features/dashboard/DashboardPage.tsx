@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import api from '@/lib/api';
 import { Users, AlertTriangle, Calendar, ArrowUpRight, Activity, Receipt } from 'lucide-react';
+import { useToast } from '@/components/ui/Toast';
 
 interface DashboardStats {
   totalPatients: number;
@@ -24,6 +25,7 @@ export function DashboardPage() {
   const [todayAppts, setTodayAppts] = useState<{ id: string; hora: string; paciente_nombre: string; estado: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [fitnessActive, setFitnessActive] = useState(0);
+  const { addToast } = useToast();
 
   useEffect(() => {
     loadDashboard();
@@ -54,7 +56,7 @@ export function DashboardPage() {
         setFitnessActive(fitnessRes.value.data.total || fitnessRes.value.data.length || 0);
       }
     } catch (err) {
-      console.error('Dashboard load error:', err);
+      addToast('error', 'Error al cargar dashboard');
     } finally {
       setLoading(false);
     }
