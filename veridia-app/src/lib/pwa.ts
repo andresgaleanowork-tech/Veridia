@@ -71,7 +71,7 @@ export function registerServiceWorker(): void {
         });
       });
     })
-    .catch((err) => {
+    .catch(() => {
       // SW registration failed — app still works online.
     });
 }

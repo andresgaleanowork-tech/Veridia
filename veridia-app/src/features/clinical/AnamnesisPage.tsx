@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
 import { ANAMNESIS_SYSTEMS } from './constants';
 
-interface SystemSection {
+export interface SystemSection {
   id: string;
   label: string;
   icon: string;
@@ -204,7 +204,7 @@ export function AnamnesisPage() {
       <div className="space-y-3">
         {SYSTEMS.map((system) => {
           const isExpanded = expandedSystems.has(system.id);
-          const systemAnswered = system.questions.filter((q) => {
+          const systemAnswered = system.questions.filter((q: Question) => {
             const v = responses[q.id] as unknown;
             return v !== '' && v !== null && v !== undefined;
           }).length;
@@ -228,7 +228,7 @@ export function AnamnesisPage() {
 
               {isExpanded && (
                 <div className="px-5 pb-5 space-y-4 border-t border-border pt-4">
-                  {system.questions.map((q) => (
+                  {system.questions.map((q: Question) => (
                     <div key={q.id}>
                       <label className="text-xs font-medium text-text-3 mb-1.5 block">{q.text}</label>
                       {q.type === 'text' && (
@@ -253,7 +253,7 @@ export function AnamnesisPage() {
                         <Select
                           value={(responses[q.id] as string) || ''}
                           onValueChange={(val) => setResponse(q.id, val)}
-                          options={[{ value: '', label: 'Seleccionar...' }, ...(q.options?.map((opt) => ({ value: opt, label: opt })) || [])]}
+                          options={[{ value: '', label: 'Seleccionar...' }, ...(q.options?.map((opt: string) => ({ value: opt, label: opt })) || [])]}
                         />
                       )}
                       {q.type === 'yesno' && (

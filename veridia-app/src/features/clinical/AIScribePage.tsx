@@ -180,7 +180,7 @@ export function AIScribePage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => setSoapNote(note.soap_note)}>
+                    <Button variant="ghost" size="sm" onClick={() => setSoapNote(note.soap_note ?? null)}>
                       Ver
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(note.id)} icon={<Trash2 size={14} />} />

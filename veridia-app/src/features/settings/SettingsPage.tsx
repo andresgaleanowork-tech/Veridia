@@ -85,7 +85,7 @@ export function SettingsPage() {
         <div className="mt-4">
           <Button
             variant="primary"
-            icon={Save}
+            icon={<Save size={16} />}
             loading={saveMutation.isPending}
             onClick={() => saveMutation.mutate()}
             disabled={saveMutation.isPending}

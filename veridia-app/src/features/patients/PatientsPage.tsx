@@ -1,16 +1,15 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Search, Plus, User, MoreVertical, Phone, Mail, Eye, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, User, Phone, Mail, Eye, Edit, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 import type { Patient } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
-import { Table, TableColumn, TableAction } from '@/components/ui/Table';
+import { Table, type TableColumn, type TableAction } from '@/components/ui/Table';
 import { PatientFormDialog } from './PatientFormDialog';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/components/ui/Toast';
@@ -32,7 +31,6 @@ export function PatientsPage() {
   const debouncedSearch = useDebounce(search, 300);
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const { addToast } = useToast();
 
   const navigate = (path: string) => {
@@ -63,7 +61,7 @@ export function PatientsPage() {
 
   const actions = useMemo<TableAction<Patient>[]>(() => [
     { label: 'Ver', icon: <Eye size={14} />, onClick: (row) => navigate(`/patients/${row.id}`) },
-    { label: 'Editar', icon: <Edit size={14} />, onClick: (row) => setEditingId(row.id) },
+    { label: 'Editar', icon: <Edit size={14} />, onClick: (row) => {} },
     { label: 'Eliminar', icon: <Trash2 size={14} />, variant: 'danger', onClick: (row) => handleDelete(row) },
   ], []);
 
@@ -76,30 +74,6 @@ export function PatientsPage() {
       addToast('error', 'Error al eliminar paciente');
     }
   };
-
-  const renderRow = (row: Patient) => ({
-    avatar: <Avatar fallback={`${row.nombre[0]}${row.apellidos[0]}`} size="sm" />,
-    nombre: (
-      <Link to={`/patients/${row.id}`} className="font-medium text-text hover:text-primary transition-colors">
-        {row.nombre} {row.apellidos}
-      </Link>
-    ),
-    dni: row.dni || '-',
-    edad: getAge(row) ? `${getAge(row)} años` : '-',
-    sexo: row.sexo || '-',
-    contacto: (
-      <div className="flex flex-col gap-1 text-sm">
-        {row.telefono && <span className="flex items-center gap-1 text-text-3"><Phone size={10} /> {row.telefono}</span>}
-        {row.email && <span className="flex items-center gap-1 text-text-3"><Mail size={10} /> {row.email}</span>}
-      </div>
-    ),
-    estado: (
-      <Badge variant={row.activo ? 'success' : 'secondary'} size="sm" dot>
-        {row.activo ? 'Activo' : 'Inactivo'}
-      </Badge>
-    ),
-    created_at: row.created_at ? new Date(row.created_at).toLocaleDateString('es-ES') : '-',
-  });
 
   return (
     <div className="space-y-6">

@@ -1,14 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Plus, FileText, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Search, Plus, FileText } from 'lucide-react';
 import api from '@/lib/api';
 import type { Invoice } from '@/types';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { Table, type TableColumn, type TableAction } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { InvoiceFormDialog } from './InvoiceFormDialog';
 import { useTranslation } from '@/i18n/useTranslation';

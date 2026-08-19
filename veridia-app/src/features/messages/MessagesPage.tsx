@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { MessageSquare, User, Send, X } from 'lucide-react';
+import { MessageSquare, Send } from 'lucide-react';
 import api from '@/lib/api';
 import type { Message } from '@/types';
 import { Card } from '@/components/ui/Card';
@@ -94,7 +94,7 @@ export function MessagesPage() {
           <Button
             variant="primary"
             size="md"
-            icon={Send}
+            icon={<Send size={16} />}
             disabled={!draft.trim()}
             aria-label="Enviar mensaje"
           >
