@@ -1,5 +1,5 @@
 import { useState, type ReactNode, type MouseEvent } from 'react';
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Check, CheckSquare, Square, MoreVertical } from 'lucide-react';
+import { ChevronUp, ChevronDown, MoreVertical } from 'lucide-react';
 
 export interface TableColumn<T> {
   key: string;
@@ -28,6 +28,7 @@ interface TableProps<T> {
   actions?: TableAction<T>[];
   rowClassName?: (row: T) => string;
   className?: string;
+  renderRow?: (row: T) => Record<string, ReactNode>;
 }
 
 function SkeletonTableRow({ columnCount }: { columnCount: number }) {
@@ -53,21 +54,10 @@ export function Table<T>({
   actions,
   rowClassName,
   className = '',
+  renderRow,
 }: TableProps<T>) {
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+  const [sortConfig, _setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
-
-  const handleSort = (key: string) => {
-    const column = columns.find((c) => c.key === key);
-    if (!column?.sortable) return;
-
-    setSortConfig((prev) => {
-      if (prev?.key === key && prev.direction === 'asc') {
-        return { key, direction: 'desc' };
-      }
-      return { key, direction: 'asc' };
-    });
-  };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -121,7 +111,9 @@ export function Table<T>({
                   type="checkbox"
                   className="h-4 w-4 rounded border-border text-primary focus:ring-primary/40"
                   checked={selectedKeys.size === data.length && data.length > 0}
-                  indeterminate={selectedKeys.size > 0 && selectedKeys.size < data.length}
+                  ref={(el) => {
+                    if (el) el.indeterminate = selectedKeys.size > 0 && selectedKeys.size < data.length;
+                  }}
                   onChange={(e) => handleSelectAll(e.target.checked)}
                 />
               </th>
@@ -190,11 +182,19 @@ export function Table<T>({
                       />
                     </td>
                   )}
-                  {columns.map((column) => (
-                    <td key={column.key} className={`px-3 py-3 text-sm text-text ${column.className || ''}`}>
-                      {column.render ? column.render(row) : (row as Record<string, unknown>)[column.key] as ReactNode}
-                    </td>
-                  ))}
+                  {renderRow ? (
+                    <>
+                      {Object.entries(renderRow(row)).map(([key, content]) => (
+                        <td key={key} className="px-3 py-3 text-sm text-text">{content}</td>
+                      ))}
+                    </>
+                  ) : (
+                    columns.map((column) => (
+                      <td key={column.key} className={`px-3 py-3 text-sm text-text ${column.className || ''}`}>
+                        {column.render ? column.render(row) : (row as Record<string, unknown>)[column.key] as ReactNode}
+                      </td>
+                    ))
+                  )}
                   {actions && actions.length > 0 && (
                     <td className="px-3 py-3 text-right">
                       <div className="relative inline-block">

@@ -1,5 +1,5 @@
-import { useState, type ReactNode, useRef, useEffect } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 interface AccordionItem {
   id: string;
@@ -25,7 +25,6 @@ export function Accordion({
   const [openItems, setOpenItems] = useState<Set<string>>(
     new Set(defaultOpen)
   );
-  const contentRefs = useRef<Record<string, HTMLDivElement>>({});
 
   const toggleItem = (id: string) => {
     const item = items.find((i) => i.id === id);

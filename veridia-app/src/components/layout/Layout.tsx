@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 
 export function Layout() {
   const { isAuthenticated, loadUser } = useAuthStore();
-  const { sidebarCollapsed, mobileSidebarOpen, setMobileSidebarOpen } = useUIStore();
+  const { mobileSidebarOpen, setMobileSidebarOpen } = useUIStore();
 
   useEffect(() => {
     if (isAuthenticated) {

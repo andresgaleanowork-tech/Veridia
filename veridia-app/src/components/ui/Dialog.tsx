@@ -11,6 +11,7 @@ interface DialogProps {
   size?: DialogSize;
   description?: string;
   showCloseButton?: boolean;
+  maxWidth?: string;
 }
 
 const sizeClasses: Record<DialogSize, string> = {
@@ -29,6 +30,7 @@ export function Dialog({
   size = 'lg',
   description,
   showCloseButton = true,
+  maxWidth,
 }: DialogProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -100,6 +102,7 @@ export function Dialog({
         aria-labelledby="dialog-title"
         aria-describedby={description ? 'dialog-description' : undefined}
         className={`relative w-full ${sizeClasses[size]} bg-surface border border-border rounded-2xl shadow-elevated max-h-[85vh] flex flex-col animate-scale-in`}
+        style={maxWidth ? { maxWidth: maxWidth } : undefined}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>

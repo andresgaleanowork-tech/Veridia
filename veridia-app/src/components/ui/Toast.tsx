@@ -50,7 +50,7 @@ function ToastItemComponent({ toast, onDismiss, onMouseEnter, onMouseLeave }: {
   const config = variantConfig[toast.variant];
   const [progress, setProgress] = useState(100);
   const duration = toast.duration ?? 4000;
-  const intervalRef = useRef<ReturnType<typeof setInterval>>();
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isPausedRef = useRef(false);
 
   useEffect(() => {

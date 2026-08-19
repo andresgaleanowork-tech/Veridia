@@ -1,4 +1,4 @@
-import { useState, type ReactNode, type ButtonHTMLAttributes } from 'react';
+import { useState, type ReactNode } from 'react';
 
 type TabsVariant = 'default' | 'pills' | 'underline';
 
@@ -55,7 +55,7 @@ export function Tabs({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent, tabId: string, index: number) => {
+  const handleKeyDown = (e: React.KeyboardEvent, tabId: string) => {
     const enabledItems = items.filter((t) => !t.disabled);
     const currentIndex = enabledItems.findIndex((t) => t.id === tabId);
     
@@ -90,7 +90,7 @@ export function Tabs({
   return (
     <div className={`w-full ${className}`} role="tablist" aria-label={tabsId}>
       <div className={`flex ${containerClass}`}>
-        {items.map((item, index) => (
+        {items.map((item) => (
           <button
             key={item.id}
             role="tab"
@@ -100,7 +100,7 @@ export function Tabs({
             tabIndex={activeValue === item.id ? 0 : -1}
             disabled={item.disabled}
             onClick={() => handleTabClick(item.id)}
-            onKeyDown={(e) => handleKeyDown(e, item.id, index)}
+            onKeyDown={(e) => handleKeyDown(e, item.id)}
             className={[
               tabClass,
               'px-4 py-2.5 text-sm font-medium transition-all duration-200',

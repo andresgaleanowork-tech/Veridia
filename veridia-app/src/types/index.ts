@@ -6,6 +6,7 @@ export interface User {
   email: string;
   role: 'admin' | 'nutricionista' | 'secretaria' | 'trial';
   initials?: string;
+  avatar?: string;
   active: boolean;
   trial_expires?: string;
   dni?: string;
