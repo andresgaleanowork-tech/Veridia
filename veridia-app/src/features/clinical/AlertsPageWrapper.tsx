@@ -21,7 +21,7 @@ function AlertsPageFallback({ error, requestId, resetError, isDev, navigate, cop
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="min-h-screen bg-[#0B1120] flex items-center justify-center p-4"
+      className="min-h-screen bg-bg flex items-center justify-center p-4"
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -67,7 +67,7 @@ function AlertsPageFallback({ error, requestId, resetError, isDev, navigate, cop
           {navigate && (
             <button
               onClick={() => navigate('/clinical/alerts')}
-              className="flex-1 py-2.5 bg-gradient-to-r from-[#0891B2] to-[#0E7490] rounded-lg text-sm font-bold text-white hover:shadow-lg transition-all"
+              className="flex-1 py-2.5 bg-gradient-to-r from-primary to-primary/80 rounded-lg text-sm font-bold text-white hover:shadow-lg transition-all"
             >
               <RefreshCw className="w-4 h-4 inline mr-2" /> Recargar
             </button>

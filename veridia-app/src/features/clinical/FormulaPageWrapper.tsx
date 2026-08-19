@@ -19,7 +19,7 @@ function FormulaPageFallback({
     <motion.div
       initial={{"opacity": 0, "scale": 0.95}}
       animate={{"opacity": 1, "scale": 1}}
-      className="min-h-screen bg-[#0B1120] flex items-center justify-center p-4"
+      className="min-h-screen bg-bg flex items-center justify-center p-4"
     >
       <motion.div
         initial={{"opacity": 0, "y": 20}}
