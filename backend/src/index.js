@@ -49,8 +49,12 @@ app.use(helmet.crossOriginEmbedderPolicy({ policy: 'require-corp' }));
 app.use(helmet.crossOriginOpenerPolicy({ policy: 'same-origin' }));
 app.use(helmet.crossOriginResourcePolicy({ policy: 'same-origin' }));
 
+const corsOrigins = process.env.NODE_ENV === 'production'
+  ? (process.env.CORS_ORIGIN || 'https://veridia.health').split(',').map(s => s.trim())
+  : ['http://localhost:5173', 'http://localhost:3457', 'http://localhost:3000'];
+
 app.use(cors({
-  origin: (process.env.CORS_ORIGIN || '*').split(',').map(s => s.trim()),
+  origin: corsOrigins,
   credentials: true,
 }));
 
