@@ -180,6 +180,7 @@ export function AppointmentsPage() {
             );
           })}
         </div>
+        </div>
       )}
       <AppointmentFormDialog open={showForm} onClose={() => setShowForm(false)} />
     </div>

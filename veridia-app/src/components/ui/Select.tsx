@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronDown, Search, X } from 'lucide-react';
 
 interface SelectOption {
@@ -47,7 +47,94 @@ export function Select({
     typeof window !== 'undefined' &&
     (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
 
-  if (nativeOnMobile && isTouch) {
+  const useNative = nativeOnMobile && isTouch;
+
+  const closeDropdown = useCallback(() => {
+    setIsOpen(false);
+    setSearch('');
+    setActiveIndex(-1);
+  }, []);
+
+  useEffect(() => {
+    if (useNative) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        closeDropdown();
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeDropdown();
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [closeDropdown, useNative]);
+
+  useEffect(() => {
+    if (useNative) return;
+    if (isOpen && searchable && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen, searchable, useNative]);
+
+  useEffect(() => {
+    if (useNative) return;
+    if (activeIndex >= 0 && listRef.current) {
+      const activeElement = listRef.current.children[activeIndex] as HTMLElement | undefined;
+      activeElement?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [activeIndex, useNative]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (useNative) return;
+    if (!isOpen) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setIsOpen(true);
+        setActiveIndex(options.findIndex((o) => o.value === value));
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setActiveIndex((prev) => {
+          const next = prev + 1;
+          return next >= filteredOptions.length ? 0 : next;
+        });
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setActiveIndex((prev) => {
+          const next = prev - 1;
+          return next < 0 ? filteredOptions.length - 1 : next;
+        });
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (activeIndex >= 0 && activeIndex < filteredOptions.length) {
+          const opt = filteredOptions[activeIndex]!;
+          if (!opt.disabled) {
+            onValueChange?.(opt.value);
+            closeDropdown();
+          }
+        }
+        break;
+      case 'Tab':
+        closeDropdown();
+        break;
+    }
+  };
+
+  const inputId = `select-${Math.random().toString(36).slice(2, 9)}`;
+  const listId = `${inputId}-list`;
+  const errorId = `${inputId}-error`;
+
+  if (useNative) {
     return (
       <div className={`w-full ${className}`}>
         {label && (
@@ -77,87 +164,6 @@ export function Select({
       </div>
     );
   }
-
-  const closeDropdown = useCallback(() => {
-    setIsOpen(false);
-    setSearch('');
-    setActiveIndex(-1);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        closeDropdown();
-      }
-    };
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeDropdown();
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [closeDropdown]);
-
-  useEffect(() => {
-    if (isOpen && searchable && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isOpen, searchable]);
-
-  useEffect(() => {
-    if (activeIndex >= 0 && listRef.current) {
-      const activeElement = listRef.current.children[activeIndex] as HTMLElement | undefined;
-      activeElement?.scrollIntoView({ block: 'nearest' });
-    }
-  }, [activeIndex]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen) {
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        setIsOpen(true);
-        setActiveIndex(options.findIndex((o) => o.value === value));
-      }
-      return;
-    }
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setActiveIndex((prev) => {
-          const next = prev + 1;
-          return next >= filteredOptions.length ? 0 : next;
-        });
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setActiveIndex((prev) => {
-          const next = prev - 1;
-          return next < 0 ? filteredOptions.length - 1 : next;
-        });
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (activeIndex >= 0 && activeIndex < filteredOptions.length) {
-          const opt = filteredOptions[activeIndex];
-          if (!opt.disabled) {
-            onValueChange?.(opt.value);
-            closeDropdown();
-          }
-        }
-        break;
-      case 'Tab':
-        closeDropdown();
-        break;
-    }
-  };
-
-  const inputId = `select-${Math.random().toString(36).slice(2, 9)}`;
-  const listId = `${inputId}-list`;
-  const errorId = `${inputId}-error`;
 
   return (
     <div className={`w-full ${className}`}>

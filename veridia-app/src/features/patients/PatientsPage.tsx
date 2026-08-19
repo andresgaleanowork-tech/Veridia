@@ -140,7 +140,6 @@ export function PatientsPage() {
           ))}
         </div>
       </div>
-      </div>
 
       {isLoading ? (
         <Card className="p-6">
