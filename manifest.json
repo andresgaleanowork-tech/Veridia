@@ -1,0 +1,32 @@
+{
+  "name": "Veridia HealthTech",
+  "short_name": "Veridia",
+  "description": "Nutrition Software — Tecnología que nutre tu práctica clínica",
+  "start_url": "/veridia.html",
+  "display": "standalone",
+  "background_color": "#0F1923",
+  "theme_color": "#2E8B57",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/logo-icon.png",
+      "sizes": "182x222",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["medical", "health", "productivity"],
+  "lang": "es",
+  "dir": "ltr"
+}

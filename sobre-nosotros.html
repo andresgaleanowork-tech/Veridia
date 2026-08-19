@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sobre Nosotros — Veridia HealthTech</title>
+<meta name="description" content="Conoce al equipo detrás de Veridia HealthTech. Software de nutrición clínica creado por nutricionistas e ingenieros.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' https:; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; frame-src 'none'; object-src 'none'">
+<link rel="icon" href="assets/logo-icon.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/design-system.css">
+<style>
+:root{--dark:#0F1923;--dark2:#162231}
+body{overflow-x:hidden}
+
+.hero-sm{background:linear-gradient(135deg,var(--dark),#0A2A1A);padding:80px 24px 60px;text-align:center;color:#fff}
+.hero-sm h1{font-size:2.2rem;font-weight:900;margin-bottom:12px;letter-spacing:-1px;color:#fff}
+.hero-sm p{font-size:1rem;opacity:.7;max-width:600px;margin:0 auto;color:#fff}
+
+.section{padding:80px 24px}
+.section-inner{max-width:1100px;margin:0 auto}
+h2{font-size:1.8rem;font-weight:900;letter-spacing:-.5px;margin-bottom:16px}
+.subtitle{font-size:1rem;color:var(--text2);line-height:1.7;max-width:700px;margin-bottom:40px}
+
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.team-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;text-align:center;transition:var(--spring)}
+.team-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md)}
+.team-avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.8rem;color:#fff;font-weight:800}
+.team-card h3{font-size:1rem;font-weight:700}
+.team-card .role{font-size:.78rem;color:var(--primary);font-weight:600;margin:4px 0 10px}
+.team-card p{font-size:.82rem;color:var(--text2);line-height:1.5}
+
+.values-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+.value-card{padding:24px;border-left:3px solid var(--primary);background:var(--bg);border-radius:0 var(--radius) var(--radius) 0}
+.value-card h3{font-size:.95rem;font-weight:700;margin-bottom:6px}
+.value-card p{font-size:.82rem;color:var(--text2);line-height:1.5}
+
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.contact-info{display:grid;gap:16px}
+.contact-item{display:flex;gap:12px;align-items:flex-start;padding:16px;background:var(--bg);border-radius:var(--radius)}
+.contact-item .icon{font-size:1.3rem;min-width:28px;text-align:center}
+.contact-item strong{font-size:.88rem;display:block;margin-bottom:2px}
+.contact-item span{font-size:.78rem;color:var(--text2)}
+
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:.78rem;font-weight:600;margin-bottom:4px;color:var(--text2)}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-xs);font-size:.88rem;font-family:inherit;outline:none;transition:var(--ease)}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-glow)}
+
+@media(max-width:768px){
+  .hero-sm h1{font-size:1.6rem}
+  .hero-sm{padding:60px 20px 40px}
+  .contact-grid{grid-template-columns:1fr}
+  h2{font-size:1.4rem}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo"><img src="assets/logo-icon.png" alt="Veridia"><span>Veridia</span></a>
+    <div class="nav-links">
+      <a href="index.html">Inicio</a>
+      <a href="index.html#features">Módulos</a>
+      <a href="index.html#precios">Precios</a>
+      <a href="portal-profesional.html" style="background:var(--primary);padding:8px 18px;border-radius:10px;color:#fff;font-weight:600">Acceder →</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero-sm">
+  <h1>Tecnología que nace de la clínica</h1>
+  <p>Veridia HealthTech fue creada por un equipo que entiende la nutrición clínica desde adentro. No somos solo ingenieros — trabajamos junto a nutricionistas cada día.</p>
+</section>
+
+<!-- HISTORIA -->
+<section class="section">
+  <div class="section-inner">
+    <h2>Nuestra historia</h2>
+    <p class="subtitle">Veridia nació de una necesidad real: Antonella, nutricionista clínica, necesitaba un software que realmente entendiera su flujo de trabajo — no una hoja de cálculo con botones. Andrés, ingeniero de software, tomó el desafío de construir la herramienta que ella describía.</p>
+    <p class="subtitle" style="margin-top:-20px">El resultado: un ERP clínico que habla el idioma del nutricionista. Con motor ESPEN, 969 alimentos BEDCA, soporte nutricional UCI, restauración colectiva APPCC, y una IA que interpreta analíticas — todo en una sola plataforma.</p>
+    <p class="subtitle" style="margin-top:-20px">Hoy, Veridia HealthTech es propiedad de <strong>GalcoCapital LLC</strong>, con sede en España, y está en fase Beta con profesionales de nutrición de España y Latinoamérica.</p>
+  </div>
+</section>
+
+<!-- EQUIPO -->
+<section class="section" style="background:var(--light)">
+  <div class="section-inner">
+    <h2>El equipo</h2>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-avatar">AC</div>
+        <h3>Lic. Antonella Caverzan</h3>
+        <div class="role">Directora Clínica · Nutricionista</div>
+        <p>Especialista en nutrición clínica con enfoque en patologías metabólicas. Diseñadora del motor clínico, las fórmulas ESPEN y los flujos de consulta.</p>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">AG</div>
+        <h3>Eduardo Andres Galeano Aido</h3>
+        <div class="role">Director de Arquitectura · CTO</div>
+        <p>Ingeniero de software especializado en HealthTech. Arquitecto de la plataforma, las integraciones de IA, y el módulo de restauración colectiva.</p>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">🤖</div>
+        <h3>Veridia IA</h3>
+        <div class="role">Copiloto Clínico · Gemini 2.0</div>
+        <p>Inteligencia artificial que interpreta analíticas, genera planes nutricionales, sugiere por patología y detecta interacciones fármaco-nutriente.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VALORES -->
+<section class="section">
+  <div class="section-inner">
+    <h2>Nuestros valores</h2>
+    <div class="values-grid">
+      <div class="value-card">
+        <h3>🔬 Rigor clínico</h3>
+        <p>Cada algoritmo, cada fórmula, cada recomendación está basada en guías clínicas publicadas (ESPEN, OMS, BEDCA). No inventamos — implementamos ciencia.</p>
+      </div>
+      <div class="value-card">
+        <h3>🔒 Privacidad primero</h3>
+        <p>Datos de salud protegidos con RGPD Art.9, anonimización para IA, CSP, cifrado. Los datos del paciente son del paciente — no los vendemos ni los usamos.</p>
+      </div>
+      <div class="value-card">
+        <h3>🌍 Accesible</h3>
+        <p>3 idiomas, 9 monedas, plan gratuito. Funciona en cualquier dispositivo con navegador. Sin instalación, sin hardware especial. Nutrición de calidad para todos.</p>
+      </div>
+      <div class="value-card">
+        <h3>💬 Honestidad</h3>
+        <p>Cada día trabajamos para que la herramienta sea mejor. Si algo no funciona, lo arreglamos. Si algo falta, lo decimos. Sin marketing vacío — solo software que funciona.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACTO -->
+<section class="section" style="background:var(--light)" id="contacto">
+  <div class="section-inner">
+    <h2>Contacto</h2>
+    <p class="subtitle">¿Tenés una pregunta, una sugerencia, o querés saber más? Escribinos. Respondemos en menos de 24 horas.</p>
+    <div class="contact-grid">
+      <div class="contact-info">
+        <div class="contact-item">
+          <div class="icon">📧</div>
+          <div><strong>Email general</strong><span>soporte@veridia.tech</span></div>
+        </div>
+        <div class="contact-item">
+          <div class="icon">⚖️</div>
+          <div><strong>Legal / Privacidad / DPO</strong><span>legal@veridia.tech · dpo@veridia.tech</span></div>
+        </div>
+        <div class="contact-item">
+          <div class="icon">💼</div>
+          <div><strong>Ventas / Enterprise</strong><span>admin@veridia.tech</span></div>
+        </div>
+        <div class="contact-item">
+          <div class="icon">🏢</div>
+          <div><strong>Entidad mercantil</strong><span>GalcoCapital LLC<br>Eduardo Andres Galeano Aido<br>NIE: Z0002918W<br>España</span></div>
+        </div>
+      </div>
+      <form onsubmit="return handleContactForm(event)" style="background:var(--white);padding:28px;border-radius:var(--radius);border:1px solid var(--border)">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:16px">Envíanos un mensaje</h3>
+        <div class="form-group"><label>Nombre completo *</label><input type="text" id="ctName" required placeholder="Tu nombre"></div>
+        <div class="form-group"><label>Email *</label><input type="email" id="ctEmail" required placeholder="tu@email.com"></div>
+        <div class="form-group"><label>Asunto</label>
+          <select id="ctSubject">
+            <option>Consulta general</option>
+            <option>Soporte técnico</option>
+            <option>Precios y planes</option>
+            <option>Demo personalizada</option>
+            <option>Propuesta de colaboración</option>
+            <option>Reportar un problema</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Mensaje *</label><textarea id="ctMessage" rows="4" required placeholder="¿En qué podemos ayudarte?"></textarea></div>
+        <button type="submit" class="btn-primary" style="width:100%">Enviar mensaje</button>
+        <div id="ctResult" style="margin-top:10px;font-size:.82rem;text-align:center"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div style="margin-bottom:10px">
+    <a href="legal/AVISO-LEGAL.md" target="_blank">Aviso Legal</a>·
+    <a href="legal/POLITICA-PRIVACIDAD.md" target="_blank">Privacidad</a>·
+    <a href="legal/POLITICA-COOKIES.md" target="_blank">Cookies</a>·
+    <a href="legal/TERMINOS-Y-CONDICIONES.md" target="_blank">Términos</a>
+  </div>
+  © 2026 GalcoCapital LLC — Eduardo Andres Galeano Aido (NIE: Z0002918W)
+</footer>
+
+<script>
+function handleContactForm(e){
+  e.preventDefault();
+  var name=document.getElementById('ctName').value.trim();
+  var email=document.getElementById('ctEmail').value.trim();
+  var subject=document.getElementById('ctSubject').value;
+  var message=document.getElementById('ctMessage').value.trim();
+  if(!name||!email||!message){document.getElementById('ctResult').innerHTML='<span style="color:#dc2626">Complete todos los campos obligatorios</span>';return false}
+
+  // Create mailto link (functional without backend)
+  var body='Nombre: '+name+'%0AEmail: '+email+'%0AAsunto: '+subject+'%0A%0A'+encodeURIComponent(message);
+  window.open('mailto:soporte@veridia.tech?subject='+encodeURIComponent('[Contacto Web] '+subject)+'&body='+body);
+
+  document.getElementById('ctResult').innerHTML='<span style="color:#2E8B57">✅ Se abrió tu cliente de email. Si prefieres, escríbenos directamente a soporte@veridia.tech</span>';
+  return false;
+}
+</script>
+</body>
+</html>

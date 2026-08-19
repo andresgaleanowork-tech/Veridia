@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: veridia_db
+      POSTGRES_USER: veridia
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-veridia_secret_change_me}
+    ports:
+      - "5444:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U veridia -d veridia_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "3457:3456"
+    environment:
+      DATABASE_URL: postgresql://veridia:${DB_PASSWORD:-veridia_secret_change_me}@db:5432/veridia_db
+      JWT_SECRET: ${JWT_SECRET:-veridia_jwt_secret_change_in_production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-veridia_refresh_secret_change_in_production}
+      NODE_ENV: development
+      PORT: 3456
+      USDA_API_KEY: ${USDA_API_KEY:-DEMO_KEY}
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX: 100
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src:ro
+
+  frontend:
+    build:
+      context: ./veridia-app
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      - VITE_API_URL=http://localhost:3457
+
+volumes:
+  pgdata:

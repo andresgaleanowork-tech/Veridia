@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.npm/
+package-lock.json
+
+# Build output
+veridia-deploy.html
+
+# Cache & temp
+.cache/
+*.log
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# Environment (sensitive)
+backend/.env
+
+# OS
+.DS_Store
+Desktop.ini
+
+# Debug
+deep-qa.js

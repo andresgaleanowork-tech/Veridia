@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0B1120" />
+    <meta name="description" content="Veridia HealthTech — ERP de nutrición clínica" />
+    <title>Veridia HealthTech — Sin conexión</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: #0B1120;
+        color: #F1F5F9;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        -webkit-font-smoothing: antialiased;
+      }
+      .card {
+        max-width: 420px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        backdrop-filter: blur(12px);
+      }
+      .logo {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 1.25rem;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0891B2, #059669);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: #fff;
+      }
+      h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+      p { color: #94A3B8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem; }
+      .actions { display: flex; flex-direction: column; gap: 0.75rem; }
+      button {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        border: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.1s ease;
+      }
+      .primary {
+        background: #0891B2;
+        color: #fff;
+      }
+      .secondary {
+        background: rgba(255, 255, 255, 0.06);
+        color: #F1F5F9;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      button:hover { transform: translateY(-1px); }
+      .status {
+        margin-top: 1.5rem;
+        font-size: 0.75rem;
+        color: #64748B;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        button { transition: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="logo" aria-hidden="true">V</div>
+      <h1>Sin conexión</h1>
+      <p>
+        No hay conexión a internet en este momento. Tu trabajo sin conexión
+        estará disponible cuando restablezcas la conexión.
+      </p>
+      <div class="actions">
+        <button class="primary" onclick="window.location.href='/'">Volver a la aplicación</button>
+        <button class="secondary" onclick="window.location.reload()">Reintentar conexión</button>
+      </div>
+      <div class="status">Veridia HealthTech &mdash; Modo sin conexión</div>
+    </div>
+  </body>
+</html>

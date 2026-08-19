@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veridia HealthTech — SuperAdmin</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/logo-icon.png" type="image/png">
+<link rel="stylesheet" href="css/design-system.css">
+<style>
+body{background:var(--bg);overflow:auto}
+.sa-layout{display:flex;min-height:100vh}
+.sa-sidebar{width:240px;background:linear-gradient(180deg,#0f172a,#1e293b);color:#fff;display:flex;flex-direction:column;flex-shrink:0}
+.sa-sidebar-brand{padding:20px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
+.sa-sidebar-brand img{height:28px}
+.sa-sidebar-brand h2{font-size:.9rem;font-weight:800;letter-spacing:-.3px}
+.sa-sidebar-brand span{font-size:.6rem;color:rgba(255,255,255,.4);display:block}
+.sa-nav{flex:1;padding:12px 0}
+.sa-nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:.82rem;color:rgba(255,255,255,.6);transition:all .15s;border-left:3px solid transparent}
+.sa-nav-item:hover{background:rgba(255,255,255,.05);color:#fff}
+.sa-nav-item.active{background:rgba(46,139,87,.15);color:#4ade80;border-left-color:#4ade80;font-weight:700}
+.sa-nav-section{padding:16px 20px 6px;font-size:.6rem;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.25)}
+.sa-main{flex:1;overflow-y:auto;padding:24px}
+.sa-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.sa-header h1{font-size:1.4rem;font-weight:800;letter-spacing:-.5px}
+.sa-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.sa-stat{background:var(--surface);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border);border-top:3px solid var(--primary);transition:var(--spring)}
+.sa-stat:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.sa-stat h3{font-size:1.8rem;font-weight:900;letter-spacing:-1px}
+.sa-stat p{font-size:.72rem;color:var(--text3);margin-top:2px}
+.sa-stat .trend{font-size:.68rem;font-weight:600;margin-top:4px}
+.sa-stat .trend.up{color:var(--success)}
+.sa-stat .trend.down{color:var(--danger)}
+.sa-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--border);margin-bottom:16px;overflow:hidden}
+.sa-card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.sa-card-header h3{font-size:.85rem;font-weight:700;letter-spacing:-.2px}
+.sa-card-body{padding:16px 20px}
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a,#1e293b)}
+.login-box{background:var(--surface);border-radius:var(--radius-lg);padding:44px;max-width:420px;width:90%;text-align:center;box-shadow:var(--shadow-lg)}
+.login-box h2{font-size:1.2rem;margin:12px 0 4px}
+.login-box p{font-size:.78rem;color:var(--text3);margin-bottom:20px}
+.login-box input{margin-bottom:10px}
+.login-error{color:var(--danger);font-size:.75rem;min-height:20px;margin-bottom:8px}
+.toggle{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.78rem}
+.toggle input{width:auto}
+@media(max-width:1024px){.sa-stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){.sa-layout{flex-direction:column}.sa-sidebar{width:100%;flex-direction:row;overflow-x:auto}.sa-nav{display:flex;padding:8px}.sa-nav-item{border-left:none;border-bottom:3px solid transparent;padding:6px 12px;white-space:nowrap}.sa-nav-item.active{border-bottom-color:#4ade80}}
+@media(max-width:768px){
+  .sa-sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;transform:translateX(-100%);transition:transform .3s}
+  .sa-sidebar.open{transform:translateX(0)}
+  #saMobileMenu{display:block!important}
+  .sa-main{padding:12px 10px}
+  .sa-stats{grid-template-columns:1fr 1fr;gap:10px}
+  .sa-stat{padding:14px}
+  .sa-stat h3{font-size:1.4rem}
+  .sa-header{flex-direction:column;gap:10px;align-items:flex-start}
+  .sa-header h1{font-size:1.1rem}
+  .form-row{flex-direction:column;gap:8px}
+  input,select,textarea{font-size:16px;padding:10px 12px}
+  table{font-size:.75rem}
+  th,td{padding:6px 8px}
+  .modal{max-height:90vh;max-width:100%;width:100%;border-radius:16px 16px 0 0}
+  .modal-body{max-height:65vh;overflow-y:auto}
+  .modal-footer{flex-wrap:wrap;gap:6px}
+  .modal-footer .btn{flex:1;text-align:center}
+  .sa-card-header{flex-wrap:wrap;gap:6px}
+  .pill-tabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+  .pill-tabs::-webkit-scrollbar{display:none}
+  .pill-tab{flex-shrink:0;white-space:nowrap}
+}
+@media(max-width:480px){
+  .sa-stats{grid-template-columns:1fr;gap:8px}
+  .sa-stat{flex-direction:row;gap:10px;padding:12px}
+  .sa-main{padding:8px 6px}
+  table{font-size:.68rem}
+  th,td{padding:4px 6px}
+  .modal-body{padding:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-page" id="saLoginPage">
+  <div class="login-box">
+    <img src="assets/logo-icon.png" alt="Veridia" style="height:48px;margin-bottom:8px">
+    <h2 style="letter-spacing:-.4px">🛡️ SuperAdmin</h2>
+    <p style="color:var(--text3)">Panel de gestión SaaS · Veridia HealthTech</p>
+    <input type="email" id="saEmail" placeholder="Email de administrador">
+    <input type="password" id="saPass" placeholder="Contraseña">
+    <div class="login-error" id="saError"></div>
+    <button class="btn btn-primary" style="width:100%;padding:12px;border-radius:14px;font-size:.88rem;display:flex;align-items:center;justify-content:center;gap:8px" onclick="saLogin()">🔐 Acceder al panel</button>
+    <div style="margin-top:16px;font-size:.68rem;color:var(--text3)">
+      <a href="index.html" style="color:var(--text3);display:inline-flex;align-items:center;gap:4px">🌐 ← Volver al sitio</a>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="sa-layout" id="saApp" style="display:none">
+  <aside class="sa-sidebar">
+    <div class="sa-sidebar-brand">
+      <img src="assets/logo-icon.png" alt="V">
+      <div><h2>Veridia</h2><span>SuperAdmin · SaaS Panel</span></div>
+    </div>
+    <nav class="sa-nav" id="saNav"></nav>
+    <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,.1)">
+      <div style="font-size:.72rem;color:rgba(255,255,255,.4)" id="saUserInfo">Admin</div>
+      <div style="margin-top:8px"><button class="btn btn-outline btn-xs" style="color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.2);border-radius:8px" onclick="saLogout()">🚪 Cerrar sesión</button></div>
+    </div>
+  </aside>
+  <main class="sa-main"><button onclick="document.querySelector('.sa-sidebar').classList.toggle('open')" style="display:none;position:fixed;top:10px;left:10px;z-index:201;background:var(--primary);color:#fff;border:none;border-radius:8px;width:36px;height:36px;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2)" id="saMobileMenu">☰</button><div id="saContent" style="width:100%"></div></main>
+</div>
+
+<div class="modal-overlay" id="saModal" onclick="if(event.target===this)saCloseModal()"><div class="modal" id="saModalContent"></div></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+// ===== FIREBASE INIT =====
+var saDB=null;
+try{
+  var _saFbCfg=(function(){try{var c=JSON.parse(localStorage.getItem('veridia_api_config')||'{}');return{apiKey:c.firebase_apiKey||'AIzaSyC70dqaMS6EuUfBGb9B4YJGvz7xJe3qJpk',authDomain:(c.firebase_projectId||'nutrisuite-6e44a')+'.firebaseapp.com',projectId:c.firebase_projectId||'nutrisuite-6e44a',storageBucket:c.firebase_storageBucket||'nutrisuite-6e44a.firebasestorage.app'}}catch(e){return{apiKey:'AIzaSyC70dqaMS6EuUfBGb9B4YJGvz7xJe3qJpk',authDomain:'nutrisuite-6e44a.firebaseapp.com',projectId:'nutrisuite-6e44a',storageBucket:'nutrisuite-6e44a.firebasestorage.app'}}})();
+  var app=firebase.initializeApp(_saFbCfg,'superadmin');
+  saDB=firebase.firestore(app);
+}catch(e){console.warn('Firebase SA:',e.message)}
+
+// ===== DATA =====
+var SA={
+  currentUser:null,
+  currentSection:'dashboard',
+  clients:[],
+  tickets:[],
+  plans:{
+    free:{id:'free',nombre:'Starter',precio:0,modulos:['dashboard','agenda','pacientes','formula','bedca'],maxUsuarios:1,maxPacientes:20,color:'#94a3b8'},
+    pro:{id:'pro',nombre:'Professional',precio:49,modulos:['dashboard','agenda','pacientes','historia','antropometria','analiticas','alertas','formula','desarrollada','bedca','recetas','planes','facturacion','contabilidad','mensajes','ia','espen','settings'],maxUsuarios:3,maxPacientes:500,color:'#2563eb'},
+    enterprise:{id:'enterprise',nombre:'Enterprise',precio:149,modulos:['dashboard','agenda','pacientes','historia','antropometria','analiticas','alertas','formula','soporte','desarrollada','bedca','recetas','planes','restauracion','facturacion','caja','contabilidad','mensajes','ia','auditoria','espen','settings'],maxUsuarios:10,maxPacientes:99999,color:'#7c3aed'}
+  },
+  auditLog:[]
+};
+
+// Load from localStorage
+try{
+  var saved=JSON.parse(localStorage.getItem('veridia_superadmin'));
+  if(saved){
+    if(saved.clients)SA.clients=saved.clients;
+    if(saved.tickets)SA.tickets=saved.tickets;
+    if(saved.auditLog)SA.auditLog=saved.auditLog;
+  }
+}catch(e){}
+
+function saSave(){
+  try{localStorage.setItem('veridia_superadmin',JSON.stringify({clients:SA.clients,tickets:SA.tickets,auditLog:SA.auditLog}))}catch(e){}
+  // Sync to Firestore
+  if(saDB){try{saDB.collection('superadmin').doc('data').set({clients:SA.clients,tickets:SA.tickets,_ts:Date.now()})}catch(e){}}
+}
+
+function saAudit(action,detail){
+  SA.auditLog.unshift({fecha:new Date().toISOString().replace('T',' ').substring(0,16),user:SA.currentUser?SA.currentUser.email:'?',action:action,detail:detail||''});
+  if(SA.auditLog.length>500)SA.auditLog=SA.auditLog.slice(0,500);
+}
+
+// ===== AUTH =====
+var SA_USERS=[
+  {email:'superadmin@veridia.tech',passHash:'a1b2c3d4e5f6a7b8',name:'Super Administrador'},
+  {email:'admin@veridia.tech',passHash:'a63f45da7045830c',name:'Andrés Galeano'}
+];
+
+function saHashPass(str){var h1=5381,h2=2166136261;for(var i=0;i<str.length;i++){var c=str.charCodeAt(i);h1=((h1<<5)+h1)^c;h2^=c;h2=Math.imul(h2,16777619)}return(h1>>>0).toString(16).padStart(8,'0')+(h2>>>0).toString(16).padStart(8,'0')}
+
+function saLogin(){
+  var email=document.getElementById('saEmail').value.trim().toLowerCase();
+  var pass=document.getElementById('saPass').value.trim();
+  document.getElementById('saError').textContent='';
+  if(!email||!pass){document.getElementById('saError').textContent='Complete todos los campos';return}
+  var hash=saHashPass(pass);
+  var user=SA_USERS.find(function(u){return u.email===email&&u.passHash===hash});
+  if(!user){document.getElementById('saError').textContent='Credenciales incorrectas';return}
+  SA.currentUser=user;
+  document.getElementById('saLoginPage').style.display='none';
+  document.getElementById('saApp').style.display='flex';
+  document.getElementById('saUserInfo').textContent=user.name;
+  saAudit('LOGIN','SuperAdmin login');saSave();
+  saRender();
+}
+
+function saLogout(){
+  saAudit('LOGOUT','SuperAdmin logout');saSave();
+  SA.currentUser=null;
+  document.getElementById('saApp').style.display='none';
+  document.getElementById('saLoginPage').style.display='flex';
+}
+
+// ===== MODAL =====
+function saOpenModal(html){document.getElementById('saModalContent').innerHTML=html;document.getElementById('saModal').classList.add('show')}
+function saCloseModal(){document.getElementById('saModal').classList.remove('show')}
+
+// ===== NAVIGATION =====
+var SA_NAV=[
+  {s:'Principal',items:[{id:'dashboard',ic:'📊',l:'Dashboard'},{id:'clients',ic:'👥',l:'Clientes'},{id:'licenses',ic:'🔑',l:'Licencias'}]},
+  {s:'Negocio',items:[{id:'billing',ic:'💰',l:'Facturación'},{id:'tickets',ic:'🎫',l:'Soporte'},{id:'analytics',ic:'📈',l:'Analytics'}]},
+  {s:'Sistema',items:[{id:'apis',ic:'🔑',l:'APIs & Keys'},{id:'config',ic:'⚙️',l:'Configuración'},{id:'audit',ic:'🛡️',l:'Auditoría'}]}
+];
+
+function saRender(){
+  // Nav
+  document.getElementById('saNav').innerHTML=SA_NAV.map(function(s){
+    return '<div class="sa-nav-section">'+s.s+'</div>'+s.items.map(function(i){
+      return '<div class="sa-nav-item'+(SA.currentSection===i.id?' active':'')+'" onclick="SA.currentSection=\''+i.id+'\';saRender()"><span>'+i.ic+'</span> '+i.l+'</div>';
+    }).join('');
+  }).join('');
+  // Content
+  var c=document.getElementById('saContent');
+  if(SA.currentSection==='dashboard')renderSADashboard(c);
+  else if(SA.currentSection==='clients')renderSAClients(c);
+  else if(SA.currentSection==='licenses')renderSALicenses(c);
+  else if(SA.currentSection==='billing')renderSABilling(c);
+  else if(SA.currentSection==='tickets')renderSATickets(c);
+  else if(SA.currentSection==='analytics')renderSAAnalytics(c);
+  else if(SA.currentSection==='apis')renderSAApis(c);
+  else if(SA.currentSection==='config')renderSAConfig(c);
+  else if(SA.currentSection==='audit')renderSAAudit(c);
+}
+
+// ===== DASHBOARD =====
+function renderSADashboard(c){
+  var activos=SA.clients.filter(function(cl){return cl.estado==='activo'||cl.estado==='trial'}).length;
+  var mrr=SA.clients.filter(function(cl){return cl.estado==='activo'}).reduce(function(s,cl){return s+(SA.plans[cl.plan]?SA.plans[cl.plan].precio:0)},0);
+  var trials=SA.clients.filter(function(cl){return cl.estado==='trial'}).length;
+  var ticketsAbiertos=SA.tickets.filter(function(t){return t.estado==='abierto'||t.estado==='en_progreso'}).length;
+  var totalPacientes=SA.clients.reduce(function(s,cl){return s+(cl.uso?cl.uso.pacientes||0:0)},0);
+  var vencidos=SA.clients.filter(function(cl){return cl.estado==='activo'&&cl.fechaVencimiento&&cl.fechaVencimiento<new Date().toISOString().slice(0,10)}).length;
+
+  c.innerHTML='<div class="sa-header"><h1>📊 Dashboard</h1><span style="font-size:.72rem;color:var(--text3)">'+new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+'</span></div>'
+  +'<div class="sa-stats">'
+  +'<div class="sa-stat" style="border-top-color:var(--primary)"><h3 style="color:var(--primary)">'+activos+'</h3><p>Clientes activos</p><div class="trend up">'+trials+' en trial</div></div>'
+  +'<div class="sa-stat" style="border-top-color:var(--accent)"><h3 style="color:var(--accent)">'+mrr+'€</h3><p>MRR (Monthly Recurring Revenue)</p><div class="trend up">'+Math.round(mrr*12)+'€ ARR</div></div>'
+  +'<div class="sa-stat" style="border-top-color:var(--info)"><h3 style="color:var(--info)">'+totalPacientes+'</h3><p>Pacientes en plataforma</p></div>'
+  +'<div class="sa-stat" style="border-top-color:'+(ticketsAbiertos>0?'var(--warning)':'var(--success)')+'"><h3 style="color:'+(ticketsAbiertos>0?'var(--warning)':'var(--success)')+'">'+ticketsAbiertos+'</h3><p>Tickets abiertos</p>'+(vencidos?'<div class="trend down">'+vencidos+' pagos vencidos</div>':'')+'</div>'
+  +'</div>'
+  // Alertas
+  +(vencidos?'<div class="sa-card" style="border-left:4px solid var(--danger)"><div class="sa-card-body" style="display:flex;align-items:center;gap:12px"><span style="font-size:1.2rem">⚠️</span><div><strong>'+vencidos+' cliente(s) con pago vencido</strong><div style="font-size:.72rem;color:var(--text3)">Revisar en Facturación → Vencidos</div></div><button class="btn btn-danger btn-sm" onclick="SA.currentSection=\'billing\';saRender()">Ver →</button></div></div>':'')
+  // Últimos clientes
+  +'<div class="sa-card"><div class="sa-card-header"><h3>👥 Últimos clientes</h3><button class="btn btn-primary btn-sm" onclick="saOpenNewClient()">+ Nuevo cliente</button></div>'
+  +'<div class="sa-card-body" style="padding:0"><table><thead><tr><th>Cliente</th><th>Plan</th><th>Estado</th><th>Pacientes</th><th>Último acceso</th></tr></thead><tbody>'
+  +SA.clients.slice(0,10).map(function(cl){
+    var plan=SA.plans[cl.plan]||{nombre:'?',color:'#999'};
+    return '<tr style="cursor:pointer" onclick="saViewClient(\''+cl.id+'\')">'
+    +'<td><strong>'+cl.nombre+'</strong><div style="font-size:.68rem;color:var(--text3)">'+cl.email+'</div></td>'
+    +'<td><span class="badge" style="background:'+plan.color+'15;color:'+plan.color+'">'+plan.nombre+'</span></td>'
+    +'<td><span class="badge '+(cl.estado==='activo'?'badge-success':cl.estado==='trial'?'badge-info':cl.estado==='suspendido'?'badge-warning':'badge-danger')+'">'+cl.estado+'</span></td>'
+    +'<td>'+(cl.uso?cl.uso.pacientes||0:0)+'</td>'
+    +'<td style="font-size:.72rem;color:var(--text3)">'+(cl.uso?cl.uso.ultimoAcceso||'—':'—')+'</td></tr>';
+  }).join('')
+  +'</tbody></table></div></div>'
+  // Últimos tickets
+  +'<div class="sa-card"><div class="sa-card-header"><h3>🎫 Tickets recientes</h3></div><div class="sa-card-body">'
+  +(SA.tickets.length?SA.tickets.slice(0,5).map(function(t){
+    var cl=SA.clients.find(function(c){return c.id===t.clientId});
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">'
+    +'<div><strong style="font-size:.82rem">'+t.asunto+'</strong><div style="font-size:.68rem;color:var(--text3)">'+(cl?cl.nombre:'?')+' · '+t.fecha+'</div></div>'
+    +'<span class="badge '+(t.estado==='abierto'?'badge-warning':t.estado==='en_progreso'?'badge-info':'badge-success')+'">'+t.estado+'</span></div>';
+  }).join(''):'<p style="color:var(--text3);font-size:.82rem">Sin tickets</p>')
+  +'</div></div>';
+}
+
+// ===== CLIENTS =====
+function renderSAClients(c){
+  c.innerHTML='<div class="sa-header"><h1>👥 Clientes</h1><button class="btn btn-primary" onclick="saOpenNewClient()">+ Nuevo cliente</button></div>'
+  +'<div class="pill-tabs">'
+  +['todos','activo','trial','suspendido','cancelado'].map(function(e){
+    var count=e==='todos'?SA.clients.length:SA.clients.filter(function(cl){return cl.estado===e}).length;
+    return '<button class="pill-tab'+(e==='todos'?' active':'')+'" onclick="saFilterClients(\''+e+'\')">'+e.charAt(0).toUpperCase()+e.slice(1)+' ('+count+')</button>';
+  }).join('')+'</div>'
+  +'<div class="sa-card"><div class="sa-card-body" style="padding:0"><table><thead><tr><th>Cliente</th><th>Contacto</th><th>Plan</th><th>Estado</th><th>Módulos</th><th>Pac.</th><th>Vence</th><th></th></tr></thead><tbody id="saClientList">'
+  +SA.clients.map(function(cl){return saClientRow(cl)}).join('')
+  +'</tbody></table></div></div>';
+}
+
+function saClientRow(cl){
+  var plan=SA.plans[cl.plan]||{nombre:'?',color:'#999',modulos:[]};
+  return '<tr>'
+  +'<td><strong style="cursor:pointer;color:var(--primary)" onclick="saViewClient(\''+cl.id+'\')">'+cl.nombre+'</strong></td>'
+  +'<td><div style="font-size:.78rem">'+cl.contacto+'</div><div style="font-size:.65rem;color:var(--text3)">'+cl.email+'</div></td>'
+  +'<td><span class="badge" style="background:'+plan.color+'15;color:'+plan.color+'">'+plan.nombre+' ('+plan.precio+'€)</span></td>'
+  +'<td><span class="badge '+(cl.estado==='activo'?'badge-success':cl.estado==='trial'?'badge-info':cl.estado==='suspendido'?'badge-warning':'badge-danger')+'">'+cl.estado+'</span></td>'
+  +'<td style="font-size:.72rem">'+(cl.modulosActivos?cl.modulosActivos.length:plan.modulos.length)+'</td>'
+  +'<td>'+(cl.uso?cl.uso.pacientes||0:0)+'/'+(SA.plans[cl.plan]?SA.plans[cl.plan].maxPacientes:'?')+'</td>'
+  +'<td style="font-size:.72rem;color:var(--text3)">'+(cl.fechaVencimiento||'—')+'</td>'
+  +'<td><button class="btn btn-outline btn-xs" onclick="saEditClient(\''+cl.id+'\')">Editar</button></td></tr>';
+}
+
+function saFilterClients(estado){
+  var rows=document.querySelectorAll('#saClientList tr');
+  rows.forEach(function(r,i){
+    if(estado==='todos')r.style.display='';
+    else r.style.display=SA.clients[i]&&SA.clients[i].estado===estado?'':'none';
+  });
+  document.querySelectorAll('.pill-tab').forEach(function(t){t.classList.toggle('active',t.textContent.toLowerCase().includes(estado))});
+}
+
+function saOpenNewClient(){
+  saOpenModal('<div class="modal-header"><h3>Nuevo cliente</h3><button onclick="saCloseModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer">✕</button></div>'
+  +'<div class="modal-body">'
+  +'<div class="form-row"><div class="form-group"><label class="form-label">Nombre clínica *</label><input id="ncNombre" placeholder="Clínica de Nutrición..."></div>'
+  +'<div class="form-group"><label class="form-label">Contacto *</label><input id="ncContacto" placeholder="Lic. María García"></div></div>'
+  +'<div class="form-row"><div class="form-group"><label class="form-label">Email *</label><input type="email" id="ncEmail" placeholder="contacto@clinica.com"></div>'
+  +'<div class="form-group"><label class="form-label">Teléfono</label><input id="ncTel" placeholder="+34 600..."></div></div>'
+  +'<div class="form-row"><div class="form-group"><label class="form-label">Plan</label><select id="ncPlan">'
+  +Object.entries(SA.plans).map(function(e){return '<option value="'+e[0]+'">'+e[1].nombre+' ('+e[1].precio+'€/mes) — '+e[1].modulos.length+' módulos</option>'}).join('')
+  +'</select></div>'
+  +'<div class="form-group"><label class="form-label">Estado inicial</label><select id="ncEstado"><option value="trial">Trial (14 días)</option><option value="activo">Activo</option></select></div></div>'
+  +'<div class="form-group"><label class="form-label">Notas</label><textarea id="ncNotas" rows="2" placeholder="Observaciones internas..."></textarea></div>'
+  +'<div style="border-top:1px solid #e2e4e9;padding-top:14px;margin-top:10px">'
+  +'<h4 style="font-size:.88rem;margin-bottom:10px">🔑 Credenciales de acceso al ERP (para testing)</h4>'
+  +'<div class="form-row"><div class="form-group"><label class="form-label">Usuario (email ERP)</label><input id="ncUserEmail" placeholder="usuario@clinica.com"></div>'
+  +'<div class="form-group"><label class="form-label">Nombre visible</label><input id="ncUserName" placeholder="Lic. María García"></div></div>'
+  +'<div class="form-row"><div class="form-group"><label class="form-label">Contraseña</label><input id="ncUserPass" type="text" placeholder="Min 6 caracteres"><div style="font-size:.68rem;color:#8E8EA0;margin-top:3px">Se generará hash seguro automáticamente</div></div>'
+  +'<div class="form-group"><label class="form-label">Rol ERP</label><select id="ncUserRole"><option value="nutricionista">Nutricionista</option><option value="secretaria">Secretaria</option><option value="admin">Administrador</option></select></div></div>'
+  +'<label style="display:flex;align-items:center;gap:6px;font-size:.82rem;margin-top:4px"><input type="checkbox" id="ncCreateUser" checked> Crear usuario de prueba en el ERP</label>'
+  +'</div>'
+  +'</div><div class="modal-footer"><button class="btn btn-outline" onclick="saCloseModal()">Cancelar</button><button class="btn btn-primary" onclick="saSaveNewClient()">Crear cliente</button></div>');
+}
+
+// Hash function (same as ERP auth.js syncHash)
+function saHash(s){var h1=5381,h2=2166136261;for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);h1=((h1<<5)+h1)^c;h2^=c;h2=Math.imul(h2,16777619)}return(h1>>>0).toString(16).padStart(8,'0')+(h2>>>0).toString(16).padStart(8,'0')}
+
+function saSaveNewClient(){
+  var nombre=document.getElementById('ncNombre').value.trim();
+  var email=document.getElementById('ncEmail').value.trim();
+  if(!nombre||!email){alert('Nombre y email obligatorios');return}
+  var plan=document.getElementById('ncPlan').value;
+  var estado=document.getElementById('ncEstado').value;
+  var hoy=new Date().toISOString().slice(0,10);
+  var vence=new Date(Date.now()+(estado==='trial'?14:30)*86400000).toISOString().slice(0,10);
+
+  // Test user creation
+  var testUser=null;
+  var createUser=document.getElementById('ncCreateUser')&&document.getElementById('ncCreateUser').checked;
+  if(createUser){
+    var userEmail=(document.getElementById('ncUserEmail')||{}).value||'';
+    var userName=(document.getElementById('ncUserName')||{}).value||'';
+    var userPass=(document.getElementById('ncUserPass')||{}).value||'';
+    var userRole=(document.getElementById('ncUserRole')||{}).value||'nutricionista';
+    if(userEmail.trim()&&userPass.trim()){
+      if(userPass.trim().length<6){alert('La contraseña debe tener al menos 6 caracteres');return}
+      testUser={
+        email:userEmail.trim(),
+        name:userName.trim()||userEmail.split('@')[0],
+        role:userRole,
+        passHash:saHash(userPass.trim()),
+        plainPass:userPass.trim()
+      };
+    }
+  }
+
+  var client={
+    id:'cli_'+Date.now(),
+    nombre:nombre,
+    contacto:document.getElementById('ncContacto').value.trim(),
+    email:email,
+    telefono:document.getElementById('ncTel').value.trim(),
+    plan:plan,
+    estado:estado,
+    fechaAlta:hoy,
+    fechaVencimiento:vence,
+    modulosActivos:SA.plans[plan]?SA.plans[plan].modulos.slice():[],
+    notas:document.getElementById('ncNotas').value.trim(),
+    pagos:[],
+    uso:{pacientes:0,ultimoAcceso:null},
+    testUser:testUser?{email:testUser.email,name:testUser.name,role:testUser.role,passHash:testUser.passHash}:null
+  };
+
+  SA.clients.push(client);
+  saAudit('CREATE_CLIENT',nombre+' ('+plan+')'+(testUser?' + user: '+testUser.email:''));
+  saSave();saCloseModal();
+
+  // Show credentials summary
+  if(testUser){
+    setTimeout(function(){
+      saOpenModal('<div class="modal-header"><h3>✅ Cliente y usuario creados</h3><button onclick="saCloseModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer">✕</button></div>'
+      +'<div class="modal-body">'
+      +'<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;margin-bottom:16px">'
+      +'<h4 style="color:#16a34a;margin-bottom:12px">🏥 Cliente: '+nombre+'</h4>'
+      +'<div style="font-size:.88rem"><strong>Plan:</strong> '+(SA.plans[plan]?SA.plans[plan].nombre:plan)+' · <strong>Estado:</strong> '+estado+'</div></div>'
+      +'<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:20px">'
+      +'<h4 style="color:#2563eb;margin-bottom:12px">🔑 Credenciales de acceso al ERP</h4>'
+      +'<div style="display:grid;gap:8px;font-size:.9rem">'
+      +'<div><strong>URL:</strong> <code style="background:#f1f5f9;padding:2px 8px;border-radius:4px">portal-profesional.html</code></div>'
+      +'<div><strong>Email:</strong> <code style="background:#f1f5f9;padding:2px 8px;border-radius:4px">'+testUser.email+'</code></div>'
+      +'<div><strong>Contraseña:</strong> <code style="background:#f1f5f9;padding:2px 8px;border-radius:4px">'+testUser.plainPass+'</code></div>'
+      +'<div><strong>Rol:</strong> '+testUser.role+'</div>'
+      +'<div><strong>Hash:</strong> <code style="font-size:.7rem;background:#f1f5f9;padding:2px 8px;border-radius:4px">'+testUser.passHash+'</code></div>'
+      +'</div>'
+      +'<div style="margin-top:12px;padding:10px;background:#fefce8;border-radius:8px;font-size:.78rem;color:#854d0e">'
+      +'⚠️ <strong>Importante:</strong> Para que este usuario funcione en el ERP, debes añadir estas credenciales al array AUTH_USERS en <code>js/auth.js</code> o activar el modo dinámico de usuarios.'
+      +'</div></div>'
+      +'</div><div class="modal-footer"><button class="btn btn-primary" onclick="saCopyCredentials(\''+testUser.email+'\',\''+testUser.plainPass+'\')">📋 Copiar credenciales</button><button class="btn btn-outline" onclick="saCloseModal()">Cerrar</button></div>');
+    },300);
+  }
+  saRender();
+}
+
+function saCopyCredentials(email,pass){
+  var text='Veridia HealthTech - Credenciales de acceso\n'
+  +'URL: '+window.location.origin+'/portal-profesional.html\n'
+  +'Email: '+email+'\n'
+  +'Contraseña: '+pass+'\n';
+  if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){alert('✅ Credenciales copiadas al portapapeles')})}
+  else{prompt('Copia estas credenciales:',text)}
+}
+
+function saViewClient(id){
+  var cl=SA.clients.find(function(c){return c.id===id});if(!cl)return;
+  var plan=SA.plans[cl.plan]||{nombre:'?',modulos:[],maxPacientes:0,maxUsuarios:0,precio:0};
+
+  saOpenModal('<div class="modal-header"><h3>'+cl.nombre+'</h3><button onclick="saCloseModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer">✕</button></div>'
+  +'<div class="modal-body">'
+  +'<div style="display:flex;gap:8px;margin-bottom:14px"><span class="badge" style="background:'+plan.color+'15;color:'+plan.color+'">'+plan.nombre+'</span>'
+  +'<span class="badge '+(cl.estado==='activo'?'badge-success':cl.estado==='trial'?'badge-info':'badge-warning')+'">'+cl.estado+'</span></div>'
+  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:.82rem;margin-bottom:14px">'
+  +'<div><strong>Contacto:</strong> '+cl.contacto+'</div><div><strong>Email:</strong> '+cl.email+'</div>'
+  +'<div><strong>Tel:</strong> '+(cl.telefono||'—')+'</div><div><strong>Alta:</strong> '+cl.fechaAlta+'</div>'
+  +'<div><strong>Vence:</strong> '+(cl.fechaVencimiento||'—')+'</div><div><strong>Pacientes:</strong> '+(cl.uso?cl.uso.pacientes:0)+'/'+plan.maxPacientes+'</div></div>'
+  +'<div style="margin-bottom:14px"><strong style="font-size:.78rem">Módulos activos ('+cl.modulosActivos.length+'):</strong><div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">'
+  +cl.modulosActivos.map(function(m){return '<span class="badge badge-success" style="font-size:.6rem">'+m+'</span>'}).join('')+'</div></div>'
+  +(cl.pagos&&cl.pagos.length?'<div style="margin-bottom:14px"><strong style="font-size:.78rem">Últimos pagos:</strong>'
+  +cl.pagos.slice(-3).map(function(p){return '<div style="font-size:.72rem;padding:4px 0;border-bottom:1px solid var(--border)">'+p.fecha+' — '+p.monto+'€ — <span class="badge '+(p.estado==='pagado'?'badge-success':'badge-warning')+'" style="font-size:.55rem">'+p.estado+'</span></div>'}).join('')+'</div>':'')
+  +(cl.testUser?'<div style="margin-bottom:14px;padding:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px"><strong style="font-size:.82rem;color:#2563eb">🔑 Usuario de prueba ERP</strong>'
+  +'<div style="font-size:.78rem;margin-top:6px;display:grid;gap:3px">'
+  +'<div><strong>Email:</strong> <code>'+cl.testUser.email+'</code></div>'
+  +'<div><strong>Rol:</strong> '+cl.testUser.role+'</div>'
+  +'<div><strong>Hash:</strong> <code style="font-size:.65rem">'+cl.testUser.passHash+'</code></div></div></div>':'')
+  +(cl.notas?'<div style="font-size:.78rem;color:var(--text3);padding:10px;background:var(--surface2);border-radius:8px">📝 '+cl.notas+'</div>':'')
+  +'</div><div class="modal-footer">'
+  +'<button class="btn btn-outline" onclick="saCloseModal()">Cerrar</button>'
+  +(cl.estado==='activo'?'<button class="btn btn-danger btn-sm" onclick="saChangeStatus(\''+cl.id+'\',\'suspendido\')">Suspender</button>':'')
+  +(cl.estado==='suspendido'?'<button class="btn btn-primary btn-sm" onclick="saChangeStatus(\''+cl.id+'\',\'activo\')">Reactivar</button>':'')
+  +(cl.estado==='trial'?'<button class="btn btn-primary btn-sm" onclick="saChangeStatus(\''+cl.id+'\',\'activo\')">Activar</button>':'')
+  +'<button class="btn btn-primary btn-sm" onclick="saCloseModal();saEditClient(\''+cl.id+'\')">Editar</button></div>');
+}
+
+function saEditClient(id){
+  var cl=SA.clients.find(function(c){return c.id===id});if(!cl)return;
+  saOpenModal('<div class="modal-header"><h3>Editar: '+cl.nombre+'</h3><button onclick="saCloseModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer">✕</button></div>'
+  +'<div class="modal-body">'
+  +'<div class="form-row"><div class="form-group"><label class="form-label">Nombre</label><input id="ecNombre" value="'+cl.nombre+'"></div>'
+  +'<div class="form-group"><label class="form-label">Contacto</label><input id="ecContacto" value="'+(cl.contacto||'')+'"></div></div>'
+  +'<div class="form-row"><div class="form-group"><label class="form-label">Email</label><input id="ecEmail" value="'+cl.email+'"></div>'
+  +'<div class="form-group"><label class="form-label">Teléfono</label><input id="ecTel" value="'+(cl.telefono||'')+'"></div></div>'
+  +'<div class="form-row"><div class="form-group"><label class="form-label">Plan</label><select id="ecPlan">'
+  +Object.entries(SA.plans).map(function(e){return '<option value="'+e[0]+'"'+(cl.plan===e[0]?' selected':'')+'>'+e[1].nombre+' ('+e[1].precio+'€)</option>'}).join('')
+  +'</select></div><div class="form-group"><label class="form-label">Estado</label><select id="ecEstado">'
+  +['trial','activo','suspendido','cancelado'].map(function(e){return '<option'+(cl.estado===e?' selected':'')+'>'+e+'</option>'}).join('')
+  +'</select></div></div>'
+  +'<div class="form-group"><label class="form-label">Fecha vencimiento</label><input type="date" id="ecVence" value="'+(cl.fechaVencimiento||'')+'"></div>'
+  +'<div class="form-group"><label class="form-label">Notas</label><textarea id="ecNotas" rows="2">'+(cl.notas||'')+'</textarea></div>'
+  +'</div><div class="modal-footer"><button class="btn btn-outline" onclick="saCloseModal()">Cancelar</button><button class="btn btn-primary" onclick="saSaveEditClient(\''+cl.id+'\')">Guardar</button></div>');
+}
+
+function saSaveEditClient(id){
+  var cl=SA.clients.find(function(c){return c.id===id});if(!cl)return;
+  cl.nombre=document.getElementById('ecNombre').value.trim();
+  cl.contacto=document.getElementById('ecContacto').value.trim();
+  cl.email=document.getElementById('ecEmail').value.trim();
+  cl.telefono=document.getElementById('ecTel').value.trim();
+  var newPlan=document.getElementById('ecPlan').value;
+  if(newPlan!==cl.plan){cl.plan=newPlan;cl.modulosActivos=SA.plans[newPlan]?SA.plans[newPlan].modulos.slice():[]}
+  cl.estado=document.getElementById('ecEstado').value;
+  cl.fechaVencimiento=document.getElementById('ecVence').value;
+  cl.notas=document.getElementById('ecNotas').value.trim();
+  saAudit('EDIT_CLIENT',cl.nombre);saSave();saCloseModal();saRender();
+}
+
+function saChangeStatus(id,newStatus){
+  var cl=SA.clients.find(function(c){return c.id===id});if(!cl)return;
+  cl.estado=newStatus;
+  saAudit('STATUS_CHANGE',cl.nombre+' → '+newStatus);saSave();saCloseModal();saRender();
+}
+
+// ===== LICENSES =====
+function renderSALicenses(c){
+  c.innerHTML='<div class="sa-header"><h1>Licencias y Planes</h1></div>'
+  +'<div class="sa-stats">'+Object.entries(SA.plans).map(function(e){
+    var p=e[1];var count=SA.clients.filter(function(cl){return cl.plan===e[0]&&(cl.estado==='activo'||cl.estado==='trial')}).length;
+    return '<div class="sa-stat" style="border-top:4px solid '+p.color+'"><h3 style="color:'+p.color+'">'+p.nombre+'</h3><p>'+p.precio+'€/mes · '+p.modulos.length+' módulos · '+p.maxUsuarios+' usuarios</p><div class="trend">'+count+' clientes activos</div></div>';
+  }).join('')+'</div>'
+  +'<div class="sa-card"><div class="sa-card-header"><h3>📦 Módulos por plan</h3></div><div class="sa-card-body" style="padding:0"><table><thead><tr><th>Módulo</th>'
+  +Object.values(SA.plans).map(function(p){return '<th style="text-align:center;color:'+p.color+'">'+p.nombre+'</th>'}).join('')+'</tr></thead><tbody>'
+  +['dashboard','agenda','pacientes','historia','antropometria','analiticas','alertas','formula','soporte','desarrollada','bedca','recetas','planes','facturacion','caja','contabilidad','mensajes','ia','auditoria','espen','settings'].map(function(mod){
+    return '<tr><td><strong>'+mod+'</strong></td>'+Object.values(SA.plans).map(function(p){
+      var has=p.modulos.includes(mod);return '<td style="text-align:center">'+(has?'<span style="color:var(--success);font-size:1.1rem">✓</span>':'<span style="color:var(--text3)">—</span>')+'</td>';
+    }).join('')+'</tr>';
+  }).join('')+'</tbody></table></div></div>';
+}
+
+// ===== BILLING =====
+function renderSABilling(c){
+  var totalMRR=SA.clients.filter(function(cl){return cl.estado==='activo'}).reduce(function(s,cl){return s+(SA.plans[cl.plan]?SA.plans[cl.plan].precio:0)},0);
+  var pagados=0;var pendientes=0;
+  SA.clients.forEach(function(cl){if(cl.pagos)cl.pagos.forEach(function(p){if(p.estado==='pagado')pagados+=p.monto;else pendientes+=p.monto})});
+
+  c.innerHTML='<div class="sa-header"><h1>Facturación SaaS</h1><button class="btn btn-primary btn-sm" onclick="saRegistrarPago()">+ Registrar pago</button></div>'
+  +'<div class="sa-stats">'
+  +'<div class="sa-stat"><h3>'+totalMRR+'€</h3><p>MRR actual</p></div>'
+  +'<div class="sa-stat"><h3>'+Math.round(totalMRR*12)+'€</h3><p>ARR estimado</p></div>'
+  +'<div class="sa-stat"><h3 style="color:var(--success)">'+pagados+'€</h3><p>Total cobrado</p></div>'
+  +'<div class="sa-stat"><h3 style="color:var(--warning)">'+pendientes+'€</h3><p>Pendiente cobro</p></div></div>'
+  +'<div class="sa-card"><div class="sa-card-header"><h3>⏰ Clientes por vencimiento</h3></div><div class="sa-card-body" style="padding:0"><table><thead><tr><th>Cliente</th><th>Plan</th><th>Vence</th><th>Estado pago</th><th></th></tr></thead><tbody>'
+  +SA.clients.filter(function(cl){return cl.estado==='activo'||cl.estado==='trial'}).sort(function(a,b){return(a.fechaVencimiento||'9').localeCompare(b.fechaVencimiento||'9')}).map(function(cl){
+    var vencido=cl.fechaVencimiento&&cl.fechaVencimiento<new Date().toISOString().slice(0,10);
+    return '<tr><td><strong>'+cl.nombre+'</strong></td><td>'+cl.plan+'</td><td style="color:'+(vencido?'var(--danger)':'var(--text)')+'">'+( cl.fechaVencimiento||'—')+'</td>'
+    +'<td><span class="badge '+(vencido?'badge-danger':'badge-success')+'">'+(vencido?'VENCIDO':'Al día')+'</span></td>'
+    +'<td><button class="btn btn-outline btn-xs" onclick="saRegistrarPagoCliente(\''+cl.id+'\')">Cobrar</button></td></tr>';
+  }).join('')+'</tbody></table></div></div>';
+}
+
+function saRegistrarPago(){
+  if(!SA.clients.length){alert('No hay clientes');return}
+  saOpenModal('<div class="modal-header"><h3>Registrar pago</h3><button onclick="saCloseModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer">✕</button></div>'
+  +'<div class="modal-body"><div class="form-group"><label class="form-label">Cliente</label><select id="rpClient">'
+  +SA.clients.map(function(cl){return '<option value="'+cl.id+'">'+cl.nombre+' ('+cl.plan+')</option>'}).join('')
+  +'</select></div><div class="form-row"><div class="form-group"><label class="form-label">Monto (€)</label><input type="number" id="rpMonto" step="0.01"></div>'
+  +'<div class="form-group"><label class="form-label">Método</label><select id="rpMetodo"><option>Stripe</option><option>Transferencia</option><option>PayPal</option><option>Otro</option></select></div></div>'
+  +'</div><div class="modal-footer"><button class="btn btn-outline" onclick="saCloseModal()">Cancelar</button><button class="btn btn-primary" onclick="saConfirmPago()">Registrar</button></div>');
+}
+
+function saRegistrarPagoCliente(id){saRegistrarPago();setTimeout(function(){if(document.getElementById('rpClient'))document.getElementById('rpClient').value=id;var cl=SA.clients.find(function(c){return c.id===id});if(cl){var plan=SA.plans[cl.plan];if(plan)document.getElementById('rpMonto').value=plan.precio}},100)}
+
+function saConfirmPago(){
+  var clientId=document.getElementById('rpClient').value;
+  var cl=SA.clients.find(function(c){return c.id===clientId});if(!cl)return;
+  var monto=parseFloat(document.getElementById('rpMonto').value);if(!monto){alert('Monto requerido');return}
+  if(!cl.pagos)cl.pagos=[];
+  cl.pagos.push({fecha:new Date().toISOString().slice(0,10),monto:monto,metodo:document.getElementById('rpMetodo').value,estado:'pagado'});
+  cl.fechaVencimiento=new Date(Date.now()+30*86400000).toISOString().slice(0,10);
+  if(cl.estado==='suspendido'||cl.estado==='trial')cl.estado='activo';
+  saAudit('PAYMENT',cl.nombre+' — '+monto+'€');saSave();saCloseModal();saRender();
+}
+
+// ===== TICKETS =====
+function renderSATickets(c){
+  c.innerHTML='<div class="sa-header"><h1>Soporte al cliente</h1><button class="btn btn-primary btn-sm" onclick="saNewTicket()">+ Nuevo ticket</button></div>'
+  +'<div class="pill-tabs">'
+  +['todos','abierto','en_progreso','resuelto'].map(function(e){
+    var count=e==='todos'?SA.tickets.length:SA.tickets.filter(function(t){return t.estado===e}).length;
+    return '<button class="pill-tab'+(e==='todos'?' active':'')+'" onclick="saFilterTickets(\''+e+'\')">'+e.replace('_',' ')+' ('+count+')</button>';
+  }).join('')+'</div>'
+  +'<div class="sa-card"><div class="sa-card-body" style="padding:0"><table><thead><tr><th>Ticket</th><th>Cliente</th><th>Prioridad</th><th>Estado</th><th>Fecha</th><th></th></tr></thead><tbody id="saTicketList">'
+  +SA.tickets.map(function(t){
+    var cl=SA.clients.find(function(c){return c.id===t.clientId});
+    return '<tr><td><strong>'+t.asunto+'</strong></td><td style="font-size:.78rem">'+(cl?cl.nombre:'?')+'</td>'
+    +'<td><span class="badge '+(t.prioridad==='alta'?'badge-danger':t.prioridad==='media'?'badge-warning':'badge-neutral')+'">'+t.prioridad+'</span></td>'
+    +'<td><span class="badge '+(t.estado==='abierto'?'badge-warning':t.estado==='en_progreso'?'badge-info':'badge-success')+'">'+t.estado+'</span></td>'
+    +'<td style="font-size:.72rem">'+t.fecha+'</td>'
+    +'<td><button class="btn btn-outline btn-xs" onclick="saViewTicket(\''+t.id+'\')">Ver</button></td></tr>';
+  }).join('')
+  +'</tbody></table></div></div>';
+}
+
+function saFilterTickets(estado){
+  var rows=document.querySelectorAll('#saTicketList tr');
+  rows.forEach(function(r,i){
+    if(estado==='todos')r.style.display='';
+    else r.style.display=SA.tickets[i]&&SA.tickets[i].estado===estado?'':'none';
+  });
+}
+
+function saNewTicket(){
+  if(!SA.clients.length){alert('No hay clientes');return}
+  saOpenModal('<div class="modal-header"><h3>Nuevo ticket</h3><button onclick="saCloseModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer">✕</button></div>'
+  +'<div class="modal-body"><div class="form-row"><div class="form-group"><label class="form-label">Cliente</label><select id="ntClient">'
+  +SA.clients.map(function(cl){return '<option value="'+cl.id+'">'+cl.nombre+'</option>'}).join('')
+  +'</select></div><div class="form-group"><label class="form-label">Prioridad</label><select id="ntPrior"><option>baja</option><option selected>media</option><option>alta</option></select></div></div>'
+  +'<div class="form-group"><label class="form-label">Asunto</label><input id="ntAsunto" placeholder="Descripción del problema..."></div>'
+  +'<div class="form-group"><label class="form-label">Mensaje</label><textarea id="ntMsg" rows="3" placeholder="Detalle..."></textarea></div>'
+  +'</div><div class="modal-footer"><button class="btn btn-outline" onclick="saCloseModal()">Cancelar</button><button class="btn btn-primary" onclick="saSaveTicket()">Crear ticket</button></div>');
+}
+
+function saSaveTicket(){
+  var asunto=document.getElementById('ntAsunto').value.trim();
+  if(!asunto){alert('Asunto requerido');return}
+  SA.tickets.unshift({
+    id:'tkt_'+Date.now(),
+    clientId:document.getElementById('ntClient').value,
+    asunto:asunto,
+    prioridad:document.getElementById('ntPrior').value,
+    estado:'abierto',
+    fecha:new Date().toISOString().slice(0,10),
+    mensajes:[{from:'soporte',text:document.getElementById('ntMsg').value.trim(),fecha:new Date().toISOString().replace('T',' ').substring(0,16)}]
+  });
+  saAudit('CREATE_TICKET',asunto);saSave();saCloseModal();saRender();
+}
+
+function saViewTicket(id){
+  var t=SA.tickets.find(function(x){return x.id===id});if(!t)return;
+  var cl=SA.clients.find(function(c){return c.id===t.clientId});
+  saOpenModal('<div class="modal-header"><h3>'+t.asunto+'</h3><button onclick="saCloseModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer">✕</button></div>'
+  +'<div class="modal-body"><div style="display:flex;gap:8px;margin-bottom:14px">'
+  +'<span class="badge '+(t.estado==='abierto'?'badge-warning':t.estado==='en_progreso'?'badge-info':'badge-success')+'">'+t.estado+'</span>'
+  +'<span class="badge '+(t.prioridad==='alta'?'badge-danger':'badge-neutral')+'">'+t.prioridad+'</span>'
+  +'<span style="font-size:.78rem;color:var(--text3)">'+(cl?cl.nombre:'?')+' · '+t.fecha+'</span></div>'
+  +'<div style="margin-bottom:14px;max-height:300px;overflow-y:auto">'
+  +(t.mensajes||[]).map(function(m){
+    return '<div style="padding:10px;margin-bottom:8px;background:'+(m.from==='soporte'?'var(--surface2)':'#dbeafe')+';border-radius:8px"><div style="font-size:.65rem;color:var(--text3);margin-bottom:4px">'+m.from+' · '+m.fecha+'</div><div style="font-size:.82rem">'+m.text+'</div></div>';
+  }).join('')+'</div>'
+  +'<div class="form-group"><label class="form-label">Responder</label><textarea id="trMsg" rows="2" placeholder="Escribir respuesta..."></textarea></div>'
+  +'</div><div class="modal-footer">'
+  +(t.estado!=='resuelto'?'<button class="btn btn-outline btn-sm" onclick="saChangeTicketStatus(\''+t.id+'\',\'resuelto\')">✓ Resolver</button>':'')
+  +(t.estado==='abierto'?'<button class="btn btn-outline btn-sm" onclick="saChangeTicketStatus(\''+t.id+'\',\'en_progreso\')">En progreso</button>':'')
+  +'<button class="btn btn-primary btn-sm" onclick="saReplyTicket(\''+t.id+'\')">Enviar respuesta</button></div>');
+}
+
+function saReplyTicket(id){
+  var t=SA.tickets.find(function(x){return x.id===id});if(!t)return;
+  var msg=document.getElementById('trMsg').value.trim();if(!msg){alert('Escriba una respuesta');return}
+  if(!t.mensajes)t.mensajes=[];
+  t.mensajes.push({from:'soporte',text:msg,fecha:new Date().toISOString().replace('T',' ').substring(0,16)});
+  if(t.estado==='abierto')t.estado='en_progreso';
+  saAudit('REPLY_TICKET',t.asunto);saSave();saCloseModal();saViewTicket(id);
+}
+
+function saChangeTicketStatus(id,status){
+  var t=SA.tickets.find(function(x){return x.id===id});if(!t)return;
+  t.estado=status;saAudit('TICKET_'+status.toUpperCase(),t.asunto);saSave();saCloseModal();saRender();
+}
+
+// ===== ANALYTICS =====
+function renderSAAnalytics(c){
+  var byPlan={};Object.keys(SA.plans).forEach(function(k){byPlan[k]=SA.clients.filter(function(cl){return cl.plan===k&&cl.estado==='activo'}).length});
+  var totalActive=SA.clients.filter(function(cl){return cl.estado==='activo'}).length;
+  var churn=SA.clients.filter(function(cl){return cl.estado==='cancelado'}).length;
+  var churnRate=SA.clients.length?Math.round(churn/SA.clients.length*100):0;
+
+  c.innerHTML='<div class="sa-header"><h1>Analytics</h1></div>'
+  +'<div class="sa-stats">'
+  +'<div class="sa-stat"><h3>'+totalActive+'</h3><p>Clientes activos</p></div>'
+  +'<div class="sa-stat"><h3>'+churnRate+'%</h3><p>Churn rate</p></div>'
+  +'<div class="sa-stat"><h3>'+(totalActive>0?Math.round(SA.clients.filter(function(cl){return cl.estado==='activo'}).reduce(function(s,cl){return s+(SA.plans[cl.plan]?SA.plans[cl.plan].precio:0)},0)/totalActive):0)+'€</h3><p>ARPU (avg revenue/user)</p></div></div>'
+  +'<div class="sa-card"><div class="sa-card-header"><h3>📊 Distribución por plan</h3></div><div class="sa-card-body">'
+  +Object.entries(byPlan).map(function(e){
+    var plan=SA.plans[e[0]];var pct=totalActive?Math.round(e[1]/totalActive*100):0;
+    return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:80px;font-size:.82rem;font-weight:600;color:'+plan.color+'">'+plan.nombre+'</span>'
+    +'<div style="flex:1;height:20px;background:var(--surface2);border-radius:10px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+plan.color+';border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.6rem;font-weight:700">'+(pct>10?pct+'%':'')+'</div></div>'
+    +'<span style="font-size:.82rem;font-weight:700;width:30px;text-align:right">'+e[1]+'</span></div>';
+  }).join('')+'</div></div>';
+}
+
+// ===== CONFIG =====
+// ═══════════════════════════════════════════
+//  API KEY MANAGEMENT PANEL
+// ═══════════════════════════════════════════
+function renderSAApis(c){
+  // Load current config
+  var cfg={};
+  try{cfg=JSON.parse(localStorage.getItem('veridia_api_config')||'{}')}catch(e){}
+
+  var apis=[
+    {id:'gemini_key',name:'Google Gemini AI',icon:'🤖',desc:'IA clínica para interpretar analíticas, generar planes y asistencia.',
+     url:'https://aistudio.google.com/apikey',status:cfg.gemini_key?'active':'inactive',
+     enabled:cfg.gemini_enabled!==false,sensitive:true},
+    {id:'firebase_apiKey',name:'Firebase',icon:'🔥',desc:'Sincronización en la nube, backup automático, analytics.',
+     url:'https://console.firebase.google.com',status:cfg.firebase_apiKey?'active':'pending',
+     enabled:true,sensitive:true},
+    {id:'usda_key',name:'USDA FoodData Central',icon:'🇺🇸',desc:'Base de datos de alimentos de referencia científica (114 nutrientes).',
+     url:'https://fdc.nal.usda.gov/api-key-signup',status:(cfg.usda_key&&cfg.usda_key!=='DEMO_KEY')?'active':'demo',
+     enabled:cfg.usda_enabled!==false,sensitive:false},
+    {id:'off_enabled',name:'OpenFoodFacts',icon:'🌍',desc:'Productos comerciales con código de barras (gratuito, sin key).',
+     url:'https://world.openfoodfacts.org',status:'active',enabled:cfg.off_enabled!==false,sensitive:false,noKey:true},
+    {id:'themealdb_enabled',name:'TheMealDB',icon:'👨‍🍳',desc:'Recetas internacionales con ingredientes (gratuito, sin key).',
+     url:'https://www.themealdb.com',status:'active',enabled:cfg.themealdb_enabled!==false,sensitive:false,noKey:true}
+  ];
+
+  var h='<div class="sa-header"><h1>🔑 APIs & Keys</h1>'
+  +'<p style="font-size:.82rem;color:var(--text3);margin-top:4px">Gestión centralizada de API keys. Los cambios se aplican inmediatamente en el ERP.</p></div>';
+
+  // Status overview
+  var active=apis.filter(function(a){return a.status==='active'&&a.enabled}).length;
+  var total=apis.length;
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px">'
+  +'<div class="sa-stat"><h3 style="color:var(--success)">'+active+'/'+total+'</h3><p>APIs activas</p></div>'
+  +'<div class="sa-stat"><h3>'+(cfg.gemini_key?'✅':'❌')+'</h3><p>Gemini IA</p></div>'
+  +'<div class="sa-stat"><h3>'+((cfg.usda_key&&cfg.usda_key!=='DEMO_KEY')?'✅':'⚠️')+'</h3><p>USDA Key</p></div>'
+  +'<div class="sa-stat"><h3>'+(cfg.firebase_apiKey?'✅':'❌')+'</h3><p>Firebase</p></div>'
+  +'</div>';
+
+  // API Cards
+  apis.forEach(function(api){
+    var statusBadge=api.status==='active'?'<span class="badge badge-success">Activa</span>'
+      :api.status==='demo'?'<span class="badge badge-warning">Demo Key</span>'
+      :api.status==='inactive'?'<span class="badge badge-danger">Sin configurar</span>'
+      :'<span class="badge badge-info">Pendiente</span>';
+
+    var currentVal=cfg[api.id]||'';
+    var maskedVal=api.sensitive&&currentVal?currentVal.substring(0,8)+'••••••••'+currentVal.slice(-4):currentVal;
+
+    h+='<div class="sa-card" style="margin-bottom:14px;border-left:4px solid '+(api.enabled?'var(--success)':'var(--text3)')+'"><div class="sa-card-body">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">'
+    +'<div style="flex:1;min-width:200px">'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+    +'<span style="font-size:1.5rem">'+api.icon+'</span>'
+    +'<div><strong style="font-size:.92rem">'+api.name+'</strong> '+statusBadge
+    +'<div style="font-size:.75rem;color:var(--text3)">'+api.desc+'</div></div></div>';
+
+    if(!api.noKey){
+      h+='<div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+      +'<div style="flex:1;min-width:200px"><label style="font-size:.7rem;font-weight:600;color:var(--text3);display:block;margin-bottom:3px">API Key</label>'
+      +'<input type="'+(api.sensitive?'password':'text')+'" id="saApi_'+api.id+'" value="'+currentVal+'" '
+      +'placeholder="'+(api.sensitive?'Ingrese su API key...':'Key o DEMO_KEY')+'" '
+      +'style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:.82rem;font-family:monospace">'
+      +'</div>'
+      +'<button class="btn btn-primary btn-sm" onclick="saUpdateApiKey(\''+api.id+'\')">Guardar</button>'
+      +'<button class="btn btn-outline btn-sm" onclick="saTestApi(\''+api.id+'\')">🧪 Test</button>'
+      +'</div>';
+    }
+
+    h+='</div>'
+    +'<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">'
+    +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.78rem">'
+    +'<span>'+(api.enabled?'Habilitada':'Deshabilitada')+'</span>'
+    +'<input type="checkbox" '+(api.enabled?'checked':'')+' onchange="saToggleApi(\''+api.id+'\',this.checked)">'
+    +'</label>'
+    +'<a href="'+api.url+'" target="_blank" style="font-size:.68rem;color:var(--accent)">📖 Documentación ↗</a>'
+    +'</div></div></div></div>';
+  });
+
+  // Additional settings
+  h+='<div class="sa-card" style="margin-bottom:14px"><div class="sa-card-header"><h3>⚙️ Configuración avanzada</h3></div><div class="sa-card-body">'
+  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+
+  +'<div><label style="font-size:.78rem;font-weight:600;display:block;margin-bottom:4px">Modelo Gemini</label>'
+  +'<select id="saGeminiModel" onchange="saUpdateConfig(\'gemini_model\',this.value)" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:.82rem">'
+  +'<option value="gemini-2.0-flash-lite" '+(cfg.gemini_model==='gemini-2.0-flash-lite'?'selected':'')+'>Gemini 2.0 Flash Lite (rápido)</option>'
+  +'<option value="gemini-2.0-flash" '+(cfg.gemini_model==='gemini-2.0-flash'?'selected':'')+'>Gemini 2.0 Flash (balance)</option>'
+  +'<option value="gemini-1.5-pro" '+(cfg.gemini_model==='gemini-1.5-pro'?'selected':'')+'>Gemini 1.5 Pro (preciso)</option>'
+  +'</select></div>'
+
+  +'<div><label style="font-size:.78rem;font-weight:600;display:block;margin-bottom:4px">Backend URL (proxy)</label>'
+  +'<input id="saBackendUrl" value="'+(cfg.backend_url||'')+'" placeholder="http://localhost:3456 (vacío = directo)" '
+  +'style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:.82rem" '
+  +'onchange="saUpdateConfig(\'backend_url\',this.value)"></div>'
+
+  +'</div>'
+
+  +'<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">'
+  +'<button class="btn btn-outline btn-sm" onclick="saExportConfig()">📤 Exportar config</button>'
+  +'<button class="btn btn-outline btn-sm" onclick="saImportConfig()">📥 Importar config</button>'
+  +'<button class="btn btn-sm" style="color:var(--danger)" onclick="saResetConfig()">🗑️ Reset a defaults</button>'
+  +'</div></div></div>';
+
+  // Security info
+  h+='<div class="sa-card" style="border-left:4px solid var(--warning)"><div class="sa-card-body" style="font-size:.82rem">'
+  +'<strong style="color:var(--warning)">🔒 Seguridad</strong>'
+  +'<ul style="margin:8px 0 0;padding-left:20px;color:var(--text2)">'
+  +'<li>Las API keys se almacenan en <code>localStorage</code> del navegador del administrador.</li>'
+  +'<li>Las keys <strong>no se transmiten</strong> en la URL ni en el HTML.</li>'
+  +'<li>En producción, use el <strong>Backend Proxy</strong> (<code>backend_url</code>) para que las keys nunca lleguen al cliente.</li>'
+  +'<li>La key de Firebase es pública por diseño (protegida por Firestore Security Rules).</li>'
+  +'</ul></div></div>';
+
+  c.innerHTML=h;
+}
+
+// API Management functions
+function saUpdateApiKey(keyName){
+  var el=document.getElementById('saApi_'+keyName);
+  if(!el)return;
+  var val=el.value.trim();
+  var cfg={};try{cfg=JSON.parse(localStorage.getItem('veridia_api_config')||'{}')}catch(e){}
+  cfg[keyName]=val;
+  localStorage.setItem('veridia_api_config',JSON.stringify(cfg));
+  saAudit('UPDATE_API_KEY',keyName+(val?(' → '+val.substring(0,8)+'...'):'→ cleared'));
+  alert('✅ '+keyName+' actualizada. Los cambios se aplican inmediatamente en el ERP.');
+  renderSAApis(document.getElementById('saContent'));
+}
+
+function saToggleApi(keyName,enabled){
+  var cfg={};try{cfg=JSON.parse(localStorage.getItem('veridia_api_config')||'{}')}catch(e){}
+  if(keyName.endsWith('_enabled')){cfg[keyName]=enabled}
+  else{cfg[keyName+'_enabled']=enabled}
+  localStorage.setItem('veridia_api_config',JSON.stringify(cfg));
+  saAudit('TOGGLE_API',keyName+' → '+(enabled?'enabled':'disabled'));
+  renderSAApis(document.getElementById('saContent'));
+}
+
+function saUpdateConfig(key,val){
+  var cfg={};try{cfg=JSON.parse(localStorage.getItem('veridia_api_config')||'{}')}catch(e){}
+  cfg[key]=val;
+  localStorage.setItem('veridia_api_config',JSON.stringify(cfg));
+}
+
+function saTestApi(keyName){
+  var cfg={};try{cfg=JSON.parse(localStorage.getItem('veridia_api_config')||'{}')}catch(e){}
+  var key=cfg[keyName]||'';
+
+  if(keyName==='gemini_key'){
+    if(!key){alert('❌ No hay Gemini key configurada');return}
+    alert('🧪 Testeando Gemini...');
+    fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key='+key,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:'Responde solo: OK'}]}]})
+    }).then(function(r){
+      if(r.ok){alert('✅ Gemini API funcionando correctamente')}
+      else{r.text().then(function(t){alert('❌ Error Gemini: HTTP '+r.status+'\n'+t.substring(0,200))})}
+    }).catch(function(e){alert('❌ Error de conexión: '+e.message)});
+  }
+
+  else if(keyName==='usda_key'){
+    var uKey=key||'DEMO_KEY';
+    fetch('https://api.nal.usda.gov/fdc/v1/foods/search?api_key='+uKey+'&query=chicken&pageSize=1')
+    .then(function(r){
+      if(r.ok){r.json().then(function(d){alert('✅ USDA API OK — '+d.totalHits+' resultados para "chicken"')})}
+      else{alert('❌ USDA Error: HTTP '+r.status)}
+    }).catch(function(e){alert('❌ Error: '+e.message)});
+  }
+
+  else if(keyName==='firebase_apiKey'){
+    alert('ℹ️ Firebase se verifica automáticamente al cargar el ERP. Revise la consola del navegador.');
+  }
+}
+
+function saExportConfig(){
+  var cfg=localStorage.getItem('veridia_api_config')||'{}';
+  var blob=new Blob([cfg],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='veridia-api-config.json';a.click();
+  saAudit('EXPORT_CONFIG','API config exported');
+}
+
+function saImportConfig(){
+  var input=document.createElement('input');input.type='file';input.accept='.json';
+  input.onchange=function(){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        var cfg=JSON.parse(e.target.result);
+        localStorage.setItem('veridia_api_config',JSON.stringify(cfg));
+        saAudit('IMPORT_CONFIG','API config imported');
+        alert('✅ Configuración importada');
+        renderSAApis(document.getElementById('saContent'));
+      }catch(err){alert('❌ Archivo inválido')}
+    };
+    reader.readAsText(input.files[0]);
+  };
+  input.click();
+}
+
+function saResetConfig(){
+  if(!confirm('¿Resetear TODA la configuración de APIs a valores por defecto? Las keys custom se perderán.'))return;
+  localStorage.removeItem('veridia_api_config');
+  saAudit('RESET_CONFIG','API config reset to defaults');
+  alert('✅ Configuración reseteada');
+  renderSAApis(document.getElementById('saContent'));
+}
+
+function renderSAConfig(c){
+  c.innerHTML='<div class="sa-header"><h1>Configuración</h1></div>'
+  +'<div class="sa-card"><div class="sa-card-header"><h3>🛡️ SuperAdministradores</h3></div><div class="sa-card-body">'
+  +SA_USERS.map(function(u){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><strong>'+u.name+'</strong><div style="font-size:.72rem;color:var(--text3)">'+u.email+'</div></div><span class="badge badge-success">Activo</span></div>'}).join('')
+  +'</div></div>'
+  +'<div class="sa-card"><div class="sa-card-header"><h3>ℹ️ Información del sistema</h3></div><div class="sa-card-body" style="font-size:.82rem">'
+  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+  +'<div><strong>Versión:</strong> Veridia HealthTech v5.2.0 Beta</div>'
+  +'<div><strong>Clientes:</strong> '+SA.clients.length+'</div>'
+  +'<div><strong>Tickets:</strong> '+SA.tickets.length+'</div>'
+  +'<div><strong>Firebase:</strong> '+(saDB?'Conectado ✅':'Offline')+'</div>'
+  +'<div><strong>Propietario:</strong> GalcoCapital LLC — Eduardo Andres Galeano Aido</div>'
+  +'<div><strong>Dominio:</strong> @veridia.tech</div></div></div></div>';
+}
+
+// ===== AUDIT =====
+function renderSAAudit(c){
+  c.innerHTML='<div class="sa-header"><h1>Auditoría SuperAdmin</h1></div>'
+  +'<div class="sa-card"><div class="sa-card-body" style="padding:0"><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr></thead><tbody>'
+  +SA.auditLog.slice(0,50).map(function(a){
+    return '<tr><td style="font-size:.72rem">'+a.fecha+'</td><td style="font-size:.78rem">'+a.user+'</td><td><span class="badge badge-neutral" style="font-size:.6rem">'+a.action+'</span></td><td style="font-size:.78rem;color:var(--text2)">'+a.detail+'</td></tr>';
+  }).join('')
+  +'</tbody></table></div></div>';
+}
+
+// ===== INIT =====
+// Auto-login check
+document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.getElementById('saLoginPage').style.display!=='none')saLogin()});
+
+// ============================================================
+// MEJORAS SUPERADMIN — 14 funcionalidades
+// ============================================================
+
+// ===== #1 SEGURIDAD LOGIN =====
+var saLoginAttempts={};
+var saSessionTimer=null;
+var SA_SESSION_TIMEOUT=1800000; // 30 min
+
+// Fix superadmin password hash (superadmin123)
+SA_USERS[0].passHash=saHashPass('superadmin123');
+
+function saCheckRateLimit(email){
+  var a=saLoginAttempts[email];
+  if(!a)return{allowed:true};
+  if(a.locked&&Date.now()-a.lockTime<60000)return{allowed:false,msg:'Cuenta bloqueada. Espere 60 segundos.'};
+  if(a.locked)a.locked=false;
+  return{allowed:true};
+}
+
+// Override saLogin with rate limiting
+var _origSaLogin=saLogin;
+saLogin=function(){
+  var email=document.getElementById('saEmail').value.trim().toLowerCase();
+  var rl=saCheckRateLimit(email);
+  if(!rl.allowed){document.getElementById('saError').textContent=rl.msg;return}
+  var pass=document.getElementById('saPass').value.trim();
+  document.getElementById('saError').textContent='';
+  if(!email||!pass){document.getElementById('saError').textContent='Complete todos los campos';return}
+  var hash=saHashPass(pass);
+  var user=SA_USERS.find(function(u){return u.email===email&&u.passHash===hash});
+  if(!user){
+    if(!saLoginAttempts[email])saLoginAttempts[email]={count:0};
+    saLoginAttempts[email].count++;
+    if(saLoginAttempts[email].count>=5){saLoginAttempts[email].locked=true;saLoginAttempts[email].lockTime=Date.now();document.getElementById('saError').textContent='Demasiados intentos. Bloqueado 60s.';return}
+    document.getElementById('saError').textContent='Credenciales incorrectas ('+(5-saLoginAttempts[email].count)+' intentos restantes)';return;
+  }
+  if(saLoginAttempts[email])saLoginAttempts[email].count=0;
+  SA.currentUser=user;
+  document.getElementById('saLoginPage').style.display='none';
+  document.getElementById('saApp').style.display='flex';
+  document.getElementById('saUserInfo').textContent=user.name;
+  saAudit('LOGIN','SuperAdmin login');saSave();saRender();
+  // Session timeout
+  saResetSession();
+};
+
+function saResetSession(){
+  if(saSessionTimer)clearTimeout(saSessionTimer);
+  saSessionTimer=setTimeout(function(){alert('Sesion expirada por inactividad');saLogout()},SA_SESSION_TIMEOUT);
+}
+document.addEventListener('click',function(){if(SA.currentUser)saResetSession()});
+
+// ===== #2 BUSQUEDA DE CLIENTES =====
+function saSearchClients(q){
+  q=q.toLowerCase();
+  var rows=document.querySelectorAll('#saClientList tr');
+  rows.forEach(function(r,i){
+    var cl=SA.clients[i];
+    if(!cl){r.style.display='none';return}
+    var text=(cl.nombre+' '+cl.contacto+' '+cl.email+' '+cl.plan+' '+cl.estado).toLowerCase();
+    r.style.display=!q||text.includes(q)?'':'none';
+  });
+}
+
+// ===== #3 TOGGLE MODULOS INDIVIDUAL =====
+function saOpenModuleToggle(clientId){
+  var cl=SA.clients.find(function(c){return c.id===clientId});if(!cl)return;
+  var allMods=['dashboard','agenda','pacientes','historia','antropometria','analiticas','alertas','formula','soporte','desarrollada','bedca','recetas','planes','facturacion','caja','contabilidad','mensajes','ia','auditoria','espen','settings'];
+  
+  saOpenModal('<div class="modal-header"><h3>Modulos: '+cl.nombre+'</h3><button onclick="saCloseModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer">x</button></div>'
+  +'<div class="modal-body"><p style="font-size:.78rem;color:var(--text3);margin-bottom:14px">Plan: <strong>'+cl.plan+'</strong>. Personalice los modulos activos para este cliente.</p>'
+  +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px">'
+  +allMods.map(function(m){
+    var active=cl.modulosActivos&&cl.modulosActivos.includes(m);
+    var inPlan=SA.plans[cl.plan]&&SA.plans[cl.plan].modulos.includes(m);
+    return '<label style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;border:1px solid '+(active?'var(--success)':'var(--border)')+';background:'+(active?'#dcfce710':'var(--surface)')+';cursor:pointer;font-size:.78rem">'
+    +'<input type="checkbox" data-mod="'+m+'" '+(active?'checked':'')+' onchange="saToggleModule(\''+clientId+'\',\''+m+'\',this.checked)">'
+    +'<span style="font-weight:'+(active?'700':'400')+'">'+m+'</span>'
+    +(inPlan?'':'<span style="font-size:.55rem;color:var(--warning)" title="No incluido en plan '+cl.plan+'">addon</span>')
+    +'</label>';
+  }).join('')
+  +'</div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-outline btn-sm" onclick="saResetModules(\''+clientId+'\')">Resetear a plan</button>'
+  +'<button class="btn btn-primary btn-sm" onclick="saCloseModal()">Listo</button></div></div>');
+}
+
+function saToggleModule(clientId,mod,active){
+  var cl=SA.clients.find(function(c){return c.id===clientId});if(!cl)return;
+  if(!cl.modulosActivos)cl.modulosActivos=[];
+  if(active&&!cl.modulosActivos.includes(mod))cl.modulosActivos.push(mod);
+  else if(!active)cl.modulosActivos=cl.modulosActivos.filter(function(m){return m!==mod});
+  saAudit('MODULE_TOGGLE',cl.nombre+': '+mod+' '+(active?'ON':'OFF'));saSave();
+}
+
+function saResetModules(clientId){
+  var cl=SA.clients.find(function(c){return c.id===clientId});if(!cl)return;
+  cl.modulosActivos=SA.plans[cl.plan]?SA.plans[cl.plan].modulos.slice():[];
+  saAudit('MODULE_RESET',cl.nombre+' -> plan '+cl.plan);saSave();saCloseModal();saOpenModuleToggle(clientId);
+}
+
+// ===== #4 GRAFICOS ANALYTICS =====
+// Reuse chart logic inline (SVG)
+function saSvgBar(data,w,h,color){
+  if(!data.length)return'<p style="color:var(--text3);font-size:.78rem">Sin datos</p>';
+  var mx=Math.max.apply(null,data.map(function(d){return d.value}))||1;
+  var pad={t:20,r:10,b:30,l:40};var iW=(w-pad.l-pad.r)/data.length;var iH=h-pad.t-pad.b;
+  var bars=data.map(function(d,i){
+    var bH=Math.max(d.value/mx*iH,2);var x=pad.l+i*iW+iW*0.15;var bW=iW*0.7;
+    return'<rect x="'+x+'" y="'+(pad.t+iH-bH)+'" width="'+bW+'" height="'+bH+'" rx="3" fill="'+(d.color||color||'var(--primary)')+'" opacity=".85"><title>'+d.label+': '+d.value+'</title></rect>'
+    +'<text x="'+(x+bW/2)+'" y="'+(pad.t+iH-bH-4)+'" fill="var(--text2)" font-size="9" font-weight="700" text-anchor="middle">'+d.value+'</text>'
+    +'<text x="'+(x+bW/2)+'" y="'+(h-8)+'" fill="var(--text3)" font-size="8" text-anchor="middle">'+d.label+'</text>';
+  }).join('');
+  return'<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="max-width:'+w+'px;font-family:Inter,sans-serif">'+bars+'</svg>';
+}
+
+// ===== #5 INTEGRACION ERP — Licencia al login =====
+// This is injected into the ERP via a small check in auth.js
+// We add a function here that the ERP can call
+function saGetClientLicense(email){
+  // Search in SA.clients by email
+  var cl=SA.clients.find(function(c){return c.email===email&&(c.estado==='activo'||c.estado==='trial')});
+  if(!cl)return null;
+  var plan=SA.plans[cl.plan];
+  // Check expiration
+  if(cl.fechaVencimiento&&cl.fechaVencimiento<new Date().toISOString().slice(0,10)){
+    // Grace period: 7 days
+    var vence=new Date(cl.fechaVencimiento);
+    var gracia=new Date(vence.getTime()+7*86400000);
+    if(new Date()>gracia) return{expired:true,plan:cl.plan,modules:SA.plans.free?SA.plans.free.modulos:[]};
+    return{grace:true,plan:cl.plan,modules:cl.modulosActivos||plan.modulos,diasGracia:Math.ceil((gracia-new Date())/86400000)};
+  }
+  return{
+    valid:true,plan:cl.plan,planName:plan?plan.nombre:'?',
+    modules:cl.modulosActivos||plan.modulos,
+    maxPacientes:plan?plan.maxPacientes:20,
+    maxUsuarios:plan?plan.maxUsuarios:1,
+    vence:cl.fechaVencimiento
+  };
+}
+
+// ===== #6 FACTURA PDF SaaS =====
+function saGenerateInvoicePDF(clientId,pagoIdx){
+  var cl=SA.clients.find(function(c){return c.id===clientId});if(!cl)return;
+  var pago=cl.pagos&&cl.pagos[pagoIdx];if(!pago)return;
+  var plan=SA.plans[cl.plan];
+  
+  var w=window.open('','_blank','width=800,height=600');
+  w.document.write('<!DOCTYPE html><html><head><title>Factura Veridia - '+cl.nombre+'</title>'
+  +'<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,Arial,sans-serif;font-size:11px;padding:30px;max-width:700px;margin:0 auto}'
+  +'h1{color:#2E8B57;font-size:1.4rem}.header{display:flex;justify-content:space-between;border-bottom:3px solid #2E8B57;padding-bottom:14px;margin-bottom:20px}'
+  +'table{width:100%;border-collapse:collapse;margin:16px 0}th,td{padding:8px 12px;border:1px solid #e0e0e0;text-align:left}th{background:#f0f7f4}' 
+  +'.total{font-size:1.2rem;font-weight:900;text-align:right;padding:12px}.footer{margin-top:30px;font-size:8px;color:#999;text-align:center;border-top:1px solid #e0e0e0;padding-top:10px}</style></head><body>'
+  +'<div class="header"><div><h1>Veridia HealthTech</h1><div style="font-size:9px;color:#888">CIF: B00000000 | info@veridia.tech<br>Factura SaaS - Suscripcion de software</div></div>'
+  +'<div style="text-align:right"><div style="font-size:1.1rem;font-weight:800;color:#2E8B57">FACTURA</div><div style="font-size:9px;color:#888">Fecha: '+pago.fecha+'<br>N: INV-'+pago.fecha.replace(/-/g,'')+'-'+clientId.slice(-4)+'</div></div></div>'
+  +'<div style="background:#f8f9fa;padding:12px;border-radius:8px;margin-bottom:16px"><div style="font-size:9px;color:#888;margin-bottom:4px">CLIENTE</div><div style="font-weight:700">'+cl.nombre+'</div><div style="font-size:10px;color:#555">'+cl.contacto+' | '+cl.email+(cl.telefono?' | '+cl.telefono:'')+'</div></div>'
+  +'<table><thead><tr><th>Concepto</th><th>Plan</th><th>Periodo</th><th>Importe</th></tr></thead><tbody>'
+  +'<tr><td>Suscripcion Veridia HealthTech</td><td>'+(plan?plan.nombre:'?')+' ('+cl.modulosActivos.length+' modulos, '+( plan?plan.maxUsuarios:'?')+' usuarios)</td><td>Mensual</td><td style="font-weight:700">'+pago.monto+' EUR</td></tr>'
+  +'</tbody></table>'
+  +'<div class="total">Total: '+pago.monto+' EUR</div>'
+  +'<div style="margin-top:12px;font-size:10px;color:#555"><strong>Metodo de pago:</strong> '+(pago.metodo||'—')+' | <strong>Estado:</strong> '+pago.estado+'</div>'
+  +'<div class="footer">Veridia HealthTech &copy; '+new Date().getFullYear()+' | Desarrollado por Andres Galeano | Este documento es una factura simplificada.</div>'
+  +'<script>setTimeout(function(){window.print()},400)<\/script></body></html>');
+  w.document.close();
+}
+
+// ===== #7 EXPORT CSV CLIENTES =====
+function saExportCSV(){
+  var headers=['Nombre','Contacto','Email','Telefono','Plan','Estado','Alta','Vence','Pacientes','Modulos'];
+  var rows=SA.clients.map(function(cl){
+    return[cl.nombre,cl.contacto||'',cl.email,cl.telefono||'',cl.plan,cl.estado,cl.fechaAlta||'',cl.fechaVencimiento||'',(cl.uso?cl.uso.pacientes:0),cl.modulosActivos?cl.modulosActivos.length:0].map(function(v){return'"'+(v+'').replace(/"/g,'""')+'"'}).join(',');
+  });
+  var csv=headers.join(',')+'\n'+rows.join('\n');
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='veridia_clients_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  saAudit('EXPORT_CSV','Clientes exportados');
+}
+
+// ===== #8 CATEGORIAS DE TICKETS + ASIGNACION =====
+var TICKET_CATS=['Bug','Feature','Pregunta','Facturacion','Otro'];
+
+// ===== #9 SLA EN TICKETS =====
+function calcSLA(ticket){
+  if(!ticket.mensajes||ticket.mensajes.length<2)return{responded:false,label:'Sin respuesta'};
+  var created=new Date(ticket.fecha+'T00:00:00');
+  var firstReply=ticket.mensajes.find(function(m){return m.from==='soporte'});
+  if(!firstReply)return{responded:false,label:'Sin respuesta'};
+  var replied=new Date(firstReply.fecha.replace(' ','T'));
+  var hours=Math.round((replied-created)/3600000);
+  return{responded:true,hours:hours,label:hours+'h',
+    badge:hours<=4?'badge-success':hours<=24?'badge-warning':'badge-danger'};
+}
+
+// ===== #10 SOPORTE DESDE ERP =====
+function saCreateTicketFromERP(clientEmail,asunto,mensaje){
+  var cl=SA.clients.find(function(c){return c.email===clientEmail});
+  SA.tickets.unshift({
+    id:'tkt_'+Date.now(),clientId:cl?cl.id:'unknown',
+    asunto:asunto,prioridad:'media',categoria:'Pregunta',
+    estado:'abierto',fecha:new Date().toISOString().slice(0,10),
+    source:'erp',
+    mensajes:[{from:'cliente',text:mensaje,fecha:new Date().toISOString().replace('T',' ').substring(0,16)}]
+  });
+  saSave();
+}
+
+// ===== #11 CRM MINI — NOTAS DE SEGUIMIENTO =====
+function saAddNote(clientId){
+  var cl=SA.clients.find(function(c){return c.id===clientId});if(!cl)return;
+  saOpenModal('<div class="modal-header"><h3>Nota: '+cl.nombre+'</h3><button onclick="saCloseModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer">x</button></div>'
+  +'<div class="modal-body"><div class="form-group"><label class="form-label">Tipo</label><select id="anTipo"><option>Llamada</option><option>Email</option><option>Reunion</option><option>Seguimiento</option><option>Interes upgrade</option><option>Otro</option></select></div>'
+  +'<div class="form-group"><label class="form-label">Nota</label><textarea id="anTexto" rows="3" placeholder="Detalle de la interaccion..."></textarea></div>'
+  +'</div><div class="modal-footer"><button class="btn btn-outline" onclick="saCloseModal()">Cancelar</button><button class="btn btn-primary" onclick="saSaveNote(\''+clientId+'\')">Guardar</button></div>');
+}
+
+function saSaveNote(clientId){
+  var cl=SA.clients.find(function(c){return c.id===clientId});if(!cl)return;
+  if(!cl.notas_crm)cl.notas_crm=[];
+  cl.notas_crm.unshift({
+    fecha:new Date().toISOString().replace('T',' ').substring(0,16),
+    tipo:document.getElementById('anTipo').value,
+    texto:document.getElementById('anTexto').value.trim(),
+    autor:SA.currentUser?SA.currentUser.name:'Admin'
+  });
+  saAudit('CRM_NOTE',cl.nombre+': '+document.getElementById('anTipo').value);
+  saSave();saCloseModal();
+}
+
+// ===== #12 LTV + PERIODO DE GRACIA =====
+function calcLTV(client){
+  if(!client.fechaAlta)return 0;
+  var meses=Math.max(1,Math.round((Date.now()-new Date(client.fechaAlta).getTime())/(30*86400000)));
+  var precio=SA.plans[client.plan]?SA.plans[client.plan].precio:0;
+  return{meses:meses,ltv:meses*precio,mensual:precio};
+}
+
+// ===== #13 TEMPLATES EMAIL =====
+var SA_EMAIL_TEMPLATES={
+  bienvenida:{asunto:'Bienvenido/a a Veridia HealthTech',cuerpo:'Hola {nombre},\n\nGracias por unirte a Veridia HealthTech. Tu cuenta esta activa con el plan {plan}.\n\nCredenciales de acceso:\nURL: https://veridia.tech\nEmail: {email}\nContrasena: (la que elegiste al registrarte)\n\nSi tienes dudas, responde a este email.\n\nSaludos,\nEquipo Veridia HealthTech'},
+  recordatorio:{asunto:'Tu suscripcion vence pronto',cuerpo:'Hola {nombre},\n\nTu suscripcion al plan {plan} vence el {vence}.\n\nPara continuar usando Veridia sin interrupciones, realiza tu pago.\n\nSaludos,\nEquipo Veridia HealthTech'},
+  confirmacion:{asunto:'Pago confirmado - Veridia HealthTech',cuerpo:'Hola {nombre},\n\nConfirmamos tu pago de {monto} EUR por el plan {plan}.\n\nTu suscripcion esta activa hasta {vence}.\n\nGracias,\nEquipo Veridia HealthTech'},
+  suspension:{asunto:'Cuenta suspendida - Veridia HealthTech',cuerpo:'Hola {nombre},\n\nTu cuenta ha sido suspendida por falta de pago.\n\nTus datos estan seguros y se mantendran por 30 dias. Realiza tu pago para reactivar.\n\nSaludos,\nEquipo Veridia HealthTech'}
+};
+
+function saShowEmailTemplate(type,clientId){
+  var tmpl=SA_EMAIL_TEMPLATES[type];if(!tmpl)return;
+  var cl=SA.clients.find(function(c){return c.id===clientId})||{nombre:'Cliente',email:'',plan:'pro',fechaVencimiento:''};
+  var plan=SA.plans[cl.plan];
+  var body=tmpl.cuerpo.replace(/{nombre}/g,cl.contacto||cl.nombre).replace(/{email}/g,cl.email).replace(/{plan}/g,plan?plan.nombre:'').replace(/{vence}/g,cl.fechaVencimiento||'').replace(/{monto}/g,plan?plan.precio:'');
+  
+  saOpenModal('<div class="modal-header"><h3>Template: '+tmpl.asunto+'</h3><button onclick="saCloseModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer">x</button></div>'
+  +'<div class="modal-body"><div class="form-group"><label class="form-label">Para</label><input value="'+cl.email+'" readonly></div>'
+  +'<div class="form-group"><label class="form-label">Asunto</label><input value="'+tmpl.asunto+'" readonly></div>'
+  +'<div class="form-group"><label class="form-label">Cuerpo</label><textarea rows="8" style="font-family:monospace;font-size:.78rem" id="etBody">'+body+'</textarea></div>'
+  +'</div><div class="modal-footer"><button class="btn btn-outline" onclick="saCloseModal()">Cerrar</button><button class="btn btn-primary" onclick="navigator.clipboard.writeText(document.getElementById(\'etBody\').value);alert(\'Copiado al portapapeles\')">Copiar texto</button></div>');
+}
+
+// ===== #14 SUBDOMINIO POR CLIENTE =====
+// Added as a field in client creation/edit (simple text field)
+
+// ============================================================
+// OVERRIDE RENDERS WITH IMPROVEMENTS
+// ============================================================
+
+// Override renderSAClients to add search + CSV + module toggle
+var _origRenderSAClients=renderSAClients;
+renderSAClients=function(c){
+  _origRenderSAClients(c);
+  // Inject search bar
+  var header=c.querySelector('.sa-header');
+  if(header){
+    var searchDiv=document.createElement('div');
+    searchDiv.style.cssText='display:flex;gap:8px;align-items:center';
+    searchDiv.innerHTML='<input type="text" placeholder="Buscar cliente..." oninput="saSearchClients(this.value)" style="width:200px;padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:.82rem">'
+    +'<button class="btn btn-outline btn-sm" onclick="saExportCSV()">CSV</button>';
+    header.insertBefore(searchDiv,header.querySelector('.btn'));
+  }
+  // Add module toggle button to each row
+  var rows=c.querySelectorAll('#saClientList tr');
+  rows.forEach(function(r,i){
+    var cl=SA.clients[i];if(!cl)return;
+    var lastTd=r.querySelector('td:last-child');
+    if(lastTd){
+      var btn=document.createElement('button');
+      btn.className='btn btn-outline btn-xs';btn.style.marginLeft='4px';
+      btn.textContent='Modulos';btn.onclick=function(){saOpenModuleToggle(cl.id)};
+      lastTd.appendChild(btn);
+    }
+  });
+};
+
+// Override renderSAAnalytics to add charts
+var _origRenderSAAnalytics=renderSAAnalytics;
+renderSAAnalytics=function(c){
+  _origRenderSAAnalytics(c);
+  // Add MRR chart
+  var months=[];
+  for(var i=5;i>=0;i--){var d=new Date();d.setMonth(d.getMonth()-i);months.push(d.toISOString().slice(0,7))}
+  var mrrData=months.map(function(m){
+    var label=m.slice(5);
+    var rev=SA.clients.filter(function(cl){return cl.estado==='activo'&&cl.fechaAlta&&cl.fechaAlta<=m+'-31'}).reduce(function(s,cl){return s+(SA.plans[cl.plan]?SA.plans[cl.plan].precio:0)},0);
+    return{label:label,value:rev};
+  });
+  
+  var chartCard=document.createElement('div');chartCard.className='sa-card';
+  chartCard.innerHTML='<div class="sa-card-header"><h3>📈 MRR Tendencia (6 meses)</h3></div><div class="sa-card-body">'+saSvgBar(mrrData,500,180,'var(--primary)')+'</div>';
+  c.appendChild(chartCard);
+};
+
+// Override renderSABilling to add invoice PDF + LTV
+var _origRenderSABilling=renderSABilling;
+renderSABilling=function(c){
+  _origRenderSABilling(c);
+  // Add LTV section
+  var ltvCard=document.createElement('div');ltvCard.className='sa-card';
+  ltvCard.innerHTML='<div class="sa-card-header"><h3>💎 LTV por cliente</h3></div><div class="sa-card-body" style="padding:0"><table><thead><tr><th>Cliente</th><th>Plan</th><th>Meses</th><th>LTV</th><th>Factura</th></tr></thead><tbody>'
+  +SA.clients.filter(function(cl){return cl.estado==='activo'}).map(function(cl){
+    var ltv=calcLTV(cl);
+    return'<tr><td><strong>'+cl.nombre+'</strong></td><td>'+cl.plan+'</td><td>'+ltv.meses+'</td><td style="font-weight:700">'+ltv.ltv+' EUR</td>'
+    +'<td>'+(cl.pagos&&cl.pagos.length?'<button class="btn btn-outline btn-xs" onclick="saGenerateInvoicePDF(\''+cl.id+'\','+(cl.pagos.length-1)+')">PDF</button>':'---')+'</td></tr>';
+  }).join('')+'</tbody></table></div>';
+  c.appendChild(ltvCard);
+};
+
+// Override renderSATickets to add categories + SLA
+var _origRenderSATickets=renderSATickets;
+renderSATickets=function(c){
+  _origRenderSATickets(c);
+  // Add SLA badge to each ticket row
+  var rows=c.querySelectorAll('#saTicketList tr');
+  rows.forEach(function(r,i){
+    var t=SA.tickets[i];if(!t)return;
+    var sla=calcSLA(t);
+    var lastTd=r.querySelector('td:last-child');
+    if(lastTd){
+      var badge=document.createElement('span');
+      badge.className='badge '+(sla.badge||'badge-neutral');
+      badge.style.cssText='font-size:.55rem;margin-left:4px';
+      badge.textContent='SLA: '+sla.label;
+      var statusTd=r.querySelectorAll('td')[3];
+      if(statusTd)statusTd.appendChild(badge);
+    }
+  });
+};
+
+// Override saViewClient to add CRM notes + email templates + LTV
+var _origSaViewClient=saViewClient;
+saViewClient=function(id){
+  _origSaViewClient(id);
+  // Add CRM + templates to the modal
+  var cl=SA.clients.find(function(c){return c.id===id});if(!cl)return;
+  var modalBody=document.querySelector('#saModalContent .modal-body');
+  if(!modalBody)return;
+  
+  // LTV
+  var ltv=calcLTV(cl);
+  var ltvDiv=document.createElement('div');
+  ltvDiv.style.cssText='padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:14px;font-size:.82rem';
+  ltvDiv.innerHTML='<strong>LTV:</strong> '+ltv.ltv+' EUR ('+ltv.meses+' meses x '+ltv.mensual+' EUR/mes)';
+  modalBody.appendChild(ltvDiv);
+  
+  // CRM Notes
+  var crmDiv=document.createElement('div');crmDiv.style.marginBottom='14px';
+  crmDiv.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><strong style="font-size:.78rem">Notas CRM</strong><button class="btn btn-outline btn-xs" onclick="saCloseModal();saAddNote(\''+id+'\')">+ Nota</button></div>';
+  if(cl.notas_crm&&cl.notas_crm.length){
+    cl.notas_crm.slice(0,5).forEach(function(n){
+      crmDiv.innerHTML+='<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:.75rem"><span class="badge badge-neutral" style="font-size:.55rem">'+n.tipo+'</span> <span style="color:var(--text3)">'+n.fecha+'</span><div>'+n.texto+'</div></div>';
+    });
+  }
+  modalBody.appendChild(crmDiv);
+  
+  // Email templates
+  var emailDiv=document.createElement('div');
+  emailDiv.innerHTML='<div style="margin-bottom:8px"><strong style="font-size:.78rem">Emails</strong></div><div style="display:flex;gap:4px;flex-wrap:wrap">'
+  +['bienvenida','recordatorio','confirmacion','suspension'].map(function(t){
+    return'<button class="btn btn-outline btn-xs" onclick="saCloseModal();saShowEmailTemplate(\''+t+'\',\''+id+'\')">'+t+'</button>';
+  }).join('')+'</div>';
+  modalBody.appendChild(emailDiv);
+};
+
+// Override saNewTicket to add category
+var _origSaNewTicket=saNewTicket;
+saNewTicket=function(){
+  _origSaNewTicket();
+  // Add category field to modal
+  var modalBody=document.querySelector('#saModalContent .modal-body');
+  if(!modalBody)return;
+  var firstFormRow=modalBody.querySelector('.form-row');
+  if(firstFormRow){
+    var catDiv=document.createElement('div');catDiv.className='form-group';catDiv.style.marginBottom='12px';
+    catDiv.innerHTML='<label class="form-label">Categoria</label><select id="ntCat">'+TICKET_CATS.map(function(c){return'<option>'+c+'</option>'}).join('')+'</select>';
+    firstFormRow.parentNode.insertBefore(catDiv,firstFormRow.nextSibling);
+  }
+};
+
+</script>
+</body>
+</html>

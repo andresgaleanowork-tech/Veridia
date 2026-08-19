@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' https:; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; frame-src 'none'; object-src 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veridia HealthTech — Clinical Nutrition ERP | Software para Nutricionistas</title>
+<meta name="description" content="ERP de nutrición clínica con IA, restauración colectiva, APPCC, ESPEN, soporte nutricional UCI. Para clínicas, hospitales, geriátricos y colegios.">
+<meta name="theme-color" content="#0891B2">
+<link rel="icon" href="assets/logo-icon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/logo-icon.png">
+<meta property="og:title" content="Veridia HealthTech — Clinical Nutrition ERP">
+<meta property="og:description" content="Software de nutrición clínica con IA integrada. Restauración colectiva, APPCC, ESPEN, 30+ módulos.">
+<meta property="og:image" content="assets/logo-full.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://veridia.tech">
+<meta property="og:locale" content="es_ES">
+<meta property="og:site_name" content="Veridia HealthTech">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Veridia HealthTech — Clinical Nutrition ERP">
+<meta name="twitter:description" content="Software de nutrición clínica con IA. Restauración colectiva, APPCC, ESPEN, 30+ módulos. Para clínicas, hospitales y geriátricos.">
+<meta name="twitter:image" content="https://veridia.tech/assets/logo-full.png">
+<meta name="robots" content="index, follow">
+<meta name="author" content="GalcoCapital LLC — Eduardo Andres Galeano Aido">
+<link rel="canonical" href="https://veridia.tech">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Veridia HealthTech",
+  "description": "ERP de nutrición clínica y restauración colectiva con inteligencia artificial, ESPEN, APPCC, IDDSI. Para nutricionistas, hospitales, geriátricos y colegios.",
+  "url": "https://veridia.tech",
+  "applicationCategory": "HealthApplication",
+  "operatingSystem": "Web",
+  "offers": [
+    {"@type": "Offer", "name": "Starter", "price": "0", "priceCurrency": "EUR", "description": "20 pacientes, 5 módulos"},
+    {"@type": "Offer", "name": "Professional", "price": "49", "priceCurrency": "EUR", "description": "500 pacientes, 18 módulos, IA"},
+    {"@type": "Offer", "name": "Enterprise", "price": "149", "priceCurrency": "EUR", "description": "Ilimitado, Restauración Colectiva, UCI"}
+  ],
+  "creator": {
+    "@type": "Organization",
+    "name": "GalcoCapital LLC",
+    "url": "https://veridia.tech",
+    "founder": {"@type": "Person", "name": "Eduardo Andres Galeano Aido"}
+  },
+  "featureList": "Nutrición clínica, Restauración colectiva, APPCC, IDDSI, ESPEN, 969 alimentos BEDCA, 438 patologías ICD-10, IA Gemini, Facturación, Multi-idioma",
+  "screenshot": "https://veridia.tech/assets/logo-full.png",
+  "softwareVersion": "5.2.0",
+  "inLanguage": ["es", "en", "pt"]
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/design-system.css">
+<style>
+:root{
+  --dark:#0B1120;--dark2:#111827;--dark3:#1E293B;
+  --glass:rgba(255,255,255,.06);--glass-border:rgba(255,255,255,.1);
+  --glow:rgba(8,145,178,.4);--glow-sm:rgba(8,145,178,.15);
+}
+html{scroll-behavior:smooth}
+body{overflow-x:hidden;font-family:'Inter',system-ui,sans-serif}
+
+/* ═══ NAV ═══ */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 0;transition:all .35s cubic-bezier(.4,0,.2,1)}
+.nav.scrolled{background:rgba(11,17,32,.88);backdrop-filter:blur(20px) saturate(1.4);box-shadow:0 1px 0 rgba(255,255,255,.06),0 8px 32px rgba(0,0,0,.3);padding:10px 0}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-logo img{height:34px}.nav-logo span{font-weight:800;font-size:1.05rem;color:#fff;letter-spacing:-.3px}
+.nav-logo .sub{font-weight:400;opacity:.5;font-size:.8rem;margin-left:2px}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{color:rgba(255,255,255,.65);font-size:.85rem;font-weight:500;transition:color .2s;text-decoration:none}
+.nav-links a:hover{color:#fff}
+.nav-cta{background:linear-gradient(135deg,#0891B2,#0E7490)!important;color:#fff!important;padding:9px 22px;border-radius:10px;font-weight:600!important;font-size:.85rem;transition:all .25s;box-shadow:0 2px 12px var(--glow-sm)}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--glow)!important;background:linear-gradient(135deg,#0E7490,#0891B2)!important}
+.nav-mobile{display:none;font-size:1.4rem;color:#fff;background:none;border:none;cursor:pointer}
+
+/* ═══ HERO ═══ */
+.hero{min-height:100vh;display:flex;align-items:center;padding:140px 24px 100px;position:relative;overflow:hidden;background:var(--dark)}
+.hero::before{content:'';position:absolute;top:-40%;right:-15%;width:800px;height:800px;background:radial-gradient(circle,rgba(8,145,178,.12) 0%,rgba(8,145,178,.04) 40%,transparent 70%);border-radius:50%;animation:pulse-glow 8s ease-in-out infinite alternate}
+.hero::after{content:'';position:absolute;bottom:-30%;left:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(5,150,105,.08) 0%,transparent 60%);border-radius:50%;animation:pulse-glow 10s ease-in-out infinite alternate-reverse}
+@keyframes pulse-glow{0%{opacity:.6;transform:scale(1)}100%{opacity:1;transform:scale(1.1)}}
+.hero-grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:60px 60px;opacity:.4}
+.hero-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;position:relative;z-index:1}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(8,145,178,.1);color:#22D3EE;padding:7px 18px;border-radius:100px;font-size:.78rem;font-weight:600;letter-spacing:.3px;margin-bottom:24px;border:1px solid rgba(8,145,178,.2);backdrop-filter:blur(8px)}
+.hero-tag .dot{width:7px;height:7px;border-radius:50%;background:#22D3EE;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-size:3.6rem;font-weight:900;line-height:1.05;color:#fff;letter-spacing:-2px;margin-bottom:24px}
+.hero h1 .gradient{background:linear-gradient(135deg,#22D3EE 0%,#0891B2 50%,#059669 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 .line{display:block}
+.hero-desc{font-size:1.1rem;color:rgba(255,255,255,.55);line-height:1.75;margin-bottom:36px;max-width:500px}
+.hero-buttons{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:48px}
+.btn{padding:14px 32px;border-radius:12px;font-weight:700;font-size:.9rem;transition:all .3s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:8px;text-decoration:none;border:none;cursor:pointer}
+.btn-glow{background:linear-gradient(135deg,#0891B2,#0E7490);color:#fff;box-shadow:0 4px 24px var(--glow-sm),inset 0 1px 0 rgba(255,255,255,.1)}
+.btn-glow:hover{transform:translateY(-3px);box-shadow:0 8px 32px var(--glow),inset 0 1px 0 rgba(255,255,255,.15)}
+.btn-ghost{border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);background:rgba(255,255,255,.04);backdrop-filter:blur(8px)}
+.btn-ghost:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff}
+.hero-metrics{display:flex;gap:36px}
+.hero-metric{text-align:left}
+.hero-metric .val{font-size:1.8rem;font-weight:900;color:#fff;letter-spacing:-1px}
+.hero-metric .val span{color:#22D3EE}
+.hero-metric .lbl{font-size:.7rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1.2px;margin-top:3px}
+
+/* Hero visual */
+.hero-visual{position:relative;display:flex;justify-content:center}
+.hero-card{position:relative;width:100%;max-width:480px}
+.hero-card-main{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:28px;backdrop-filter:blur(20px);position:relative;overflow:hidden}
+.hero-card-main::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(8,145,178,.4),transparent)}
+.hero-card-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hero-card-icon{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#0891B2,#0E7490);display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.hero-card-title{font-size:.88rem;font-weight:700;color:#fff}
+.hero-card-sub{font-size:.7rem;color:rgba(255,255,255,.4)}
+.hero-card-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.hero-card-stat{background:rgba(255,255,255,.04);border-radius:10px;padding:14px 10px;text-align:center;border:1px solid rgba(255,255,255,.06)}
+.hero-card-stat .num{font-size:1.3rem;font-weight:800;color:#22D3EE}
+.hero-card-stat .txt{font-size:.62rem;color:rgba(255,255,255,.4);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.hero-card-bars{margin-top:18px;display:flex;flex-direction:column;gap:8px}
+.hero-bar{display:flex;align-items:center;gap:10px}
+.hero-bar-label{font-size:.68rem;color:rgba(255,255,255,.5);width:60px;text-align:right}
+.hero-bar-track{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.hero-bar-fill{height:100%;border-radius:3px;transition:width 1.5s cubic-bezier(.4,0,.2,1)}
+.hero-bar-val{font-size:.68rem;color:rgba(255,255,255,.4);width:32px}
+
+/* Floating badges */
+.float-badge{position:absolute;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 16px;backdrop-filter:blur(12px);display:flex;align-items:center;gap:8px;font-size:.75rem;color:rgba(255,255,255,.7);white-space:nowrap;animation:float 6s ease-in-out infinite}
+.float-badge.top-right{top:-20px;right:-30px;animation-delay:0s}
+.float-badge.bottom-left{bottom:-15px;left:-40px;animation-delay:2s}
+.float-badge .ico{font-size:1rem}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* ═══ METRICS BAR ═══ */
+.metrics-bar{background:var(--dark2);border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);padding:32px 24px;position:relative}
+.metrics-row{max-width:1200px;margin:0 auto;display:flex;justify-content:space-around;flex-wrap:wrap;gap:24px}
+.metric-item{text-align:center}
+.metric-item .n{font-size:2.2rem;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,#22D3EE,#0891B2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.metric-item .l{font-size:.7rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1.2px;margin-top:4px}
+
+/* ═══ SECTIONS ═══ */
+.section{padding:110px 24px}
+.section-dark{background:var(--dark);color:#fff}
+.section-darker{background:var(--dark2);color:#fff}
+.section-light{background:#F8FAFC}
+.section-inner{max-width:1200px;margin:0 auto}
+.section-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(8,145,178,.1);color:#22D3EE;padding:6px 16px;border-radius:100px;font-size:.72rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:16px;border:1px solid rgba(8,145,178,.15)}
+.section-dark .section-tag{background:rgba(8,145,178,.12);border:1px solid rgba(8,145,178,.2)}
+.section-title{font-size:2.6rem;font-weight:900;letter-spacing:-1.5px;margin-bottom:16px;line-height:1.1;color:var(--text)}
+.section-dark .section-title{color:#fff}
+.section-desc{font-size:1.05rem;color:var(--text2);line-height:1.7;max-width:580px;margin-bottom:44px}
+.section-dark .section-desc{color:rgba(255,255,255,.5)}
+.text-center{text-align:center}
+.mx-auto{margin-left:auto;margin-right:auto}
+
+/* ═══ BENTO FEATURES ═══ */
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.bento-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:28px;transition:all .35s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
+.bento-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#0891B2,#22D3EE);opacity:0;transition:opacity .3s}
+.bento-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.08);border-color:rgba(8,145,178,.3)}
+.bento-card:hover::before{opacity:1}
+.bento-card.span-4{grid-column:span 4}
+.bento-card.span-6{grid-column:span 6}
+.bento-card.span-8{grid-column:span 8}
+.bento-card.span-12{grid-column:span 12}
+.bento-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:16px;background:var(--primary-light)}
+.bento-card h3{font-size:1rem;font-weight:700;margin-bottom:6px;color:var(--text)}
+.bento-card p{font-size:.82rem;color:var(--text2);line-height:1.6}
+.bento-highlight{background:linear-gradient(135deg,rgba(8,145,178,.04),rgba(5,150,105,.04));border-color:rgba(8,145,178,.15)}
+
+/* ═══ SPLIT SECTION ═══ */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}
+
+/* ═══ FEATURE LIST ═══ */
+.feature-list{display:grid;gap:14px}
+.feature-item{display:flex;gap:14px;align-items:flex-start;padding:18px;background:rgba(255,255,255,.04);border-radius:14px;border:1px solid rgba(255,255,255,.07);transition:all .25s}
+.feature-item:hover{background:rgba(8,145,178,.06);border-color:rgba(8,145,178,.2)}
+.feature-item .ico{font-size:1.4rem;flex-shrink:0;margin-top:2px}
+.feature-item strong{color:#fff;font-size:.88rem;display:block;margin-bottom:4px}
+.feature-item p{font-size:.8rem;color:rgba(255,255,255,.45);line-height:1.55;margin:0}
+
+/* ═══ SECTORS ═══ */
+.sectors-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.sector-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:30px 24px;text-align:center;transition:all .3s;position:relative;overflow:hidden}
+.sector-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(8,145,178,.08),transparent);opacity:0;transition:opacity .3s}
+.sector-card:hover{transform:translateY(-4px);border-color:rgba(8,145,178,.3)}
+.sector-card:hover::after{opacity:1}
+.sector-card>*{position:relative;z-index:1}
+.sector-icon{font-size:2.2rem;margin-bottom:12px}
+.sector-card h3{font-size:.92rem;font-weight:700;color:#fff;margin-bottom:6px}
+.sector-card p{font-size:.76rem;color:rgba(255,255,255,.45);line-height:1.5}
+
+/* ═══ PRICING ═══ */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+.pricing-card{background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:36px 28px;text-align:center;transition:all .35s;position:relative}
+.pricing-card.featured{border-color:#0891B2;transform:scale(1.04);box-shadow:0 24px 64px rgba(8,145,178,.15)}
+.pricing-card.featured::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#0891B2,#22D3EE);border-radius:20px 20px 0 0}
+.pricing-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#0891B2,#0E7490);color:#fff;padding:5px 18px;border-radius:100px;font-size:.65rem;font-weight:700;letter-spacing:.8px;white-space:nowrap;box-shadow:0 4px 16px var(--glow-sm)}
+.pricing-name{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.pricing-sub{font-size:.78rem;color:var(--text3);margin-bottom:16px}
+.pricing-price{font-size:3.2rem;font-weight:900;color:var(--text);letter-spacing:-2px;margin:8px 0 4px}
+.pricing-price span{font-size:.85rem;font-weight:400;color:var(--text3)}
+.pricing-features{list-style:none;margin:24px 0;text-align:left}
+.pricing-features li{padding:8px 0;font-size:.82rem;color:var(--text2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.pricing-features li::before{content:'';width:18px;height:18px;border-radius:50%;background:rgba(8,145,178,.1);display:flex;align-items:center;justify-content:center;content:'✓';color:#0891B2;font-size:.7rem;font-weight:700;flex-shrink:0}
+.pricing-features li.no::before{content:'✕';color:var(--text3);background:rgba(0,0,0,.04)}
+.btn-pricing{width:100%;justify-content:center;border-radius:12px;padding:13px;font-size:.88rem}
+
+/* ═══ TESTIMONIALS ═══ */
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.testimonial-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:28px;position:relative;transition:all .3s}
+.testimonial-card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(0,0,0,.06)}
+.testimonial-card::before{content:'"';font-size:4rem;color:#0891B2;opacity:.12;position:absolute;top:12px;right:20px;font-family:Georgia,serif;line-height:1}
+.testimonial-text{font-size:.86rem;color:var(--text2);line-height:1.7;margin-bottom:18px;font-style:italic}
+.testimonial-author{display:flex;align-items:center;gap:10px}
+.testimonial-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.78rem;flex-shrink:0}
+.testimonial-name{font-size:.84rem;font-weight:700;color:var(--text)}
+.testimonial-role{font-size:.7rem;color:var(--text3)}
+
+/* ═══ TEAM ═══ */
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.team-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:32px 24px;text-align:center;transition:all .3s}
+.team-card:hover{transform:translateY(-4px);border-color:rgba(8,145,178,.3);background:rgba(8,145,178,.04)}
+.team-avatar{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.6rem;color:#fff;font-weight:800;background:linear-gradient(135deg,#0891B2,#059669)}
+.team-card h3{font-size:.95rem;font-weight:700;color:#fff;margin-bottom:3px}
+.team-role{font-size:.76rem;color:#22D3EE;font-weight:600;margin-bottom:10px}
+.team-card p{font-size:.8rem;color:rgba(255,255,255,.45);line-height:1.55}
+
+/* ═══ CTA ═══ */
+.cta-section{padding:100px 24px;text-align:center;position:relative;overflow:hidden;background:var(--dark)}
+.cta-section::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(8,145,178,.15),rgba(5,150,105,.1))}
+.cta-section>*{position:relative;z-index:1}
+.cta-section h2{font-size:2.8rem;font-weight:900;color:#fff;letter-spacing:-1.5px;margin-bottom:16px}
+.cta-section p{font-size:1.05rem;color:rgba(255,255,255,.55);margin-bottom:36px;max-width:560px;margin-left:auto;margin-right:auto}
+.btn-white{background:#fff;color:#0891B2;font-weight:700;padding:15px 40px;border-radius:12px;transition:all .3s;display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-size:.95rem;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.btn-white:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(0,0,0,.25)}
+
+/* ═══ FOOTER ═══ */
+.footer{background:var(--dark2);color:rgba(255,255,255,.5);padding:64px 24px 28px;border-top:1px solid rgba(255,255,255,.06)}
+.footer-inner{max-width:1200px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+.footer-brand{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.footer-brand img{height:30px}.footer-brand span{font-size:1.05rem;font-weight:800;color:#fff}
+.footer h4{color:#fff;font-size:.8rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:1.2px}
+.footer a{display:block;padding:4px 0;font-size:.8rem;transition:color .2s;text-decoration:none;color:rgba(255,255,255,.5)}.footer a:hover{color:#22D3EE}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:20px;display:flex;justify-content:space-between;font-size:.72rem;flex-wrap:wrap;gap:8px}
+
+/* ═══ BETA ═══ */
+.beta-float{position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,#0891B2,#0E7490);color:#fff;padding:9px 20px;border-radius:100px;font-size:.73rem;font-weight:700;z-index:99;box-shadow:0 4px 20px var(--glow);letter-spacing:.3px;border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(8px)}
+
+/* ═══ ANIMATIONS ═══ */
+.fade-up{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.4,0,.2,1),transform .7s cubic-bezier(.4,0,.2,1)}.fade-up.visible{opacity:1;transform:translateY(0)}
+.fade-up.delay-1{transition-delay:.1s}.fade-up.delay-2{transition-delay:.2s}.fade-up.delay-3{transition-delay:.3s}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:1024px){
+  .hero-inner,.split{grid-template-columns:1fr;gap:48px}
+  .hero h1{font-size:2.8rem}
+  .hero-visual{order:-1}
+  .bento-card.span-4,.bento-card.span-6,.bento-card.span-8{grid-column:span 6}
+  .sectors-grid,.pricing-grid,.testimonials-grid,.team-grid{grid-template-columns:1fr}
+  .pricing-card.featured{transform:none}
+  .footer-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:768px){
+  .nav-links{display:none}.nav-mobile{display:block}
+  .hero{padding:110px 20px 60px}.hero h1{font-size:2.1rem}
+  .hero-metrics{gap:20px}
+  .section{padding:60px 20px}.section-title{font-size:1.9rem}
+  .bento{grid-template-columns:1fr}
+  .bento-card.span-4,.bento-card.span-6,.bento-card.span-8,.bento-card.span-12{grid-column:span 1}
+  .footer-grid{grid-template-columns:1fr}
+  .hero-card-stats{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:480px){
+  .hero h1{font-size:1.7rem}.hero-desc{font-size:.9rem}
+  .hero-metrics{flex-wrap:wrap;gap:16px}
+  .btn{padding:12px 22px;font-size:.82rem}
+  .section{padding:44px 14px}.section-title{font-size:1.5rem}
+}
+</style>
+</head>
+<body>
+
+<div class="beta-float">🌿 Beta v5.2</div>
+
+<!-- NAV -->
+<nav class="nav" id="mainNav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo"><img src="assets/logo-icon.png" alt="Veridia"><span>Veridia<span class="sub">HealthTech</span></span></a>
+    <div class="nav-links">
+      <a href="#features">Módulos</a>
+      <a href="#restauracion">Restauración</a>
+      <a href="#sectores">Sectores</a>
+      <a href="#precios">Precios</a>
+      <a href="sobre-nosotros.html">Nosotros</a>
+      <a href="portal-profesional.html" class="nav-cta">Acceder →</a>
+    </div>
+    <button class="nav-mobile" onclick="toggleMobileNav()">☰</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-tag"><span class="dot"></span> Clinical Nutrition ERP · v5.2 Beta</div>
+      <h1>
+        <span class="line">El ERP clínico que</span>
+        <span class="line"><span class="gradient">nutre</span> desde la</span>
+        <span class="line">consulta hasta la cocina</span>
+      </h1>
+      <p class="hero-desc">Nutrición clínica individual + restauración colectiva institucional en una sola plataforma. IA integrada, APPCC, ESPEN, IDDSI y 969 alimentos BEDCA.</p>
+      <div class="hero-buttons">
+        <a href="portal-profesional.html" class="btn btn-glow">Probar gratis →</a>
+        <a href="#restauracion" class="btn btn-ghost">Ver Restauración Colectiva</a>
+      </div>
+      <div class="hero-metrics">
+        <div class="hero-metric"><div class="val">31<span>+</span></div><div class="lbl">Módulos</div></div>
+        <div class="hero-metric"><div class="val">969</div><div class="lbl">Alimentos BEDCA</div></div>
+        <div class="hero-metric"><div class="val">438</div><div class="lbl">Patologías ICD-10</div></div>
+        <div class="hero-metric"><div class="val">14</div><div class="lbl">Alérgenos UE</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card">
+        <div class="float-badge top-right"><span class="ico">🤖</span> IA Clínica activa</div>
+        <div class="hero-card-main">
+          <div class="hero-card-header">
+            <div class="hero-card-icon">🔬</div>
+            <div><div class="hero-card-title">Fórmula Desarrollada</div><div class="hero-card-sub">Paciente #1247 · Plan activo</div></div>
+          </div>
+          <div class="hero-card-stats">
+            <div class="hero-card-stat"><div class="num">1.850</div><div class="txt">Kcal/día</div></div>
+            <div class="hero-card-stat"><div class="num">92g</div><div class="txt">Proteínas</div></div>
+            <div class="hero-card-stat"><div class="num">78g</div><div class="txt">Grasas</div></div>
+          </div>
+          <div class="hero-card-bars">
+            <div class="hero-bar"><span class="hero-bar-label">Prot</span><div class="hero-bar-track"><div class="hero-bar-fill" style="width:20%;background:linear-gradient(90deg,#0891B2,#22D3EE)"></div></div><span class="hero-bar-val">20%</span></div>
+            <div class="hero-bar"><span class="hero-bar-label">Grasas</span><div class="hero-bar-track"><div class="hero-bar-fill" style="width:38%;background:linear-gradient(90deg,#D97706,#FBBF24)"></div></div><span class="hero-bar-val">38%</span></div>
+            <div class="hero-bar"><span class="hero-bar-label">HC</span><div class="hero-bar-track"><div class="hero-bar-fill" style="width:42%;background:linear-gradient(90deg,#059669,#34D399)"></div></div><span class="hero-bar-val">42%</span></div>
+          </div>
+        </div>
+        <div class="float-badge bottom-left"><span class="ico">📊</span> ESPEN Guidelines Engine</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METRICS BAR -->
+<div class="metrics-bar">
+  <div class="metrics-row">
+    <div class="metric-item"><div class="n">13.500+</div><div class="l">Líneas de código</div></div>
+    <div class="metric-item"><div class="n">343</div><div class="l">Tests (Unit+E2E)</div></div>
+    <div class="metric-item"><div class="n">8</div><div class="l">Niveles IDDSI</div></div>
+    <div class="metric-item"><div class="n">3</div><div class="l">Idiomas</div></div>
+    <div class="metric-item"><div class="n">9</div><div class="l">Monedas</div></div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section section-light" id="features">
+  <div class="section-inner">
+    <div class="text-center" style="margin-bottom:52px">
+      <div class="section-tag">Módulos clínicos</div>
+      <h2 class="section-title mx-auto" style="max-width:600px">Todo lo que necesita un nutricionista</h2>
+      <p class="section-desc mx-auto">30 módulos integrados: desde la primera consulta hasta el soporte nutricional en UCI.</p>
+    </div>
+    <div class="bento">
+      <div class="bento-card span-8 bento-highlight fade-up">
+        <div class="bento-icon">🔬</div>
+        <h3>Fórmula Desarrollada</h3>
+        <p>Copiloto clínico en 5 pasos: paciente → macros → alimentos BEDCA → cuadraje → minuta. Multi-patología con ESPEN. Cuadraje automático con drag & drop.</p>
+      </div>
+      <div class="bento-card span-4 fade-up delay-1">
+        <div class="bento-icon" style="background:#ECFEFF">🤖</div>
+        <h3>IA Clínica (Gemini)</h3>
+        <p>Interpreta analíticas, genera planes 7 días, sugiere por patología. Contexto automático del paciente.</p>
+      </div>
+      <div class="bento-card span-4 fade-up">
+        <div class="bento-icon" style="background:#ECFEFF">🏥</div>
+        <h3>Soporte Nutricional UCI</h3>
+        <p>NRS-2002, GLIM, NUTRIC, Child-Pugh. Nutrición enteral (15 fórmulas), parenteral, protocolo Yale.</p>
+      </div>
+      <div class="bento-card span-4 fade-up delay-1">
+        <div class="bento-icon" style="background:#FEF5E7">🚨</div>
+        <h3>Alertas Ciclo Vital</h3>
+        <p>Pediátrica, adulta y geriátrica. Sarcopenia, realimentación, riesgo cardiometabólico.</p>
+      </div>
+      <div class="bento-card span-4 fade-up delay-2">
+        <div class="bento-icon" style="background:#ECFDF5">📊</div>
+        <h3>ESPEN Guidelines</h3>
+        <p>23 perfiles micronutrientes × enfermedad. 6 flowcharts interactivos. Cirugía, renal, hepático, oncológico.</p>
+      </div>
+      <div class="bento-card span-6 fade-up">
+        <div class="bento-icon" style="background:#FEF5E7">📋</div>
+        <h3>438 Patologías ICD-10</h3>
+        <p>Base de datos con 15 categorías nutricionales. Restricciones, incrementos, micronutrientes monitorizados por condición.</p>
+      </div>
+      <div class="bento-card span-6 fade-up delay-1">
+        <div class="bento-icon" style="background:#ECFEFF">👥</div>
+        <h3>Portal del Paciente</h3>
+        <p>Registro con DNI, plan alimentario, diario de ingesta, síntomas, chat directo, evolución de peso.</p>
+      </div>
+      <div class="bento-card span-4 fade-up">
+        <div class="bento-icon" style="background:#FEF5E7">💳</div>
+        <h3>Facturación + Contabilidad</h3>
+        <p>Facturas multilínea, caja, gastos recurrentes, P&L, presupuesto vs real. Multi-moneda.</p>
+      </div>
+      <div class="bento-card span-4 fade-up delay-1">
+        <div class="bento-icon" style="background:#ECFDF5">🔒</div>
+        <h3>RBAC + Auditoría</h3>
+        <p>3 roles (nutricionista, secretaria, admin). Trazabilidad completa. RGPD. Sesión con timeout.</p>
+      </div>
+      <div class="bento-card span-4 fade-up delay-2">
+        <div class="bento-icon" style="background:#ECFEFF">🌍</div>
+        <h3>Multi-idioma</h3>
+        <p>ES, EN, PT. Traducción dinámica. Moneda local automática. 9 monedas soportadas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESTAURACIÓN COLECTIVA -->
+<section class="section section-dark" id="restauracion">
+  <div class="section-inner">
+    <div class="section-tag">NUEVO · Restauración Colectiva</div>
+    <h2 class="section-title">Nutrición institucional a gran escala</h2>
+    <p class="section-desc">Planifica menús para colegios, hospitales, geriátricos, universidades y comedores de empresa. APPCC, IDDSI, trazabilidad completa.</p>
+
+    <div class="split" style="margin-bottom:52px">
+      <div class="feature-list">
+        <div class="feature-item"><span class="ico">📋</span><div><strong>Menú Basal + Derivaciones Automáticas</strong><p>Crea un menú semanal y el sistema genera automáticamente las adaptaciones: disfagia, diabético, hiposódica, sin gluten, vegetariano, halal...</p></div></div>
+        <div class="feature-item"><span class="ico">📐</span><div><strong>Escalado Inteligente con Factores de Merma</strong><p>Recalcula ingredientes de 10 a 500 comensales. 40+ factores de corrección para que la orden de compra nunca quede corta.</p></div></div>
+        <div class="feature-item"><span class="ico">🛡️</span><div><strong>APPCC + 14 Alérgenos UE + IDDSI 0-7</strong><p>Control de puntos críticos de temperatura. Etiquetado obligatorio de 14 alérgenos. Framework IDDSI completo.</p></div></div>
+        <div class="feature-item"><span class="ico">🔗</span><div><strong>Trazabilidad Inversa + Recall</strong><p>Proveedor → Lote → Plato → Comensales. Recall que genera informe de exposición en segundos.</p></div></div>
+      </div>
+      <div class="feature-list">
+        <div class="feature-item"><span class="ico">💰</span><div><strong>Costeo Dinámico por Comensal</strong><p>Calcula el costo real del menú cruzando cada plato con precios de proveedores. Score de carga de trabajo con bloqueo automático.</p></div></div>
+        <div class="feature-item"><span class="ico">✅</span><div><strong>Auditoría Nutricional con 8 Criterios</strong><p>Rotación, verdura, legumbres, fruta, pescado, balance proteico, carga, alérgenos. Score 0-100% automático.</p></div></div>
+        <div class="feature-item"><span class="ico">📉</span><div><strong>Algoritmo Predictivo de Mermas</strong><p>Si el rechazo supera el 25% en 3 ciclos consecutivos, alerta automática para sustituir o revisar la receta.</p></div></div>
+        <div class="feature-item"><span class="ico">🖨️</span><div><strong>Exportación Total</strong><p>Menú semanal PDF, orden de compra CSV, fichas técnicas, informes APPCC, recall sanitario imprimible.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTORS -->
+<section class="section section-darker" id="sectores">
+  <div class="section-inner">
+    <div class="text-center" style="margin-bottom:52px">
+      <div class="section-tag">Para quién es</div>
+      <h2 class="section-title">Un software, múltiples sectores</h2>
+    </div>
+    <div class="sectors-grid">
+      <div class="sector-card fade-up"><div class="sector-icon">🏥</div><h3>Hospitales</h3><p>Soporte nutricional UCI, ESPEN, screening NRS-2002/GLIM, nutrición enteral y parenteral.</p></div>
+      <div class="sector-card fade-up delay-1"><div class="sector-icon">🏠</div><h3>Geriátricos</h3><p>Disfagia IDDSI, fácil masticación, MNA-SF, sarcopenia L3, hiposódica, hiperprotéica.</p></div>
+      <div class="sector-card fade-up delay-2"><div class="sector-icon">🏫</div><h3>Colegios</h3><p>Menús sin alérgenos, adaptaciones culturales, auditoría nutricional por grupo de edad.</p></div>
+      <div class="sector-card fade-up"><div class="sector-icon">🎓</div><h3>Universidades</h3><p>Comedores masivos, costeo por comensal, vegetariano/vegano/halal, escalado inteligente.</p></div>
+      <div class="sector-card fade-up delay-1"><div class="sector-icon">🏢</div><h3>Empresas</h3><p>Catering y comedores corporativos, trazabilidad APPCC, control de proveedores.</p></div>
+      <div class="sector-card fade-up delay-2"><div class="sector-icon">💼</div><h3>Consultorios Privados</h3><p>Gestión integral: pacientes, citas, fórmula desarrollada, IA, facturación, contabilidad.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PORTAL PACIENTE -->
+<section class="section section-light">
+  <div class="section-inner">
+    <div class="split">
+      <div>
+        <div class="section-tag">Portal del paciente</div>
+        <h2 class="section-title">Tu paciente, siempre conectado</h2>
+        <p class="section-desc">Acceso web con DNI. Plan alimentario, diario de ingesta, síntomas, chat directo y evolución de peso.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="padding:14px;background:var(--white);border:1px solid var(--border);border-radius:12px;font-size:.82rem"><strong>🍽️ Mi Plan</strong><p style="color:var(--text3);margin-top:4px;font-size:.72rem">Plan activo con macros y comidas.</p></div>
+          <div style="padding:14px;background:var(--white);border:1px solid var(--border);border-radius:12px;font-size:.82rem"><strong>📓 Diario</strong><p style="color:var(--text3);margin-top:4px;font-size:.72rem">Ingesta diaria + síntomas + ánimo.</p></div>
+          <div style="padding:14px;background:var(--white);border:1px solid var(--border);border-radius:12px;font-size:.82rem"><strong>📊 Evolución</strong><p style="color:var(--text3);margin-top:4px;font-size:.72rem">Gráfico de peso + adherencia.</p></div>
+          <div style="padding:14px;background:var(--white);border:1px solid var(--border);border-radius:12px;font-size:.82rem"><strong>💬 Chat</strong><p style="color:var(--text3);margin-top:4px;font-size:.72rem">Mensajería directa con nutricionista.</p></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center">
+        <div style="background:var(--dark);border-radius:20px;padding:20px;max-width:300px;border:1px solid rgba(255,255,255,.08)">
+          <div style="background:var(--dark2);border-radius:14px;padding:24px;text-align:center;border:1px solid rgba(255,255,255,.06)">
+            <img src="assets/logo-icon.png" alt="Portal" loading="lazy" style="height:56px;margin-bottom:12px">
+            <div style="color:#fff;font-weight:700;font-size:.92rem">Portal del Paciente</div>
+            <div style="color:rgba(255,255,255,.4);font-size:.7rem;margin-top:4px">7 secciones · Mobile-first</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section class="section section-dark" id="equipo">
+  <div class="section-inner">
+    <div class="text-center" style="margin-bottom:52px">
+      <div class="section-tag">Nuestro equipo</div>
+      <h2 class="section-title">Profesionales detrás de Veridia</h2>
+    </div>
+    <div class="team-grid">
+      <div class="team-card"><div class="team-avatar">AC</div><h3>Lic. Antonella Caverzan</h3><div class="team-role">Directora Clínica · Nutricionista</div><p>Especialista en nutrición clínica con enfoque en patologías metabólicas. Diseñadora del motor clínico.</p></div>
+      <div class="team-card"><div class="team-avatar" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">AG</div><h3>Andrés Galeano</h3><div class="team-role">CTO · Desarrollador Principal</div><p>Ingeniero de software especializado en HealthTech. Arquitecto de la plataforma y las integraciones de IA.</p></div>
+      <div class="team-card"><div class="team-avatar" style="background:linear-gradient(135deg,#D97706,#EA580C)">🤖</div><h3>Veridia IA</h3><div class="team-role">Copiloto Clínico · Gemini</div><p>IA integrada: interpreta analíticas, genera planes, detecta interacciones fármaco-nutriente.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO VISUAL -->
+<section class="section section-darker" id="demo">
+  <div class="section-inner">
+    <div class="text-center" style="margin-bottom:52px">
+      <div class="section-tag">Así se ve por dentro</div>
+      <h2 class="section-title">Tu día a día, simplificado</h2>
+      <p class="section-desc mx-auto" style="color:rgba(255,255,255,.5)">Una sola plataforma para toda tu práctica clínica. Sin instalar nada — funciona en tu navegador.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:28px;text-align:center;transition:all .3s" onmouseover="this.style.borderColor='rgba(8,145,178,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+        <div style="font-size:2.2rem;margin-bottom:12px">📊</div>
+        <h3 style="color:#fff;font-size:.92rem;margin-bottom:8px">Dashboard con KPIs en vivo</h3>
+        <p style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.5">Citas del día, pacientes activos, ingresos, alertas clínicas, evolución de peso — todo de un vistazo.</p>
+      </div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:28px;text-align:center;transition:all .3s" onmouseover="this.style.borderColor='rgba(8,145,178,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+        <div style="font-size:2.2rem;margin-bottom:12px">🔬</div>
+        <h3 style="color:#fff;font-size:.92rem;margin-bottom:8px">Fórmula Desarrollada en 5 pasos</h3>
+        <p style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.5">Patología → macros ESPEN → alimentos BEDCA → cuadraje → minuta exportable. Con copiloto IA.</p>
+      </div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:28px;text-align:center;transition:all .3s" onmouseover="this.style.borderColor='rgba(8,145,178,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+        <div style="font-size:2.2rem;margin-bottom:12px">🏛️</div>
+        <h3 style="color:#fff;font-size:.92rem;margin-bottom:8px">Restauración para instituciones</h3>
+        <p style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.5">Menús semanales, APPCC, 14 alérgenos UE, IDDSI, escalado, trazabilidad, mermas.</p>
+      </div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:28px;text-align:center;transition:all .3s" onmouseover="this.style.borderColor='rgba(8,145,178,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+        <div style="font-size:2.2rem;margin-bottom:12px">🤖</div>
+        <h3 style="color:#fff;font-size:.92rem;margin-bottom:8px">IA que entiende nutrición</h3>
+        <p style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.5">Gemini interpreta analíticas, genera planes de 7 días, sugiere por patología. Datos anonimizados.</p>
+      </div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:28px;text-align:center;transition:all .3s" onmouseover="this.style.borderColor='rgba(8,145,178,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+        <div style="font-size:2.2rem;margin-bottom:12px">📱</div>
+        <h3 style="color:#fff;font-size:.92rem;margin-bottom:8px">Funciona en cualquier dispositivo</h3>
+        <p style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.5">MacBook, iPad, iPhone, Android. Responsive nativo. Funciona offline como PWA.</p>
+      </div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:28px;text-align:center;transition:all .3s" onmouseover="this.style.borderColor='rgba(8,145,178,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+        <div style="font-size:2.2rem;margin-bottom:12px">🔒</div>
+        <h3 style="color:#fff;font-size:.92rem;margin-bottom:8px">Seguridad de nivel clínico</h3>
+        <p style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.5">CSP, HTTPS, cifrado, RGPD Art.9, anonimización IA, audit log, RBAC 3 roles.</p>
+      </div>
+    </div>
+    <div class="text-center" style="margin-top:44px">
+      <a href="portal-profesional.html" class="btn btn-glow" style="padding:16px 44px;font-size:.95rem">Probar gratis 14 días →</a>
+      <p style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:10px">Sin tarjeta de crédito · Se configura en 30 segundos</p>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIOS -->
+<section class="section section-light" id="testimonios">
+  <div class="section-inner">
+    <div class="text-center" style="margin-bottom:48px">
+      <div class="section-tag">Lo que dicen los profesionales</div>
+      <h2 class="section-title">Confianza clínica, respaldada por datos</h2>
+    </div>
+    <div class="testimonials-grid" style="margin-bottom:48px">
+      <div class="testimonial-card fade-up">
+        <p class="testimonial-text">La Fórmula Desarrollada con ESPEN es exactamente lo que necesitaba. Antes hacía los cálculos en Excel y tardaba 40 minutos. Ahora son 5 minutos con cuadraje automático.</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#0891B2,#059669)">AC</div>
+          <div><div class="testimonial-name">Lic. Antonella Caverzan</div><div class="testimonial-role">Nutricionista Clínica · España</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card fade-up delay-1">
+        <p class="testimonial-text">El módulo de Restauración Colectiva nos permitió organizar los menús del geriátrico con derivaciones automáticas para disfagia. El APPCC digitalizado fue un antes y un después.</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">MR</div>
+          <div><div class="testimonial-name">Beta Tester</div><div class="testimonial-role">Residencia Geriátrica · Beta 2026</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card fade-up delay-2">
+        <p class="testimonial-text">Probé 4 softwares de nutrición antes. Ninguno tenía Soporte Nutricional UCI con NUTRIC, Child-Pugh, Yale y destete. Veridia es el único que cubre nutrición hospitalaria real.</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#D97706,#DC2626)">NT</div>
+          <div><div class="testimonial-name">Beta Tester</div><div class="testimonial-role">Hospital Universitario · Beta 2026</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:48px;flex-wrap:wrap;padding:28px 0;border-top:1px solid var(--border)">
+      <div style="text-align:center"><div style="font-size:2rem;font-weight:900;color:#0891B2">969</div><div style="font-size:.7rem;color:var(--text3)">Alimentos BEDCA</div></div>
+      <div style="text-align:center"><div style="font-size:2rem;font-weight:900;color:#0891B2">438</div><div style="font-size:.7rem;color:var(--text3)">Patologías ICD-10</div></div>
+      <div style="text-align:center"><div style="font-size:2rem;font-weight:900;color:#0891B2">343</div><div style="font-size:.7rem;color:var(--text3)">Tests (Unit+E2E)</div></div>
+      <div style="text-align:center"><div style="font-size:2rem;font-weight:900;color:#0891B2">14</div><div style="font-size:.7rem;color:var(--text3)">Alérgenos UE</div></div>
+      <div style="text-align:center"><div style="font-size:2rem;font-weight:900;color:#0891B2">3</div><div style="font-size:.7rem;color:var(--text3)">Idiomas</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section section-light" id="precios">
+  <div class="section-inner">
+    <div class="text-center" style="margin-bottom:52px">
+      <div class="section-tag">Precios</div>
+      <h2 class="section-title">Planes para cada necesidad</h2>
+      <p class="section-desc mx-auto">Todos los planos incluyen actualizaciones gratuitas. Precios en tu moneda local.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card fade-up">
+        <div class="pricing-name">Starter</div>
+        <div class="pricing-sub">Profesional independiente</div>
+        <div class="pricing-price">0 <span class="currency-sym">€</span><span>/mes</span></div>
+        <ul class="pricing-features">
+          <li>Hasta 20 pacientes</li>
+          <li>1 usuario</li>
+          <li>BEDCA (969 alimentos)</li>
+          <li>Fórmula clínica básica</li>
+          <li>Portal del paciente</li>
+          <li class="no">Sin restauración colectiva</li>
+          <li class="no">Sin IA clínica</li>
+        </ul>
+        <a href="portal-profesional.html" class="btn btn-glow btn-pricing">Comenzar gratis</a>
+      </div>
+      <div class="pricing-card featured fade-up delay-1">
+        <div class="pricing-badge">⭐ MÁS POPULAR</div>
+        <div class="pricing-name">Professional</div>
+        <div class="pricing-sub">Clínicas y consultorios</div>
+        <div class="pricing-price">49 <span class="currency-sym">€</span><span>/mes</span></div>
+        <ul class="pricing-features">
+          <li>Hasta 500 pacientes</li>
+          <li>3 usuarios</li>
+          <li>Todos los módulos clínicos</li>
+          <li>Fórmula Desarrollada completa</li>
+          <li>IA Clínica (Gemini)</li>
+          <li>ESPEN Guidelines Engine</li>
+          <li>Firebase cloud sync</li>
+          <li>Soporte prioritario</li>
+        </ul>
+        <a href="portal-profesional.html" class="btn btn-glow btn-pricing">Probar 14 días gratis</a>
+      </div>
+      <div class="pricing-card fade-up delay-2">
+        <div class="pricing-name">Enterprise</div>
+        <div class="pricing-sub">Hospitales, geriátricos, redes</div>
+        <div class="pricing-price">149 <span class="currency-sym">€</span><span>/mes</span></div>
+        <ul class="pricing-features">
+          <li>Pacientes ilimitados</li>
+          <li>10 usuarios</li>
+          <li>Todo en Professional</li>
+          <li>Restauración Colectiva</li>
+          <li>APPCC + IDDSI + Trazabilidad</li>
+          <li>Soporte Nutricional UCI</li>
+          <li>White-label (tu marca)</li>
+          <li>Onboarding dedicado</li>
+        </ul>
+        <a href="mailto:hola@veridia.tech" class="btn btn-glow btn-pricing" style="background:linear-gradient(135deg,#059669,#047857)">Contactar ventas</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>¿Lista/o para transformar tu práctica?</h2>
+  <p>Únete a la nueva generación de nutricionistas que usan tecnología para potenciar sus resultados clínicos.</p>
+  <a href="portal-profesional.html" class="btn-white">🚀 Comenzar ahora — Es gratis →</a>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand"><img src="assets/logo-icon.png" alt="Veridia"><span>Veridia <span style="font-weight:400;opacity:.5">HealthTech</span></span></div>
+        <p style="font-size:.8rem;line-height:1.6;max-width:300px">ERP de nutrición clínica con IA para profesionales de la salud. Consulta individual + restauración colectiva institucional.</p>
+      </div>
+      <div>
+        <h4>Producto</h4>
+        <a href="#features">Módulos clínicos</a>
+        <a href="#restauracion">Restauración colectiva</a>
+        <a href="#precios">Precios</a>
+        <a href="portal-profesional.html">Acceder al ERP</a>
+        <a href="portal-paciente.html">Portal Paciente</a>
+      </div>
+      <div>
+        <h4>Recursos</h4>
+        <a href="#sectores">Sectores</a>
+        <a href="#equipo">Equipo</a>
+        <a href="mailto:soporte@veridia.tech">Soporte</a>
+        <a href="super-administrador.html">Admin Portal</a>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <a href="legal/POLITICA-PRIVACIDAD.md" target="_blank">Política de Privacidad</a>
+        <a href="legal/TERMINOS-Y-CONDICIONES.md" target="_blank">Términos y Condiciones</a>
+        <a href="legal/AVISO-LEGAL.md" target="_blank">Aviso Legal</a>
+        <a href="legal/POLITICA-COOKIES.md" target="_blank">Cookies</a>
+      </div>
+    </div>
+    <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:16px;margin-top:16px;display:flex;gap:20px;flex-wrap:wrap;font-size:.72rem">
+        <a href="legal/AVISO-LEGAL.md" target="_blank">Aviso Legal</a>
+        <a href="legal/POLITICA-PRIVACIDAD.md" target="_blank">Política de Privacidad</a>
+        <a href="legal/POLITICA-COOKIES.md" target="_blank">Política de Cookies</a>
+        <a href="legal/TERMINOS-Y-CONDICIONES.md" target="_blank">Términos y Condiciones</a>
+      </div>
+    <div class="footer-bottom">
+      <span>© 2026 GalcoCapital LLC. Todos los derechos reservados.</span>
+      <span>Eduardo Andres Galeano Aido · NIE: Z0002918W</span>
+    </div>
+  </div>
+</footer>
+
+<!-- COOKIE BANNER -->
+<div id="cookieBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(11,17,32,.97);color:#fff;padding:16px 24px;z-index:9999;backdrop-filter:blur(12px);border-top:1px solid rgba(8,145,178,.3)">
+  <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+    <div style="flex:1;min-width:280px;font-size:.82rem;line-height:1.5">
+      🍪 Utilizamos cookies y tecnologías de almacenamiento local para el funcionamiento de la plataforma y analíticas.
+      <a href="legal/POLITICA-COOKIES.md" target="_blank" style="color:#22D3EE;text-decoration:underline">Más información</a>
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0">
+      <button onclick="acceptCookies('all')" style="background:linear-gradient(135deg,#0891B2,#0E7490);color:#fff;border:none;padding:10px 24px;border-radius:10px;font-weight:700;font-size:.82rem;cursor:pointer;transition:all .2s" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">✓ Aceptar todas</button>
+      <button onclick="acceptCookies('essential')" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.2);padding:10px 20px;border-radius:10px;font-size:.78rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='rgba(255,255,255,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.2)'">Solo esenciales</button>
+    </div>
+  </div>
+</div>
+
+<script>
+window.addEventListener('scroll',function(){document.getElementById('mainNav').classList.toggle('scrolled',window.scrollY>50)});
+var observer=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:0.1});
+document.querySelectorAll('.fade-up').forEach(function(el){observer.observe(el)});
+function toggleMobileNav(){var l=document.querySelector('.nav-links');if(l.style.display==='flex'){l.style.display='none'}else{l.style.display='flex';l.style.flexDirection='column';l.style.position='absolute';l.style.top='60px';l.style.right='20px';l.style.background='rgba(11,17,32,.95)';l.style.padding='20px';l.style.borderRadius='14px';l.style.gap='14px';l.style.backdropFilter='blur(12px)';l.style.border='1px solid rgba(255,255,255,.08)'}}
+</script>
+<script>
+(function(){
+  var currencies={EUR:'€',USD:'$',ARS:'$',MXN:'$',CLP:'$',COP:'$',PEN:'S/',GBP:'£',BRL:'R$'};
+  try{var saved=localStorage.getItem('veridia_currency');if(saved&&currencies[saved])document.querySelectorAll('.currency-sym').forEach(function(el){el.textContent=currencies[saved]})}catch(e){}
+})();
+</script>
+<script>
+(function(){
+  try{
+    if(!localStorage.getItem('veridia_cookies_accepted')){
+      document.getElementById('cookieBanner').style.display='block';
+    }
+  }catch(e){}
+})();
+function acceptCookies(level){
+  try{localStorage.setItem('veridia_cookies_accepted',level);localStorage.setItem('veridia_cookies_date',new Date().toISOString())}catch(e){}
+  document.getElementById('cookieBanner').style.display='none';
+}
+</script>
+
+</body>
+</html>

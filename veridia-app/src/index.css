@@ -1,0 +1,370 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors - Semantic */
+  --color-primary: #0891B2;
+  --color-primary-light: #ECFEFF;
+  --color-primary-dark: #0E7490;
+  --color-primary-glow: rgba(8, 145, 178, 0.15);
+  --color-primary-10: rgba(8, 145, 178, 0.1);
+  --color-primary-20: rgba(8, 145, 178, 0.2);
+  --color-primary-30: rgba(8, 145, 178, 0.3);
+  --color-primary-50: rgba(8, 145, 178, 0.5);
+  --color-cyan-300: #22D3EE;
+
+  --color-accent: #059669;
+  --color-accent-light: #ECFDF5;
+
+  --color-danger: #DC2626;
+  --color-danger-light: #FEF2F2;
+  --color-warning: #D97706;
+  --color-warning-light: #FFFBEB;
+  --color-success: #059669;
+  --color-success-light: #ECFDF5;
+  --color-info: #2563EB;
+  --color-info-light: #EFF6FF;
+
+  /* Colors - Surface */
+  --color-bg: #0B1120;
+  --color-surface: #111827;
+  --color-surface-2: #1E293B;
+  --color-surface-3: #334155;
+
+  /* Colors - Text */
+  --color-text: #F1F5F9;
+  --color-text-2: #CBD5E1;
+  --color-text-3: #94A3B8;
+
+  /* Colors - Border */
+  --color-border: #334155;
+  --color-border-2: #475569;
+
+  /* Colors - Glass */
+  --color-glass-bg: rgba(255, 255, 255, 0.06);
+  --color-glass-border: rgba(255, 255, 255, 0.1);
+
+  /* Colors - Focus */
+  --color-focus-ring: rgba(8, 145, 178, 0.5);
+
+  /* Colors - White Opacity */
+  --color-white-5: rgba(255, 255, 255, 0.05);
+  --color-white-10: rgba(255, 255, 255, 0.1);
+  --color-white-20: rgba(255, 255, 255, 0.2);
+  --color-white-30: rgba(255, 255, 255, 0.3);
+  --color-white-40: rgba(255, 255, 255, 0.4);
+  --color-white-50: rgba(255, 255, 255, 0.5);
+  --color-white-60: rgba(255, 255, 255, 0.6);
+
+  /* Fonts */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Typography Scale */
+  --font-size-xs: 0.75rem;
+  --line-height-xs: 1rem;
+  --font-size-sm: 0.875rem;
+  --line-height-sm: 1.25rem;
+  --font-size-base: 1rem;
+  --line-height-base: 1.5rem;
+  --font-size-lg: 1.125rem;
+  --line-height-lg: 1.75rem;
+  --font-size-xl: 1.25rem;
+  --line-height-xl: 1.75rem;
+  --font-size-2xl: 1.5rem;
+  --line-height-2xl: 2rem;
+  --font-size-3xl: 1.875rem;
+  --line-height-3xl: 2.25rem;
+  --font-size-4xl: 2.25rem;
+  --line-height-4xl: 2.5rem;
+
+  /* Spacing Scale */
+  --spacing-0: 0px;
+  --spacing-px: 1px;
+  --spacing-0-5: 0.125rem;
+  --spacing-1: 0.25rem;
+  --spacing-1-5: 0.375rem;
+  --spacing-2: 0.5rem;
+  --spacing-2-5: 0.625rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+
+  /* Radius Scale */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadow Scale */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.5);
+  --shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(8, 145, 178, 0.1);
+  --shadow-glow: 0 0 20px rgba(8, 145, 178, 0.3);
+
+  /* Layout */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 68px;
+  --header-height: 64px;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* On coarse-pointer (touch) devices, make interactive widgets larger and
+     avoid hover-only behaviour. */
+  @media (pointer: coarse) {
+    button,
+    [role="button"],
+    [role="tab"],
+    [role="option"],
+    a[href],
+    input[type="checkbox"],
+    input[type="radio"],
+    select,
+    textarea {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    /* Inputs should still be readable — don't shrink below 16px */
+    input,
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+
+  /* Fine-pointer devices: keep hover affordances */
+  @media (hover: hover) {
+    .group:hover .group-hover\:opacity-100 {
+      opacity: 1;
+    }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* Mobile: sidebar becomes a drawer, main content fills the viewport */
+  @media (max-width: 767px) {
+    .md\:main-full {
+      margin-left: 0 !important;
+    }
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface-3);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-border-2);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-surface-3) transparent;
+  }
+}
+
+@layer components {
+  .glass {
+    background: var(--color-glass-bg);
+    border: 1px solid var(--color-glass-border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .glass-card {
+    background: var(--color-glass-bg);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(12px);
+  }
+
+  .glass-hover {
+    background: var(--color-white-10);
+    border-color: var(--color-white-20);
+    transition: all 0.2s ease;
+  }
+
+  .glow-border {
+    border-color: var(--color-primary-30);
+    box-shadow: 0 0 15px var(--color-primary-10);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--color-cyan-300), var(--color-primary), var(--color-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .not-sr-only {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  /* Minimum 44px touch target for interactive elements on coarse pointers */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Allow buttons/links to fill their grid cell on touch devices */
+  .touch-fill {
+    width: 100%;
+    height: 100%;
+    min-height: 44px;
+  }
+
+  /* Horizontal scroll containers snap to cards on touch */
+  .scroll-snap-x {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scroll-snap-start {
+    scroll-snap-start: start;
+    scroll-snap-align: start;
+  }
+
+  /* Safe area insets for notches / home indicators */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  .pr-safe {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* Hide horizontal scrollbar but keep scrollability on touch */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .focus-ring {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--color-surface-3);
+    border-radius: 2px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--color-border-2);
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-surface-3) transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-slide-in {
+    animation: slide-in 0.2s ease-out;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.15s ease-out;
+  }
+
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .animate-scale-in {
+    animation: scale-in 0.15s ease-out;
+  }
+}

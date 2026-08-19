@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veridia HealthTech — Nutrition Software</title>
+<link rel="stylesheet" href="css/app-styles.css">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Veridia HealthTech — Nutrition Software. Tecnología que nutre tu práctica clínica.">
+<meta name="theme-color" content="#0891B2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://api.nal.usda.gov">
+<link rel="preconnect" href="https://generativelanguage.googleapis.com">
+<link rel="preconnect" href="https://world.openfoodfacts.org">
+<link rel="preconnect" href="https://www.themealdb.com">
+<link rel="dns-prefetch" href="https://firestore.googleapis.com">
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://*.firebaseio.com;
+  script-src-attr 'unsafe-inline';
+  connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://api.nal.usda.gov https://world.openfoodfacts.net https://www.themealdb.com wss://*.firebaseio.com;
+  img-src 'self' data: blob: https:;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com;
+  frame-src 'none';
+  object-src 'none';
+  base-uri 'self';
+">
+<link rel="icon" href="assets/logo-icon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/logo-icon.png">
+</head>
+<body>
+<!-- ===== LANDING + LOGIN PAGE ===== -->
+<div class="login-page" id="loginPage">
+  <div class="login-container" id="loginContainer">
+    <!-- SIGN UP FORM -->
+    <div class="login-form-container login-sign-up">
+      <form onsubmit="return false" id="regForm">
+        <h1 style="font-size:1.3rem;letter-spacing:-.4px">🩺 Cuenta Profesional</h1>
+        <p style="font-size:.78rem;margin-bottom:14px;color:var(--text3)">Registro gratuito · Plan Starter · 14 días trial</p>
+
+        <!-- Step 1: Datos personales -->
+        <div id="regStep1">
+          <div style="text-align:left;width:100%;margin-bottom:6px"><label style="font-size:.68rem;font-weight:600;color:var(--text3)">DATOS PERSONALES</label></div>
+          <input type="text" id="regNombre" placeholder="Nombre *" required>
+          <input type="text" id="regApellidos" placeholder="Apellidos *" required>
+          <input type="text" id="regDNI" placeholder="DNI / NIE / Cédula *" maxlength="15" required>
+          <input type="tel" id="regTelefono" placeholder="Teléfono móvil *" required>
+          <input type="email" id="regEmail" placeholder="Email profesional *" required>
+          <div class="login-error" id="regError1"></div>
+          <button type="button" class="login-btn" onclick="regNextStep()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px">Siguiente →</button>
+        </div>
+
+        <!-- Step 2: Datos profesionales + contraseña -->
+        <div id="regStep2" style="display:none">
+          <div style="text-align:left;width:100%;margin-bottom:6px"><label style="font-size:.68rem;font-weight:600;color:var(--text3)">DATOS PROFESIONALES</label></div>
+          <select id="regTitulacion" style="color:var(--text3)">
+            <option value="" disabled selected>— Titulación / Especialidad * —</option>
+            <option value="Lic. en Nutrición">Lic. en Nutrición</option>
+            <option value="Dietista-Nutricionista">Dietista-Nutricionista</option>
+            <option value="Técnico en Dietética">Técnico en Dietética</option>
+            <option value="Médico Endocrinólogo">Médico Endocrinólogo</option>
+            <option value="Médico Internista">Médico Internista</option>
+            <option value="Enfermero/a">Enfermero/a</option>
+            <option value="Otro profesional de salud">Otro profesional de salud</option>
+          </select>
+          <input type="text" id="regMatricula" placeholder="N° Matrícula / Colegiado (opcional)">
+          <input type="text" id="regClinica" placeholder="Nombre de la clínica / consultorio *" required>
+          <select id="regPais" style="color:var(--text3)">
+            <option value="" disabled selected>— País * —</option>
+            <option value="ES">🇪🇸 España</option>
+            <option value="AR">🇦🇷 Argentina</option>
+            <option value="MX">🇲🇽 México</option>
+            <option value="CL">🇨🇱 Chile</option>
+            <option value="CO">🇨🇴 Colombia</option>
+            <option value="PE">🇵🇪 Perú</option>
+            <option value="UY">🇺🇾 Uruguay</option>
+            <option value="BR">🇧🇷 Brasil</option>
+            <option value="PT">🇵🇹 Portugal</option>
+            <option value="UK">🇬🇧 Reino Unido</option>
+            <option value="US">🇺🇸 Estados Unidos</option>
+            <option value="OTHER">🌍 Otro</option>
+          </select>
+
+          <div style="text-align:left;width:100%;margin:10px 0 4px"><label style="font-size:.68rem;font-weight:600;color:var(--text3)">SEGURIDAD</label></div>
+          <input type="password" id="regPass" placeholder="Contraseña *" oninput="regShowPwStrength()">
+          <input type="password" id="regPassConfirm" placeholder="Confirmar contraseña *">
+          <div id="regPwStrength" style="font-size:.65rem;text-align:left;width:100%;min-height:16px"></div>
+
+          <div style="text-align:left;width:100%;margin-top:8px">
+            <label style="display:flex;align-items:flex-start;gap:6px;cursor:pointer;font-size:.72rem;color:var(--text2)">
+              <input type="checkbox" id="regTerms" style="margin-top:2px">
+              <span>Acepto los <a href="legal/TERMINOS-Y-CONDICIONES.md" target="_blank" style="color:var(--primary)">Términos y Condiciones</a> y la <a href="legal/POLITICA-PRIVACIDAD.md" target="_blank" style="color:var(--primary)">Política de Privacidad</a></span>
+            </label>
+          </div>
+
+          <div class="login-error" id="regError2"></div>
+          <div style="display:flex;gap:8px;width:100%;margin-top:8px">
+            <button type="button" class="login-btn" onclick="regPrevStep()" style="flex:1;background:transparent;border:1px solid var(--border);color:var(--text3)">← Atrás</button>
+            <button type="button" class="login-btn" onclick="handleRegister()" style="flex:2;display:flex;align-items:center;justify-content:center;gap:6px">🚀 Crear cuenta gratuita</button>
+          </div>
+        </div>
+
+        <div class="login-mobile-toggle" onclick="document.getElementById('loginContainer').classList.remove('right-panel-active')" style="margin-top:12px;font-size:.78rem;cursor:pointer;color:var(--primary);font-weight:600">¿Ya tienes cuenta? <strong>Iniciar sesión →</strong></div>
+
+        <div style="margin-top:12px;font-size:.62rem;color:var(--text3);text-align:center">
+          Plan Starter gratuito: 20 pacientes · 5 módulos · 14 días trial
+        </div>
+      </form>
+    </div>
+    <!-- SIGN IN FORM -->
+    <div class="login-form-container login-sign-in">
+      <form onsubmit="return false">
+        <div style="margin-bottom:6px"><img src="assets/logo-icon.png" alt="Veridia" style="height:48px"></div>
+        <h1 style="font-size:1.4rem;letter-spacing:-.5px">Portal Profesional</h1>
+        <p style="font-size:.82rem;color:var(--text3);line-height:1.5;margin-bottom:16px">Acceso seguro para el equipo clínico</p>
+        <input type="email" id="loginEmail" placeholder="Email" required>
+        <input type="password" id="loginPass" placeholder="Contraseña" required>
+        <div class="login-error" id="loginError"></div>
+        <button type="button" class="login-btn" onclick="handleLogin()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px">🔐 Iniciar Sesión</button>
+        <a class="login-link" onclick="showForgotPassword()" style="font-size:.78rem;color:var(--text3);cursor:pointer;margin-top:8px;display:inline-block">🔑 ¿Olvidaste tu contraseña?</a>
+        <div class="login-mobile-toggle" onclick="document.getElementById('loginContainer').classList.add('right-panel-active')" style="margin-top:8px;font-size:.78rem;cursor:pointer;color:var(--primary);font-weight:600">¿No tienes cuenta? <strong>Regístrate gratis →</strong></div>
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+          <a href="portal-paciente.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:12px;font-size:.78rem;font-weight:600;color:var(--accent);border:1px solid var(--accent);text-decoration:none;transition:var(--spring)" onmouseover="this.style.background='var(--accent-light)'" onmouseout="this.style.background='transparent'">👤 Portal del Paciente →</a>
+        </div>
+      </form>
+    </div>
+    <!-- OVERLAY -->
+    <div class="login-overlay-container">
+      <div class="login-overlay">
+        <div class="login-overlay-panel login-overlay-left">
+          <div class="login-brand"><div class="login-brand-icon"><img src="assets/logo-icon.png" alt="Veridia" style="height:40px"></div><div><h2>Veridia</h2><span>HealthTech</span></div></div>
+          <h1>¡Bienvenido!</h1>
+          <p>Ya tienes cuenta. Inicia sesión para acceder al sistema de gestión clínica.</p>
+          <button class="login-btn ghost" id="signIn" onclick="document.getElementById('loginContainer').classList.remove('right-panel-active')">Iniciar Sesión</button>
+        </div>
+        <div class="login-overlay-panel login-overlay-right">
+          <div class="login-brand"><div class="login-brand-icon"><img src="assets/logo-icon.png" alt="Veridia" style="height:40px"></div><div><h2>Veridia</h2><span>HealthTech</span></div></div>
+          <h1 style="font-size:1.2rem;line-height:1.4">Clínica de Nutrición<br><span style="font-size:.9rem;opacity:.8">Lic. Antonella Caverzan</span></h1>
+          <p style="font-size:.78rem;opacity:.6;line-height:1.7">Gestión integral de consultas nutricionales · Planes personalizados · 969 alimentos BEDCA · Motor clínico · Facturación</p>
+          <button class="login-btn ghost" id="signUp" onclick="document.getElementById('loginContainer').classList.add('right-panel-active')">Crear Cuenta</button>
+          <div class="login-role-badge">Desarrollado por Andrés Galeano</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="login-footer">Veridia HealthTech © 2026 GalcoCapital LLC · Desarrollado por Eduardo Andres Galeano Aido</div>
+</div>
+
+<a href="#mainContent" class="sr-only" style="position:absolute;top:-100px;left:0;background:var(--primary);color:#fff;padding:10px 20px;z-index:99999;font-size:.85rem;font-weight:700;border-radius:0 0 8px 0" onfocus="this.style.top='0'" onblur="this.style.top='-100px'">Saltar al contenido principal</a>
+<div class="app" id="app" style="display:none">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-icon"><img src="assets/logo-icon.png" alt="Veridia" style="height:28px"></div>
+    <div class="sidebar-brand-text"><h2>Veridia</h2><span>HealthTech Pro V5</span></div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav" role="navigation" aria-label="Menú principal"></nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">AC</div>
+      <div class="sidebar-user-info"><div class="sidebar-user-name">Lic. A. Caverzan</div><div class="sidebar-user-role">Lic. en Nutrición · Clínica Central</div></div>
+    </div>
+  </div>
+</aside>
+<div class="main">
+  <header class="header">
+    <button class="header-toggle" onclick="toggleSidebar()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <h1 class="header-title" id="headerTitle">Dashboard</h1>
+      <span id="todayBadge" style="display:none;font-size:.65rem;font-weight:700;background:var(--primary-light);color:var(--primary);padding:3px 8px;border-radius:10px;cursor:pointer;align-items:center" onclick="navigate('agenda')"></span>
+    <div class="header-actions"><button onclick="openNotifications()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;position:relative" title="Notificaciones">🔔<span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-6px;background:var(--danger);color:#fff;font-size:.55rem;font-weight:700;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center"></span></button>
+      <div class="header-search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar pacientes, recetas... (Ctrl+K)" id="globalSearch" onkeyup="handleGlobalSearch(event)" aria-label="Buscar pacientes, recetas" role="search">
+      </div>
+      <button class="header-btn" title="Alertas" onclick="navigate('alertas')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="dot" id="alertDot"></span>
+      </button>
+      <div id="consultTimer" style="display:none;font-size:.72rem;font-weight:700;color:var(--primary);padding:4px 10px;background:var(--primary-light);border-radius:var(--radius-xs);cursor:pointer;font-family:monospace" onclick="toggleConsultTimer()" title="Clic para pausar/reanudar">⏱️ 00:00</div>
+      <button class="header-btn" title="Ayuda del módulo" onclick="showHelp(curMod)" style="font-size:.82rem;font-weight:800;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center">?</button>
+      <button class="header-btn" title="Ajustes" onclick="navigate('settings')" style="font-size:.9rem">⚙️</button>
+      <button class="header-btn" title="Modo oscuro/claro" onclick="toggleDarkMode()" style="font-size:.9rem">🌙</button>
+      <button class="header-btn" title="IA Copilot" onclick="navigate('ia')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+      </button>
+    </div>
+  </header>
+  <main class="content" id="mainContent" role="main" aria-live="polite">
+  <div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:14px;opacity:.4">
+    <div style="font-size:3rem">🔬</div>
+    <div style="font-size:.82rem;font-weight:600;color:var(--text3)">Cargando Veridia HealthTech...</div>
+  </div>
+</main>
+</div>
+</div>
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()"><div class="modal" id="modalContent"></div></div>
+<div class="toast-container" id="toastContainer" role="alert" aria-live="assertive"></div>
+<!-- Legal footer -->
+<div id="legalFooter" style="display:none;position:fixed;bottom:0;left:0;right:0;text-align:center;padding:8px;font-size:.65rem;color:rgba(255,255,255,.4);background:rgba(0,0,0,.3);z-index:50"><a href="legal/AVISO-LEGAL.md" target="_blank" style="color:rgba(255,255,255,.5);margin:0 8px">Aviso Legal</a>·<a href="legal/POLITICA-PRIVACIDAD.md" target="_blank" style="color:rgba(255,255,255,.5);margin:0 8px">Privacidad</a>·<a href="legal/TERMINOS-Y-CONDICIONES.md" target="_blank" style="color:rgba(255,255,255,.5);margin:0 8px">Términos</a>·<a href="legal/POLITICA-COOKIES.md" target="_blank" style="color:rgba(255,255,255,.5);margin:0 8px">Cookies</a><br>© 2026 GalcoCapital LLC — Eduardo Andres Galeano Aido</div>
+<!-- Feedback Button (Beta) -->
+<button id="feedbackBtn" onclick="openFeedback()" style="position:fixed;bottom:20px;left:20px;z-index:999;background:var(--primary);color:#fff;border:none;border-radius:14px;padding:10px 18px;font-size:.78rem;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(46,139,87,.3);display:flex;align-items:center;gap:6px;transition:all .3s" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(46,139,87,.4)'" onmouseleave="this.style.transform='none';this.style.boxShadow='0 6px 20px rgba(46,139,87,.3)'">💬 Feedback</button>
+<div class="save-dot" id="saveDot"><div class="dot"></div><span>Guardado</span></div>
+
+<!-- ===== DATOS BEDCA (969 alimentos) ===== -->
+<script src="data/bedca-data.js" defer></script>
+
+<!-- ===== MÓDULOS JS (divididos para mantenibilidad) ===== -->
+<!-- TIER 1: Sync — needed for login page inline onclick handlers -->
+<script src="js/icons-nav.js"></script>
+<script src="js/core.js"></script>
+<script src="js/v-security.js"></script>
+<script src="js/auth.js"></script>
+<!-- TIER 2: Defer — loaded after DOM, before or after login -->
+<script src="js/icons.js" defer></script>
+<script src="js/firebase.js" defer></script>
+<script src="js/backend-service.js" defer></script>
+<script src="js/i18n.js" defer></script>
+<script src="js/charts.js" defer></script>
+<script src="js/v-clinical.js" defer></script>
+<script src="js/v-pathology.js" defer></script>
+<script src="js/v-ux.js" defer></script>
+<script src="js/v-platform.js" defer></script>
+<script src="js/v-memory.js" defer></script>
+<script src="js/dashboard.js" defer></script>
+<script src="js/agenda.js" defer></script>
+<script src="js/pacientes.js" defer></script>
+<!-- TIER 3: Defer — module renderers, loaded on demand -->
+<script src="js/historia.js" defer></script>
+<script src="js/antropometria.js" defer></script>
+<script src="js/analiticas.js" defer></script>
+<script src="js/formula.js" defer></script>
+<script src="js/espen.js" defer></script>
+<script src="js/pathology-db.js" defer></script>
+<script src="js/desarrollada.js" defer></script>
+<script src="js/alimentos.js" defer></script>
+<script src="js/recetas.js" defer></script>
+<script src="js/planes.js" defer></script>
+<script src="js/favoritos.js" defer></script>
+<script src="js/facturacion.js" defer></script>
+<script src="js/contabilidad.js" defer></script>
+<script src="js/anamnesis.js" defer></script>
+<script src="js/lifecycle-alerts.js" defer></script>
+<script src="js/clinical-tools.js" defer></script>
+<script src="js/mensajeria.js" defer></script>
+<script src="js/ia-copilot.js" defer></script>
+<script src="js/utilities.js" defer></script>
+<script src="js/soporte-nutricional.js" defer></script>
+<script src="js/restauracion.js" defer></script>
+<script src="js/feedback.js" defer></script>
+<script src="js/settings.js" defer></script>
+
+</body>
+</html>

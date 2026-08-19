@@ -1,0 +1,55 @@
+---
+© 2026 GalcoCapital LLC. Todos los derechos reservados.
+
+Creador, Propietario y Director de Arquitectura: Eduardo Andres Galeano Aido (NIE: Z0002918W).
+
+Este documento contiene información confidencial y propiedad intelectual exclusiva de GalcoCapital LLC.
+Queda prohibida su reproducción o distribución sin autorización expresa.
+---
+
+VERIDIA HEALTHTECH — ACUERDO DE LICENCIA PROPIETARIA
+
+Copyright (c) 2026 GalcoCapital LLC.
+Todos los derechos reservados.
+
+1. PROPIEDAD INTELECTUAL
+
+   Este software, incluyendo pero no limitado a su código fuente, diseño,
+   arquitectura, documentación, bases de datos clínicas (BEDCA, Pathology DB),
+   motor ESPEN, módulo de Restauración Colectiva, y todos los componentes
+   asociados, son propiedad intelectual exclusiva de GalcoCapital LLC,
+   representada por Eduardo Andres Galeano Aido (NIE: Z0002918W).
+
+2. RESTRICCIONES
+
+   Queda expresamente prohibido sin autorización escrita previa:
+   a) Copiar, reproducir o duplicar el software o cualquier parte del mismo.
+   b) Modificar, adaptar o crear obras derivadas.
+   c) Distribuir, sublicenciar, vender o transferir el software.
+   d) Realizar ingeniería inversa, descompilar o desensamblar.
+   e) Utilizar el software para fines competitivos o comerciales no autorizados.
+
+3. LICENCIA DE USO
+
+   El acceso al software se concede exclusivamente bajo los términos de los
+   planes de suscripción SaaS (Starter, Professional, Enterprise) gestionados
+   a través del panel SuperAdmin de Veridia HealthTech.
+
+4. DATOS CLÍNICOS
+
+   GalcoCapital LLC reconoce la naturaleza sensible de los datos procesados
+   (información de salud protegida bajo RGPD Art. 9) y se compromete a
+   implementar las medidas de seguridad técnicas y organizativas apropiadas.
+
+5. LIMITACIÓN DE RESPONSABILIDAD
+
+   EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍAS DE NINGÚN TIPO.
+   GalcoCapital LLC no será responsable por daños directos, indirectos,
+   incidentales o consecuentes derivados del uso del software.
+
+6. JURISDICCIÓN
+
+   Este acuerdo se rige por las leyes del Reino de España y la Unión Europea.
+   Cualquier disputa se resolverá en los tribunales competentes de España.
+
+Para consultas de licenciamiento: admin@veridia.tech
