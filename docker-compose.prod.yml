@@ -1,0 +1,74 @@
+# Veridia HealthTech - Production environment
+#
+# SECRETS: no defaults on purpose. Every secret must be supplied at deploy time
+# (see .env / .env.production, loaded by deploy.sh) or compose refuses to start.
+# Generate them with:
+#   openssl rand -hex 24     # DB_PASSWORD (URL-safe, used inside DATABASE_URL)
+#   openssl rand -base64 32  # JWT_SECRET / JWT_REFRESH_SECRET
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: veridia_db
+      POSTGRES_USER: veridia
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required (openssl rand -hex 24)}
+    ports:
+      - "5444:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U veridia -d veridia_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    restart: always
+    ports:
+      - "3457:3456"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://veridia:${DB_PASSWORD:?DB_PASSWORD is required (openssl rand -hex 24)}@db:5432/veridia_db
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required (openssl rand -base64 32)}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET is required (openssl rand -base64 32)}
+      NODE_ENV: production
+      PORT: 3456
+      USDA_API_KEY: ${USDA_API_KEY:-DEMO_KEY}
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX: 100
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3456/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "5173:5173"
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      - VITE_API_URL=http://localhost:3457
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5173/health > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  pgdata:

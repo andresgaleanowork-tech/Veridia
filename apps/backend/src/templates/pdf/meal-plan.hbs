@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1e293b; font-size: 11px; line-height: 1.5; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 2px solid {{branding.primaryColor}}; margin-bottom: 20px; }
+    .logo { max-height: 60px; }
+    .clinic-info { text-align: right; font-size: 10px; color: #64748b; }
+    .clinic-name { font-size: 14px; font-weight: 700; color: #0f172a; }
+    .title { font-size: 18px; font-weight: 700; color: {{branding.primaryColor}}; margin: 15px 0 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .patient-info { display: flex; gap: 30px; margin-bottom: 15px; padding: 10px; background: #f1f5f9; border-radius: 6px; }
+    .patient-info div { flex: 1; }
+    .patient-info label { font-size: 9px; color: #64748b; text-transform: uppercase; display: block; }
+    .patient-info span { font-size: 12px; font-weight: 600; }
+    .macros { display: flex; gap: 10px; margin-bottom: 20px; }
+    .macro-card { flex: 1; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid #e2e8f0; }
+    .macro-value { font-size: 20px; font-weight: 700; color: {{branding.primaryColor}}; }
+    .macro-label { font-size: 9px; color: #64748b; text-transform: uppercase; }
+    .day-header { background: {{branding.primaryColor}}; color: white; padding: 8px 12px; border-radius: 6px 6px 0 0; font-weight: 700; font-size: 12px; margin-top: 15px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    th { background: #f8fafc; padding: 6px 8px; text-align: left; font-size: 9px; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
+    td { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; font-size: 10px; }
+    tr:nth-child(even) td { background: #fafbfc; }
+    .meal-type { font-weight: 600; color: {{branding.primaryColor}}; }
+    .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 9px; color: #94a3b8; }
+    .professional { text-align: right; }
+    .professional strong { color: #1e293b; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    {{#if branding.logo}}<img src="{{branding.logo}}" class="logo" />{{/if}}
+    <div class="clinic-info">
+      {{#if branding.clinicName}}<div class="clinic-name">{{branding.clinicName}}</div>{{/if}}
+      {{#if branding.clinicAddress}}<div>{{branding.clinicAddress}}</div>{{/if}}
+      {{#if branding.clinicPhone}}<div>{{branding.clinicPhone}}</div>{{/if}}
+    </div>
+  </div>
+
+  <div class="title">Plan Alimentario</div>
+
+  <div class="patient-info">
+    <div><label>Paciente</label><span>{{patient.name}}</span></div>
+    <div><label>DNI</label><span>{{patient.dni}}</span></div>
+    <div><label>Fecha</label><span>{{plan.date}}</span></div>
+    <div><label>Plan</label><span>{{plan.name}}</span></div>
+  </div>
+
+  <div class="macros">
+    <div class="macro-card"><div class="macro-value">{{plan.kcal}}</div><div class="macro-label">Kcal</div></div>
+    <div class="macro-card"><div class="macro-value">{{plan.protein}}g</div><div class="macro-label">Proteína</div></div>
+    <div class="macro-card"><div class="macro-value">{{plan.fat}}g</div><div class="macro-label">Grasas</div></div>
+    <div class="macro-card"><div class="macro-value">{{plan.carbs}}g</div><div class="macro-label">Carbohidratos</div></div>
+  </div>
+
+  {{#each plan.meals as |meal|}}
+    <div class="day-header">{{meal.nombre}} — {{meal.horario}}</div>
+    <table>
+      <thead><tr><th>Alimento</th><th>Porción</th><th>Kcal</th><th>Prot</th><th>Grasas</th><th>HC</th></tr></thead>
+      <tbody>
+        {{#each meal.items as |item|}}
+        <tr>
+          <td>{{item.nombre}}</td>
+          <td>{{item.porcion}}</td>
+          <td>{{item.kcal}}</td>
+          <td>{{item.prot}}g</td>
+          <td>{{item.grasas}}g</td>
+          <td>{{item.hc}}g</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{/each}}
+
+  <div class="footer">
+    <div>Documento generado por Veridia HealthTech</div>
+    <div class="professional">
+      <strong>{{professional.name}}</strong><br>
+      {{professional.title}}<br>
+      {{professional.license}}
+    </div>
+  </div>
+</body>
+</html>

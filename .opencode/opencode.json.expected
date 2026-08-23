@@ -1,0 +1,217 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "@sulesky/opencode-plugger@latest",
+    "opencode-vibe-mode",
+    "opencode-fi",
+    "opencode-audio",
+    "opencode-warcraft-notifications",
+    "opencode-smart-voice-notify",
+    "oc-notify",
+    "opencode-unmoji",
+    "opencode-md-table-formatter",
+    "opencode-type-inject",
+    "opencode-ascii",
+    "opencode-shell-strategy",
+    "opencode-dynamic-context-pruning",
+    "opencode-snippets",
+    "opencode-quotes-plugin",
+    "opencode-smart-title",
+    "opencode-gemini-auth",
+    "opencode-openai-codex-auth",
+    "opencode-antigravity-auth",
+    "opencode-worktree",
+    "opencode-wakatime",
+    "opencode-notify"
+  ],
+  "model": "anthropic/claude-sonnet-4-6",
+  "shell": "/bin/zsh",
+  "logLevel": "INFO",
+  "autoupdate": true,
+  "snapshot": true,
+  "instructions": ["AGENTS.md"],
+  "command": {
+    "bd-create": {
+      "description": "Create a new Beads issue",
+      "template": "...",
+      "agent": "build"
+    },
+    "bd-list": {
+      "description": "List Beads issues",
+      "template": "...",
+      "agent": "build"
+    },
+    "bd-assign": {
+      "description": "Assign a Beads issue",
+      "template": "...",
+      "agent": "build"
+    },
+    "bd-close": {
+      "description": "Close a Beads issue",
+      "template": "...",
+      "agent": "build"
+    },
+    "bd-search": {
+      "description": "Search Beads issues",
+      "template": "...",
+      "agent": "build"
+    },
+    "flowdeck-discuss": {
+      "description": "FlowDeck discuss phase",
+      "template": "...",
+      "agent": "build"
+    },
+    "flowdeck-plan": {
+      "description": "FlowDeck plan phase",
+      "template": "...",
+      "agent": "build"
+    },
+    "flowdeck-execute": {
+      "description": "FlowDeck execute phase",
+      "template": "...",
+      "agent": "build"
+    },
+    "flowdeck-review": {
+      "description": "FlowDeck review phase",
+      "template": "...",
+      "agent": "build"
+    },
+    "pocket-spawn": {
+      "description": "Spawn a Pocket Universe subagent",
+      "template": "...",
+      "agent": "build"
+    },
+    "pocket-list": {
+      "description": "List Pocket Universe subagents",
+      "template": "...",
+      "agent": "build"
+    },
+    "pocket-kill": {
+      "description": "Kill a Pocket Universe subagent",
+      "template": "...",
+      "agent": "build"
+    },
+    "hiai-bob": {
+      "description": "HIAI Bob agent",
+      "template": "...",
+      "agent": "build"
+    },
+    "hiai-coder": {
+      "description": "HIAI Coder agent",
+      "template": "...",
+      "agent": "build"
+    },
+    "hiai-guard": {
+      "description": "HIAI Guard agent",
+      "template": "...",
+      "agent": "build"
+    },
+    "hiai-architect": {
+      "description": "HIAI Architect agent",
+      "template": "...",
+      "agent": "build"
+    },
+    "canvas-calendar": {
+      "description": "Open calendar canvas",
+      "template": "...",
+      "agent": "build"
+    },
+    "canvas-doc": {
+      "description": "Open document canvas",
+      "template": "...",
+      "agent": "build"
+    },
+    "canvas-booking": {
+      "description": "Open booking canvas",
+      "template": "...",
+      "agent": "build"
+    }
+  },
+  "agent": {
+    "flowdeck-architect": {
+      "description": "FlowDeck Architect agent",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "flowdeck-planner": {
+      "description": "FlowDeck Planner agent",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "flowdeck-risk-analyst": {
+      "description": "FlowDeck Risk Analyst agent",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "flowdeck-coder": {
+      "description": "FlowDeck Coder agent",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "flowdeck-reviewer": {
+      "description": "FlowDeck Reviewer agent",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "pocket-universe-agent": {
+      "description": "Pocket Universe async agent",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "hiai-bob": {
+      "description": "HIAI Bob - General assistant",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "hiai-coder": {
+      "description": "HIAI Coder - Code specialist",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "hiai-guard": {
+      "description": "HIAI Guard - Security reviewer",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "hiai-architect": {
+      "description": "HIAI Architect - System designer",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-6"
+    }
+  },
+  "mcp": {
+    "claude-code-safety-net": {
+      "type": "local",
+      "command": ["bun", "run", "~/.opencode/plugins/claude-code-safety-net/mcp-server.js"],
+      "enabled": true
+    },
+    "beads": {
+      "type": "local",
+      "command": ["bun", "run", "~/.opencode/plugins/beads-plugin/mcp-server.js"],
+      "enabled": true
+    },
+    "flowdeck": {
+      "type": "local",
+      "command": ["bun", "run", "~/.opencode/plugins/flowdeck/mcp-server.js"],
+      "enabled": true
+    },
+    "pocket-universe": {
+      "type": "local",
+      "command": ["bun", "run", "~/.opencode/plugins/pocket-universe/mcp-server.js"],
+      "enabled": true
+    }
+  },
+  "skills": {
+    "paths": [
+      ".opencode/skills",
+      "~/.config/opencode/skills",
+      "~/.opencode/plugins/claude-code-safety-net/skills",
+      "~/.opencode/plugins/flowdeck/skills",
+      "~/.opencode/plugins/pocket-universe/skills",
+      "~/.opencode/plugins/hiai-opencode/skills",
+      "~/.opencode/plugins/beads-plugin/skills",
+      "~/.opencode/plugins/ccs-opencode-sync/skills",
+      "~/.opencode/plugins/claude-canvas/skills"
+    ]
+  }
+}

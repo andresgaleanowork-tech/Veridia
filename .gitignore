@@ -1,10 +1,10 @@
 # Dependencies
 node_modules/
 .npm/
-package-lock.json
 
 # Build output
 veridia-deploy.html
+dist/
 
 # Cache & temp
 .cache/
@@ -21,12 +21,28 @@ Thumbs.db
 *.swo
 *.sublime-*
 
-# Environment (sensitive)
-backend/.env
+# Environment (sensitive) - NEVER commit .env files
+.env
+.env.*
+*.env
+!/.env.example
+/apps/backend/.env
+/apps/frontend/.env
+/.env.production
 
 # OS
-.DS_Store
 Desktop.ini
 
 # Debug
 deep-qa.js
+
+# Test/coverage
+coverage/
+.nyc_output/
+
+# Docker
+docker-compose.override.yml
+
+# Local configs
+*.local
+storybook-static/

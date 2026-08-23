@@ -1,0 +1,279 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-19T12:00:00.000Z",
+  "title": "Design System: Veridia HealthTech",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Restorative Sage",
+        "canonical": "#4A7C59",
+        "tonalRamp": ["#1A2E20", "#2E5339", "#3D6B4A", "#4A7C59", "#6B9E7A", "#8FBF9D", "#B8D9C2", "#E8F5E9"]
+      },
+      "primary-light": {
+        "role": "primary",
+        "displayName": "Sage Light",
+        "canonical": "#E8F5E9",
+        "tonalRamp": ["#C8E6C9", "#D5EDDA", "#E8F5E9", "#F1F8F2", "#F5FAF5", "#FAFCFA", "#FDFEFD", "#FFFFFF"]
+      },
+      "primary-dark": {
+        "role": "primary",
+        "displayName": "Sage Dark",
+        "canonical": "#2E5339",
+        "tonalRamp": ["#1A2E20", "#2E5339", "#3D6B4A", "#4A7C59", "#5C8E6B", "#6E9F7D", "#80B08F", "#92C1A1"]
+      },
+      "accent": {
+        "role": "secondary",
+        "displayName": "Clinical Emerald",
+        "canonical": "#059669",
+        "tonalRamp": ["#022C22", "#064E3B", "#065F46", "#047857", "#059669", "#10B981", "#34D399", "#6EE7B7"]
+      },
+      "danger": {
+        "role": "danger",
+        "displayName": "Alert Red",
+        "canonical": "#DC2626",
+        "tonalRamp": ["#450A0A", "#7F1D1D", "#991B1B", "#B91C1C", "#DC2626", "#EF4444", "#F87171", "#FCA5A5"]
+      },
+      "warning": {
+        "role": "warning",
+        "displayName": "Caution Amber",
+        "canonical": "#D97706",
+        "tonalRamp": ["#451A03", "#78350F", "#92400E", "#B45309", "#D97706", "#F59E0B", "#FBBF24", "#FDE68A"]
+      },
+      "info": {
+        "role": "info",
+        "displayName": "Informational Blue",
+        "canonical": "#2563EB",
+        "tonalRamp": ["#1E1B4B", "#1E3A5F", "#1E40AF", "#2563EB", "#3B82F6", "#60A5FA", "#93C5FD", "#BFDBFE"]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Deep Night",
+        "canonical": "#0B1120",
+        "tonalRamp": ["#030712", "#0B1120", "#111827", "#1F2937", "#374151", "#4B5563", "#6B7280", "#9CA3AF"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Obsidian",
+        "canonical": "#111827",
+        "tonalRamp": ["#0B1120", "#111827", "#1F2937", "#374151", "#4B5563", "#6B7280", "#9CA3AF", "#D1D5DB"]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Slate Mid",
+        "canonical": "#1E293B",
+        "tonalRamp": ["#0F172A", "#1E293B", "#334155", "#475569", "#64748B", "#94A3B8", "#CBD5E1", "#E2E8F0"]
+      },
+      "surface-3": {
+        "role": "neutral",
+        "displayName": "Slate Edge",
+        "canonical": "#334155",
+        "tonalRamp": ["#1E293B", "#334155", "#475569", "#64748B", "#94A3B8", "#CBD5E1", "#E2E8F0", "#F1F5F9"]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Cloud",
+        "canonical": "#F1F5F9",
+        "tonalRamp": ["#94A3B8", "#CBD5E1", "#E2E8F0", "#F1F5F9", "#F8FAFC", "#FFFFFF", "#FFFFFF", "#FFFFFF"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles and hero headlines. Used once per page maximum."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headers and card titles. The primary structural heading."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Subsection headers, dialog titles, prominent labels."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default text, descriptions, content. Max line length 65-75ch."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Form labels, button text, navigation items, badges."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Timestamps, metadata, tertiary information. Uppercase for section labels."
+      }
+    },
+    "shadows": [
+      {
+        "name": "ambient-low",
+        "value": "0 1px 3px rgba(0, 0, 0, 0.3)",
+        "purpose": "Subtle lift for small elements — badges, small cards, tooltips."
+      },
+      {
+        "name": "ambient-mid",
+        "value": "0 4px 12px rgba(0, 0, 0, 0.4)",
+        "purpose": "Cards, dropdowns, popovers. The standard depth signal."
+      },
+      {
+        "name": "ambient-high",
+        "value": "0 12px 40px rgba(0, 0, 0, 0.5)",
+        "purpose": "Dialogs, modals, elevated panels. Clear separation from content."
+      },
+      {
+        "name": "elevated",
+        "value": "0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(74, 124, 89, 0.1)",
+        "purpose": "Primary dialogs, critical overlays. Sage glow adds brand presence."
+      },
+      {
+        "name": "glow",
+        "value": "0 0 20px rgba(74, 124, 89, 0.3)",
+        "purpose": "Focus rings, active primary buttons, success indicators."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Default easing for state transitions."
+      },
+      {
+        "name": "ease-enter",
+        "value": "cubic-bezier(0, 0, 0.2, 1)",
+        "purpose": "Elements entering the viewport."
+      },
+      {
+        "name": "ease-exit",
+        "value": "cubic-bezier(0.4, 0, 1, 1)",
+        "purpose": "Elements leaving the viewport."
+      },
+      {
+        "name": "duration-fast",
+        "value": "150ms",
+        "purpose": "Quick state changes — hover, focus, toggle."
+      },
+      {
+        "name": "duration-normal",
+        "value": "200ms",
+        "purpose": "Standard transitions — buttons, inputs, navigation."
+      },
+      {
+        "name": "duration-slow",
+        "value": "300ms",
+        "purpose": "Complex transitions — dialogs, panels, page transitions."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary action button with sage green background and glow hover.",
+      "html": "<button class=\"ds-btn-primary\">SAVE CHANGES</button>",
+      "css": ".ds-btn-primary { background: #4A7C59; color: #FFFFFF; padding: 8px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; line-height: 1.25; border: none; cursor: pointer; transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 0 rgba(74, 124, 89, 0); } .ds-btn-primary:hover { background: #2E5339; box-shadow: 0 0 20px rgba(74, 124, 89, 0.3); transform: translateY(-1px); } .ds-btn-primary:focus-visible { outline: 2px solid rgba(74, 124, 89, 0.5); outline-offset: 2px; } .ds-btn-primary:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary action button with surface background and border.",
+      "html": "<button class=\"ds-btn-secondary\">CANCEL</button>",
+      "css": ".ds-btn-secondary { background: #1E293B; color: #F1F5F9; padding: 8px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; line-height: 1.25; border: 1px solid #334155; cursor: pointer; transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-secondary:hover { background: #334155; } .ds-btn-secondary:focus-visible { outline: 2px solid rgba(74, 124, 89, 0.5); outline-offset: 2px; }"
+    },
+    {
+      "name": "Glass Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Semi-transparent glass surface with backdrop-blur and ambient shadow.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Patient Summary</h3><p class=\"ds-card-body\">Clinical overview content here.</p></div>",
+      "css": ".ds-card { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 24px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); } .ds-card-title { font-size: 1.125rem; font-weight: 600; color: #F1F5F9; margin-bottom: 8px; } .ds-card-body { font-size: 1rem; color: #CBD5E1; line-height: 1.5; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Text input with surface background, border, and focus ring.",
+      "html": "<div class=\"ds-input-group\"><label class=\"ds-input-label\">Patient Name</label><input class=\"ds-input\" type=\"text\" placeholder=\"Enter name...\" /></div>",
+      "css": ".ds-input-group { display: flex; flex-direction: column; gap: 6px; } .ds-input-label { font-size: 14px; font-weight: 500; color: #CBD5E1; } .ds-input { background: #111827; color: #F1F5F9; border: 1px solid #334155; border-radius: 12px; padding: 10px 12px; font-size: 16px; transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-input::placeholder { color: #94A3B8; } .ds-input:focus { outline: none; border-color: #4A7C59; box-shadow: 0 0 0 2px rgba(74, 124, 89, 0.4); } .ds-input:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge-primary",
+      "description": "Pill-shaped status badge with semi-transparent background.",
+      "html": "<span class=\"ds-badge\">Active</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(74, 124, 89, 0.1); color: #4A7C59; border: 1px solid rgba(74, 124, 89, 0.2); border-radius: 9999px; padding: 4px 12px; font-size: 14px; font-weight: 500; } .ds-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }"
+    },
+    {
+      "name": "Sidebar Navigation",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Fixed sidebar with section groups, collapsible, glass-like surface.",
+      "html": "<nav class=\"ds-sidebar\"><div class=\"ds-sidebar-section\"><span class=\"ds-sidebar-label\">CLINICAL</span><a class=\"ds-nav-item active\" href=\"#\"><span class=\"ds-nav-icon\">📋</span>Patients</a></div></nav>",
+      "css": ".ds-sidebar { width: 260px; background: #111827; border-right: 1px solid #334155; height: 100vh; position: fixed; left: 0; top: 0; overflow-y: auto; padding: 12px 8px; } .ds-sidebar-section { margin-bottom: 16px; } .ds-sidebar-label { font-size: 10px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.1em; padding: 0 12px; display: block; margin-bottom: 4px; } .ds-nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; font-size: 14px; color: #CBD5E1; text-decoration: none; transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); min-height: 44px; } .ds-nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #F1F5F9; } .ds-nav-item.active { background: rgba(74, 124, 89, 0.1); color: #4A7C59; font-weight: 600; } .ds-nav-icon { width: 18px; height: 18px; flex-shrink: 0; }"
+    },
+    {
+      "name": "Dialog Modal",
+      "kind": "custom",
+      "refersTo": "dialog",
+      "description": "Modal dialog with glass overlay, ambient shadow, and scale-in animation.",
+      "html": "<div class=\"ds-dialog-overlay\"><div class=\"ds-dialog\"><div class=\"ds-dialog-header\"><h2 class=\"ds-dialog-title\">Confirm Action</h2><button class=\"ds-dialog-close\">✕</button></div><div class=\"ds-dialog-body\"><p>Are you sure you want to proceed?</p></div></div></div>",
+      "css": ".ds-dialog-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 50; animation: fade-in 150ms ease-out; } .ds-dialog { background: #111827; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(74, 124, 89, 0.1); width: 100%; max-width: 512px; max-height: 85vh; animation: scale-in 150ms ease-out; } .ds-dialog-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid #334155; } .ds-dialog-title { font-size: 1.125rem; font-weight: 600; color: #F1F5F9; } .ds-dialog-close { background: none; border: none; color: #94A3B8; cursor: pointer; padding: 4px; border-radius: 8px; } .ds-dialog-close:hover { background: rgba(255, 255, 255, 0.05); color: #F1F5F9; } .ds-dialog-body { padding: 20px 24px; overflow-y: auto; color: #CBD5E1; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Restorative Sanctuary",
+    "overview": "Veridia HealthTech is a clinical nutrition ERP that lives at the intersection of healing and science. The design language embodies this duality: deep, calming surfaces that feel like a sanctuary — not a sterile clinic — while maintaining the precision and authority that clinical work demands. Every visual decision serves the patient outcome first.\n\nThe personality is warm authority: muted sage greens signal restoration and nature, soft glass surfaces create depth without distraction, and a restrained color palette lets critical clinical information rise to the surface. The system rejects cold medical aesthetics in favor of something more human — a space where nutritionists feel supported, not surveilled by their tools.",
+    "keyCharacteristics": [
+      "Restorative color palette rooted in sage greens and deep earth tones",
+      "Soft glassmorphism with ambient depth, never flashy",
+      "Typography that is confident but not aggressive — Inter with measured weight",
+      "Components that feel soft, rounded, and assured — like a trusted colleague",
+      "Dark mode default with luminous surfaces that breathe"
+    ],
+    "rules": [
+      {
+        "name": "The Restraint Rule",
+        "body": "The primary sage green is used on ≤15% of any given screen. Its rarity signals importance.",
+        "section": "colors"
+      },
+      {
+        "name": "The Glass Layering Rule",
+        "body": "Depth is communicated through overlapping glass surfaces, not drop shadows. Shadows are ambient and diffuse, never hard-edged.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Clinical Hierarchy Rule",
+        "body": "Every screen has exactly one Display element (the page title). Everything else descends through Headline → Title → Body → Label → Caption. No skipping levels.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Surfaces are flat at rest. Shadows appear only on hover, focus, or state elevation.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use the sage green sparingly — it is the brand signal and should feel precious, not abundant.",
+      "Do layer glass surfaces for depth — overlapping semi-transparent panels create the sanctuary feel.",
+      "Do use the full radius scale — small elements small radius, large elements large radius.",
+      "Do respect the clinical hierarchy — Display → Headline → Title → Body → Label → Caption, every time.",
+      "Do provide clear focus rings on all interactive elements — the sage glow is the brand's way of saying 'I see you.'",
+      "Do use semantic colors (danger, warning, success) consistently — clinical users rely on these signals for patient safety."
+    ],
+    "donts": [
+      "Don't use primary green for large backgrounds — it loses its meaning when overused.",
+      "Don't add hard-edged shadows — the glass layering system handles depth.",
+      "Don't use decorative borders — structural borders only, and always 1px.",
+      "Don't skip the focus ring — accessibility is non-negotiable in clinical software.",
+      "Don't use all-caps text outside of section labels — it's reserved for structural hierarchy markers.",
+      "Don't mix glass and solid surfaces arbitrarily — glass is for cards/panels, solid is for base surfaces."
+    ]
+  }
+}

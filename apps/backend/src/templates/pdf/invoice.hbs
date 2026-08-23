@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1e293b; font-size: 11px; line-height: 1.5; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 2px solid {{branding.primaryColor}}; margin-bottom: 20px; }
+    .logo { max-height: 60px; }
+    .clinic-info { text-align: right; font-size: 10px; color: #64748b; }
+    .clinic-name { font-size: 14px; font-weight: 700; color: #0f172a; }
+    .title { font-size: 18px; font-weight: 700; color: {{branding.primaryColor}}; margin: 15px 0 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .invoice-meta { display: flex; gap: 30px; margin-bottom: 15px; }
+    .invoice-meta div { flex: 1; }
+    .invoice-meta label { font-size: 9px; color: #64748b; text-transform: uppercase; display: block; }
+    .invoice-meta span { font-size: 12px; font-weight: 600; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+    .info-item { padding: 6px 10px; background: #f8fafc; border-radius: 4px; }
+    .info-item label { font-size: 9px; color: #64748b; text-transform: uppercase; display: block; }
+    .info-item span { font-size: 12px; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    th { background: #f1f5f9; padding: 8px; text-align: left; font-size: 9px; color: #64748b; text-transform: uppercase; }
+    td { padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 10px; }
+    .text-right { text-align: right; }
+    .totals { width: 250px; margin-left: auto; }
+    .totals-row { display: flex; justify-content: space-between; padding: 4px 8px; font-size: 11px; }
+    .totals-row.total { border-top: 2px solid {{branding.primaryColor}}; font-weight: 700; font-size: 14px; color: {{branding.primaryColor}}; padding-top: 8px; }
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 600; text-transform: uppercase; }
+    .status-pendiente { background: #fef3c7; color: #92400e; }
+    .status-pagada { background: #d1fae5; color: #065f46; }
+    .status-vencida { background: #fee2e2; color: #991b1b; }
+    .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 9px; color: #94a3b8; }
+    .footer .professional { text-align: right; }
+    .footer .professional strong { color: #1e293b; }
+    .payment-info { margin-top: 15px; padding: 10px; background: #f0fdf4; border-radius: 6px; border-left: 3px solid #10b981; }
+    .payment-info strong { color: #065f46; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    {{#if branding.logo}}<img src="{{branding.logo}}" class="logo" />{{/if}}
+    <div class="clinic-info">
+      {{#if branding.clinicName}}<div class="clinic-name">{{branding.clinicName}}</div>{{/if}}
+      {{#if branding.clinicAddress}}<div>{{branding.clinicAddress}}</div>{{/if}}
+      {{#if branding.clinicPhone}}<div>{{branding.clinicPhone}}</div>{{/if}}
+      {{#if professional.cuit}}<div>CUIT: {{professional.cuit}}</div>{{/if}}
+    </div>
+  </div>
+
+  <div class="title">Factura</div>
+
+  <div class="invoice-meta">
+    <div><label>Número</label><span>{{invoice.number}}</span></div>
+    <div><label>Fecha</label><span>{{invoice.date}}</span></div>
+    <div><label>Estado</label><span class="status-badge status-{{invoice.status}}">{{invoice.status}}</span></div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-item"><label>Paciente</label><span>{{patient.name}}</span></div>
+    <div class="info-item"><label>DNI</label><span>{{patient.dni}}</span></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Descripción</th><th class="text-right">Precio</th></tr></thead>
+    <tbody>
+      {{#each invoice.lines as |line|}}
+      <tr>
+        <td>{{line.description}}</td>
+        <td class="text-right">${{line.amount}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div class="totals-row total">
+      <span>TOTAL</span>
+      <span>${{invoice.total}}</span>
+    </div>
+  </div>
+
+  {{#if invoice.payments.length}}
+  <div class="payment-info">
+    <strong>Pagos realizados:</strong>
+    {{#each invoice.payments as |payment|}}
+    <div>{{payment.fecha}} — ${{payment.monto}} ({{payment.metodo}})</div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  <div class="footer">
+    <div>Documento generado por Veridia HealthTech</div>
+    <div class="professional">
+      <strong>{{professional.name}}</strong><br>
+      {{professional.title}}<br>
+      Matrícula: {{professional.license}}
+    </div>
+  </div>
+</body>
+</html>

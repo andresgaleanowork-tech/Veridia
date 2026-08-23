@@ -1,10 +1,16 @@
+# Veridia HealthTech - Local development environment
+#
+# SECRETS: the inline defaults below are random, local-only values. Override them
+# in a gitignored .env file (see .env.example) and generate real secrets with:
+#   openssl rand -hex 24     # DB_PASSWORD (URL-safe, used inside DATABASE_URL)
+#   openssl rand -base64 32  # JWT_SECRET / JWT_REFRESH_SECRET
 services:
   db:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: veridia_db
       POSTGRES_USER: veridia
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-veridia_secret_change_me}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-f857a063b2153117b77369e99151214bbe4ed576d6f96360}
     ports:
       - "5444:5432"
     volumes:
@@ -18,13 +24,13 @@ services:
   api:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: apps/backend/Dockerfile
     ports:
       - "3457:3456"
     environment:
-      DATABASE_URL: postgresql://veridia:${DB_PASSWORD:-veridia_secret_change_me}@db:5432/veridia_db
-      JWT_SECRET: ${JWT_SECRET:-veridia_jwt_secret_change_in_production}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-veridia_refresh_secret_change_in_production}
+      DATABASE_URL: postgresql://veridia:${DB_PASSWORD:-f857a063b2153117b77369e99151214bbe4ed576d6f96360}@db:5432/veridia_db
+      JWT_SECRET: ${JWT_SECRET:-xbvoYmmI2fMWHEMo0xspgAJUfriRL1yDeMRB5bJWL6I=}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-yTBHzKzoC4jm+lg4ySZEvd1SmxcjTrLg8KkxyWC65bU=}
       NODE_ENV: development
       PORT: 3456
       USDA_API_KEY: ${USDA_API_KEY:-DEMO_KEY}
@@ -33,13 +39,17 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - ./backend/src:/app/src:ro
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3456/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   frontend:
     build:
-      context: ./veridia-app
-      dockerfile: Dockerfile
+      context: ./apps/frontend
+      dockerfile: Dockerfile.dev
     ports:
       - "5173:5173"
     depends_on:
@@ -47,6 +57,9 @@ services:
         condition: service_healthy
     environment:
       - VITE_API_URL=http://localhost:3457
+    volumes:
+      - ./apps/frontend:/app
+      - /app/node_modules
 
 volumes:
   pgdata:

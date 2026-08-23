@@ -1,0 +1,35 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "@sulesky/opencode-plugger@latest",
+    "opencode-vibe-mode",
+    "opencode-fi",
+    "opencode-audio",
+    "opencode-warcraft-notifications",
+    "opencode-smart-voice-notify",
+    "oc-notify",
+    "opencode-unmoji",
+    "opencode-md-table-formatter",
+    "opencode-type-inject",
+    "opencode-ascii",
+    "opencode-shell-strategy",
+    "opencode-dynamic-context-pruning",
+    "opencode-snippets",
+    "opencode-quotes-plugin",
+    "opencode-smart-title",
+    "opencode-gemini-auth",
+    "opencode-openai-codex-auth",
+    "opencode-antigravity-auth",
+    "opencode-worktree",
+    "opencode-wakatime",
+    "opencode-notify"
+  ],
+  "model": "anthropic/claude-sonnet-4-6",
+  "shell": "/bin/zsh",
+  "logLevel": "INFO",
+  "autoupdate": true,
+  "snapshot": false,
+  "instructions": [
+    "AGENTS.md"
+  ]
+}

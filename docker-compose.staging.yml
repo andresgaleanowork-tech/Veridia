@@ -1,0 +1,70 @@
+# Veridia HealthTech - Staging Environment
+# Usage: docker-compose -f docker-compose.staging.yml up -d
+#
+# SECRETS: never hardcode credentials here. Override every STAGING_* variable
+# via the shell environment, a gitignored .env.staging file, or CI secrets:
+#   export STAGING_DB_PASSWORD="$(openssl rand -hex 24)"
+#   export STAGING_JWT_SECRET="$(openssl rand -base64 32)"
+#   export STAGING_JWT_REFRESH_SECRET="$(openssl rand -base64 32)"
+# The inline defaults are throwaway values for local smoke tests only.
+
+version: '3.8'
+
+services:
+  db-staging:
+    image: postgres:16-alpine
+    container_name: veridia-db-staging
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: veridia
+      POSTGRES_PASSWORD: ${STAGING_DB_PASSWORD:-b4823160f222dd8a33b25e870c7632d78e4f2714c59ede8f}
+      POSTGRES_DB: veridia_staging
+    ports:
+      - "5445:5432"
+    volumes:
+      - pgdata-staging:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U veridia"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-staging:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: veridia-api-staging
+    restart: unless-stopped
+    ports:
+      - "3458:3456"
+    environment:
+      NODE_ENV: staging
+      DATABASE_URL: postgresql://veridia:${STAGING_DB_PASSWORD:-b4823160f222dd8a33b25e870c7632d78e4f2714c59ede8f}@db-staging:5432/veridia_staging
+      JWT_SECRET: ${STAGING_JWT_SECRET:-1Yc4w6xh8q/XCQNuJZgl80cb0BtED08reFGTPVR2g7Q=}
+      JWT_REFRESH_SECRET: ${STAGING_JWT_REFRESH_SECRET:-ftmjvBGmIpg/wlGXp8cJh38eoEw/CqTpppSTNOJ9C2g=}
+      PORT: 3456
+    depends_on:
+      db-staging:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3456/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend-staging:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: veridia-frontend-staging
+    restart: unless-stopped
+    ports:
+      - "5174:5173"
+    depends_on:
+      api-staging:
+        condition: service_healthy
+    environment:
+      - VITE_API_URL=http://localhost:3458
+
+volumes:
+  pgdata-staging:

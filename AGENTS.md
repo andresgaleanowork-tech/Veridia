@@ -1,64 +1,88 @@
-# AGENTS.md — Veridia HealthTech V5.2
+# AGENTS.md - Veridia HealthTech V5.2
 
 ## Project Overview
 ERP de nutrición clínica con interfaz "Clinical Command Center" (dark mode, glassmorphism).
-- **Frontend:** React 18 + TypeScript + Vite + Tailwind CSS v4 + shadcn/ui
-- **Backend:** Node.js + Express + PostgreSQL + JWT + bcrypt
+- **Frontend:** React 19 + TypeScript + Vite 8 + Tailwind CSS v4 + shadcn/ui + Zustand + TanStack Query
+- **Backend:** Node.js + Express + PostgreSQL + JWT + bcrypt + Drizzle ORM (TypeScript)
 - **Ports:** API `3456`, DB `5444`, Frontend `5173`, Docker API `3457`
 
 ## Architecture
 
-### Frontend (`veridia-app/`)
+### Frontend (`apps/frontend/`)
 ```
 src/
-├── components/layout/    # Sidebar, Header, Layout (auth guard)
-├── features/
-│   ├── auth/            # LoginPage
-│   ├── dashboard/       # DashboardPage (KPIs, appointments, patients)
-│   ├── patients/        # PatientsPage, PatientDetailPage, ClinicalHistoryPage, AnthropometryPage, AnalyticsPage, AppointmentsListPage
-│   ├── clinical/        # AnamnesisPage, FormulaPage, EspenPage, AlertsPage
-│   ├── nutrition/       # FoodsPage, RecipesPage, MealPlansPage, CopilotPage
-│   ├── business/        # AppointmentsPage, InvoicesPage, AccountingPage
-│   ├── messages/        # MessagesPage
-│   └── settings/        # SettingsPage
-├── lib/api.ts           # Axios client with JWT + refresh interceptor
-├── stores/              # Zustand (authStore, uiStore)
-├── types/index.ts       # All TypeScript interfaces (18 DB tables)
-└── index.css            # Tailwind v4 theme tokens
+├-- components/
+|   ├-- layout/           # Sidebar, Header, Layout (auth guard)
+|   ├-- ui/               # shadcn/ui components (Button, Card, Badge, Switch, Tabs, Table, etc.)
+|   ├-- shared/           # RouteWrapper (error boundary per route)
+|   └-- error/            # ErrorBoundary component
+├-- features/
+|   ├-- auth/             # LoginPage
+|   ├-- dashboard/        # DashboardPage (KPIs, appointments, patients)
+|   ├-- patients/         # PatientsPage, PatientDetailPage, ClinicalHistoryPage, AnthropometryPage, AnalyticsPage, AppointmentsListPage
+|   ├-- clinical/         # AnamnesisPage, FormulaPage, EspenPage, AlertsPage
+|   ├-- nutrition/        # FoodsPage, RecipesPage, MealPlansPage, CopilotPage, JournalPage
+|   ├-- business/         # AppointmentsPage, InvoicesPage, AccountingPage
+|   ├-- messages/         # MessagesPage
+|   └-- settings/         # SettingsPage
+├-- hooks/                # usePermission, useDebounce, useLocalStorage, useNavigate
+├-- lib/api.ts            # Axios client with JWT + refresh interceptor
+├-- stores/               # Zustand (authStore, uiStore)
+├-- types/index.ts        # All TypeScript interfaces
+├-- i18n/index.ts         # ES/PT translations
+└-- index.css             # Tailwind v4 theme tokens
 ```
 
-### Backend (`backend/`)
+### Backend (`apps/backend/`)
 ```
 src/
-├── index.js             # Express app, middleware, routes
-├── config/db.js         # PostgreSQL pool
-├── middleware/
-│   ├── auth.js          # JWT authenticate + authorize
-│   ├── validate.js      # express-validator helpers
-│   ├── logger.js        # Request ID + logging
-│   ├── response.js      # Standardized API responses
-│   └── security.js      # SQL injection, XSS protection
-├── routes/
-│   ├── auth.js          # Login, register, refresh
-│   ├── patients.js      # Patient CRUD
-│   ├── clinical.js      # Formula, anthropometry, analytics
-│   ├── clinical-history.js  # Anamnesis + clinical history
-│   ├── foods.js         # USDA/OpenFoodFacts proxy
-│   ├── proxy.js         # Gemini AI proxy
-│   ├── appointments.js  # Appointment CRUD
-│   ├── invoices.js      # Invoice CRUD + payments
-│   ├── recipes.js       # Recipe CRUD
-│   ├── meal-plans.js    # Meal plan CRUD
-│   ├── messages.js      # Patient messaging
-│   ├── patient-data.js  # Diary + symptoms
-│   ├── gastos.js        # Expense tracking
-│   └── misc.js          # Cash, favorites, settings, audit, users
-└── utils/
-    ├── migrate.js       # Initial migration
-    ├── migrate-v2.js    # Phase 0 migration (new tables/columns)
-    ├── seed.js          # Demo data seeder
-    ├── audit.js         # Audit log helper
-    └── test-api.js      # API test suite
+├-- index.ts              # Express app, middleware, routes, graceful shutdown
+├-- config/
+|   └-- db.ts             # PostgreSQL pool + Drizzle ORM instance
+├-- db/
+|   └-- schema/           # Drizzle ORM schemas (~44 tables)
+|       ├-- index.ts      # Schema barrel export
+|       ├-- users.ts
+|       ├-- patients.ts
+|       └-- ... (~44 total)
+├-- middleware/
+|   ├-- auth.ts           # JWT authenticate + authorize
+|   ├-- validate.ts       # express-validator helpers
+|   ├-- zodValidate.ts    # Zod validation middleware
+|   ├-- logger.ts         # Request ID + logging
+|   ├-- response.ts       # res.success/error/created/paginated
+|   ├-- security.ts       # SQL injection, XSS protection
+|   └-- tenant.ts         # Multi-tenant isolation
+├-- routes/               # ~35 route files (~200 endpoints)
+|   ├-- auth.ts           # Login, register, refresh
+|   ├-- patients.ts       # Patient CRUD
+|   ├-- clinical.ts       # Formula, anthropometry, analytics
+|   ├-- clinical-history.ts
+|   ├-- foods.ts          # USDA/OpenFoodFacts proxy + LRU cache
+|   ├-- proxy.ts          # Gemini AI proxy
+|   ├-- appointments.ts   # Appointment CRUD
+|   ├-- invoices.ts       # Invoice CRUD + payments
+|   ├-- recipes.ts        # Recipe CRUD
+|   ├-- meal-plans.ts     # Meal plan CRUD
+|   ├-- messages.ts       # Patient messaging
+|   ├-- patient-data.ts   # Diary + symptoms
+|   ├-- gastos.ts         # Expense tracking
+|   ├-- misc.ts           # Cash, favorites, settings, audit, users
+|   ├-- reports.ts        # Reports + analytics
+|   ├-- fitness.ts        # Fitness integration
+|   ├-- payments.ts       # Payment webhooks
+|   ├-- telehealth.ts     # Telehealth
+|   ├-- onboarding.ts     # Onboarding flow
+|   ├-- automations.ts    # Automations
+|   ├-- care-process.ts   # Care process
+|   ├-- templates.ts      # Templates
+|   ├-- api-v1.ts         # API v1 with key auth
+|   └-- webhooks.ts       # Webhooks
+└-- utils/
+    ├-- migrate.ts        # Initial migration (all tables)
+    ├-- migrate-api-keys.ts
+    ├-- seed.ts           # Demo data seeder
+    ├-- audit.ts          # Audit log helper
 ```
 
 ## Development Commands
@@ -66,49 +90,63 @@ src/
 ### Start Services
 ```bash
 # Start database + API (Docker)
-docker-compose up -d db api
+docker compose up -d db api
 
 # Start frontend dev server
-cd veridia-app && npm run dev
+cd apps/frontend && npm run dev
 ```
 
 ### Database
 ```bash
-# Run initial migration
-cd backend && npm run migrate
-
-# Run v2 migration (new columns/tables)
-cd backend && npm run migrate:v2
+# Run initial migration (raw SQL)
+cd apps/backend && npm run migrate
 
 # Seed demo data
-cd backend && npm run seed
+cd apps/backend && npm run seed
+
+# Drizzle ORM
+cd apps/backend && npm run drizzle:generate  # Generate migration
+cd apps/backend && npm run drizzle:push     # Push schema to DB
+cd apps/backend && npm run drizzle:studio   # Open Drizzle Studio
 ```
 
 ### Testing
 ```bash
-# Run API tests (no DB required)
-cd backend && npm test
+# Frontend tests (Vitest)
+cd apps/frontend && npm test           # Watch mode
+cd apps/frontend && npm run test:run   # Single run
+cd apps/frontend && npm run test:run -- --coverage  # With coverage
 
-# TypeScript check (frontend)
-cd veridia-app && npx tsc -p tsconfig.app.json --noEmit
+# Backend syntax/typecheck
+cd apps/backend && npx tsc --noEmit
+cd apps/backend && npm test            # API tests
 
 # Build frontend
-cd veridia-app && npm run build
+cd apps/frontend && npm run build
 ```
 
 ### Linting
 ```bash
-cd veridia-app && npm run lint
+cd apps/frontend && npm run lint
+cd apps/backend && npm run lint
 ```
+
+## Shared Types Package
+- `packages/shared-types/` existe como package vacío. Ejecutar `cd apps/backend && npm run types:export` para generar tipos Drizzle compartidos.
+- El proyecto usa `npm`, no `pnpm`. El `pnpm-workspace.yaml` existe pero pnpm no está instalado; el CI usa `npm install --legacy-peer-deps`.
 
 ## Key Design Decisions
 - **Tailwind CSS v4** uses `@theme` in CSS (not `tailwind.config.js`)
 - **Path aliases:** `@/` maps to `./src/` (configured in vite.config.ts + tsconfig.app.json)
-- **API responses:** Use `res.success()`, `res.paginated()`, `res.error()` from `middleware/response.js`
-- **Request IDs:** Every request gets a UUID for tracing (see `middleware/logger.js`)
+- **API responses:** Use `res.success()`, `res.paginated()`, `res.error()` from `middleware/response.ts`
+- **Request IDs:** Every request gets a UUID for tracing (see `middleware/logger.ts`)
 - **Dark mode default:** `#0B1120` background, glassmorphism cards, cyan primary `#0891B2`
+- **Drizzle ORM:** Schema in `apps/backend/src/db/schema/`, config in `apps/backend/drizzle.config.ts`
+- **Route error handling:** Use `RouteWrapper` component for consistent error boundaries
+- **Graceful shutdown:** SIGTERM/SIGINT handlers close DB pool
+- **State management:** Frontend usa Zustand (authStore, uiStore) y TanStack Query para datos del servidor
 
-## Route Map (22 pages)
+## Route Map (~35 pages)
 | Route | Page | Phase |
 |-------|------|-------|
 | `/` | Dashboard | 1 |
@@ -135,7 +173,7 @@ cd veridia-app && npm run lint
 
 ## Environment Variables
 
-### Backend (.env)
+### Backend (apps/backend/.env)
 ```
 DATABASE_URL=postgresql://user:pass@localhost:5432/dbname
 JWT_SECRET=your-secret-here
@@ -147,7 +185,7 @@ RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX=100
 ```
 
-### Frontend (.env)
+### Frontend (apps/frontend/.env)
 ```
 VITE_API_URL=http://localhost:3456
 ```
@@ -160,3 +198,14 @@ VITE_API_URL=http://localhost:3456
 - **Business:** GET/POST /appointments, GET/POST /invoices, POST /invoices/:id/pay
 - **Messages:** GET/POST /messages/:pacienteId
 - **Settings:** GET/PUT /settings
+- **Health:** GET /api/health (DB status, memory, uptime)
+- **Docs:** GET /api/docs (API documentation)
+
+## Production Security
+- **Helmet:** CSP, HSTS, XSS filter, noSniff, referrer policy
+- **CORS:** Configurable origins via CORS_ORIGIN env var
+- **Rate limiting:** 100 req/15min general, 5 req/5min for login
+- **Request timeout:** 30s max per request
+- **Graceful shutdown:** SIGTERM/SIGINT handlers
+- **Body size limit:** 10MB max
+- **HTTPS redirect:** In production
