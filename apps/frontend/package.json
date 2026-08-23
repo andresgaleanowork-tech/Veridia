@@ -54,7 +54,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "eslint-plugin-storybook": "^10.5.10",
     "jsdom": "^30.0.1",
-    "oxlint": "^1.75.0",
+    "oxlint": "^1.79.0",
     "playwright": "latest",
     "storybook": "^10.5.10",
     "tailwindcss": "^4.3.3",
