@@ -100,33 +100,54 @@ for (const section of sections) {
 }
 
 // ---------------------------------------------------------------------------
-// 2) Issue de diagnóstico (solo en CI, nunca rompe el job)
+// 2) Publicar en CI (nunca rompe el job):
+//    - En contexto de PR: comentario (reutilizado) en el PR
+//    - En push directo: issue etiquetado ci-e2e-diagnostics
 // ---------------------------------------------------------------------------
-function publishIssue() {
+const MARKER = '<!-- e2e-diagnostics -->';
+
+function publish() {
   if (!process.env.GITHUB_REPOSITORY || !process.env.GH_TOKEN) return;
   const repo = process.env.GITHUB_REPOSITORY;
-  const gh = (args, input) =>
+  const gh = (args) =>
     execFileSync('gh', args, {
       env: { ...process.env },
-      input,
       stdio: ['pipe', 'pipe', 'pipe'],
       encoding: 'utf8',
-      timeout: 60_000,
+      timeout: 90_000,
     });
+
+  const fullBody = `${MARKER}\n${body}`;
+  const prMatch = String(process.env.GITHUB_REF || '').match(/^refs\/pull\/(\d+)\//);
+
   try {
-    gh(['label', 'create', 'ci-e2e-diagnostics', '--force', '--color', 'B60205', '--repo', repo], undefined);
-    const listed = gh(['issue', 'list', '--label', 'ci-e2e-diagnostics', '--state', 'open', '--json', 'number', '--repo', repo], undefined);
+    if (prMatch) {
+      const pr = prMatch[1];
+      const listed = gh(['api', `repos/${repo}/issues/${pr}/comments`, '--jq', '.[] | select(.body | contains("e2e-diagnostics")) | .id']);
+      const id = listed.trim().split('\n').filter(Boolean)[0];
+      if (id) {
+        gh(['api', `repos/${repo}/issues/comments/${id}`, '-X', 'PATCH', '-F', `body=${fullBody}`]);
+        console.log(`Diagnóstico actualizado en el comentario del PR #${pr}`);
+      } else {
+        gh(['api', `repos/${repo}/issues/${pr}/comments`, '-F', `body=${fullBody}`]);
+        console.log(`Diagnóstico publicado en el PR #${pr}`);
+      }
+      return;
+    }
+    gh(['label', 'create', 'ci-e2e-diagnostics', '--force', '--color', 'B60205', '--repo', repo]);
+    const listed = gh(['issue', 'list', '--label', 'ci-e2e-diagnostics', '--state', 'open', '--json', 'number', '--repo', repo]);
     const existing = JSON.parse(listed || '[]')[0]?.number;
     if (existing) {
-      gh(['issue', 'edit', String(existing), '--repo', repo, '--body', body], undefined);
+      gh(['issue', 'edit', String(existing), '--repo', repo, '--body', fullBody]);
       console.log(`Diagnóstico publicado en issue #${existing}`);
     } else {
-      const created = gh(['issue', 'create', '--repo', repo, '--label', 'ci-e2e-diagnostics', '--title', `E2E CI diagnostics (run ${process.env.GITHUB_RUN_ID || ''})`, '--body', body], undefined);
+      const created = gh(['issue', 'create', '--repo', repo, '--label', 'ci-e2e-diagnostics', '--title', `E2E CI diagnostics (run ${process.env.GITHUB_RUN_ID || ''})`, '--body', fullBody]);
       console.log(`Diagnóstico publicado en ${created.trim()}`);
     }
   } catch (e) {
-    console.log(`(no se pudo publicar el issue de diagnóstico: ${String(e.message || e).slice(0, 200)})`);
+    const msg = String(e.stderr || e.message || e).slice(0, 300);
+    console.error(`::error title=E2E diagnóstico no publicado::${msg.replace(/\n/g, ' ⏎ ')}`);
   }
 }
 
-publishIssue();
+publish();
