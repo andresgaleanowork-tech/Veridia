@@ -106,16 +106,20 @@ for (const section of sections) {
 // ---------------------------------------------------------------------------
 const MARKER = '<!-- e2e-diagnostics -->';
 
-function publish() {
-  if (!process.env.GITHUB_REPOSITORY || !process.env.GH_TOKEN) return;
+function run(args, opts = {}) {
+  return execFileSync(args[0], args.slice(1), {
+    env: { ...process.env },
+    stdio: ['pipe', 'pipe', 'pipe'],
+    encoding: 'utf8',
+    timeout: 90_000,
+    ...opts,
+  });
+}
+
+function publishToGithub() {
   const repo = process.env.GITHUB_REPOSITORY;
-  const gh = (args) =>
-    execFileSync('gh', args, {
-      env: { ...process.env },
-      stdio: ['pipe', 'pipe', 'pipe'],
-      encoding: 'utf8',
-      timeout: 90_000,
-    });
+  if (!repo || !process.env.GH_TOKEN) return;
+  const gh = (args) => run(['gh', ...args]);
 
   const fullBody = `${MARKER}\n${body}`;
   const prMatch = String(process.env.GITHUB_REF || '').match(/^refs\/pull\/(\d+)\//);
@@ -132,22 +136,35 @@ function publish() {
         gh(['api', `repos/${repo}/issues/${pr}/comments`, '-F', `body=${fullBody}`]);
         console.log(`Diagnóstico publicado en el PR #${pr}`);
       }
-      return;
-    }
-    gh(['label', 'create', 'ci-e2e-diagnostics', '--force', '--color', 'B60205', '--repo', repo]);
-    const listed = gh(['issue', 'list', '--label', 'ci-e2e-diagnostics', '--state', 'open', '--json', 'number', '--repo', repo]);
-    const existing = JSON.parse(listed || '[]')[0]?.number;
-    if (existing) {
-      gh(['issue', 'edit', String(existing), '--repo', repo, '--body', fullBody]);
-      console.log(`Diagnóstico publicado en issue #${existing}`);
-    } else {
-      const created = gh(['issue', 'create', '--repo', repo, '--label', 'ci-e2e-diagnostics', '--title', `E2E CI diagnostics (run ${process.env.GITHUB_RUN_ID || ''})`, '--body', fullBody]);
-      console.log(`Diagnóstico publicado en ${created.trim()}`);
     }
   } catch (e) {
-    const msg = String(e.stderr || e.message || e).slice(0, 300);
-    console.error(`::error title=E2E diagnóstico no publicado::${msg.replace(/\n/g, ' ⏎ ')}`);
+    console.error(`::warning title=E2E comentario no publicado::${String(e.stderr || e.message || e).slice(0, 200).replace(/\n/g, ' ⏎ ')}`);
   }
 }
 
-publish();
+/**
+ * Canal de respaldo que SÍ es legible sin acceso a logs: force-push del
+ * diagnóstico (reporte + tail del output) a la rama `ci-e2e-diagnosis`.
+ */
+function pushDiagnosisBranch() {
+  if (process.env.GITHUB_ACTIONS !== 'true') return;
+  try {
+    fs.mkdirSync('.ci', { recursive: true });
+    const logTail = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8').slice(-15000) : '(sin log)';
+    fs.writeFileSync(
+      '.ci/e2e-diagnosis.txt',
+      `RUN: ${process.env.GITHUB_RUN_ID || 'n/a'}\nSHA: ${process.env.GITHUB_SHA || 'n/a'}\nREF: ${process.env.GITHUB_REF || 'n/a'}\nFECHA: ${new Date().toISOString()}\n\n${body}\n\n--- TAIL DEL OUTPUT DEL RUNNER ---\n${logTail}\n`
+    );
+    run(['git', 'config', 'user.name', 'Veridia CI']);
+    run(['git', 'config', 'user.email', 'ci@veridia.local']);
+    run(['git', 'add', '.ci/e2e-diagnosis.txt']);
+    run(['git', 'commit', '-m', `chore(ci): E2E diagnóstico run ${process.env.GITHUB_RUN_ID || 'local'}`]);
+    run(['git', 'push', '-f', 'origin', 'HEAD:refs/heads/ci-e2e-diagnosis']);
+    console.log('Diagnóstico publicado en la rama ci-e2e-diagnosis');
+  } catch (e) {
+    console.error(`::warning title=E2E diagnosis-branch no publicada::${String(e.stderr || e.message || e).slice(0, 200).replace(/\n/g, ' ⏎ ')}`);
+  }
+}
+
+publishToGithub();
+pushDiagnosisBranch();

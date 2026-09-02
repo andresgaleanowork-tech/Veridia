@@ -46,3 +46,6 @@ docker-compose.override.yml
 # Local configs
 *.local
 storybook-static/
+
+# Diagnóstico CI temporal (solo rama ci-e2e-diagnosis)
+.ci/
