@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { ChevronDown, Search, X } from 'lucide-react';
 
 interface SelectOption {
@@ -130,7 +130,7 @@ export function Select({
     }
   };
 
-  const inputId = `select-${Math.random().toString(36).slice(2, 9)}`;
+  const inputId = useId();
   const listId = `${inputId}-list`;
   const errorId = `${inputId}-error`;
 

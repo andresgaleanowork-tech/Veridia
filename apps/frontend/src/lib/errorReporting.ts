@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- Módulo de reportado: console es su mecanismo en dev. */
 import { useAuthStore } from '@/stores/authStore';
 
 interface ErrorContext {

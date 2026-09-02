@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 /** Credenciales de desarrollo (seed de apps/backend/src/utils/seed.ts). */
 export const ADMIN = { email: 'admin@veridia.tech', password: 'Admin2026!' };

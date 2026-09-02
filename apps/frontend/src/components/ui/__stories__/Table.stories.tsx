@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- Callbacks de demo del story: logean interacciones a propósito. */
 import type { Meta, StoryObj } from '@storybook/react';
 import { Table } from '@/components/ui/Table';
 
