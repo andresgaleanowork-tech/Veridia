@@ -33,18 +33,16 @@ export const PatientSchema = z.object({
 
 export type Patient = z.infer<typeof PatientSchema>;
 
-// Los inputs vacíos llegan como '' (defaultValues del form). Los
-// normalizamos a undefined para que no fallen la validación.
-const optionalText = (schema: z.ZodTypeAny) =>
-  z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), schema);
-
+// Los inputs vacíos llegan como '' (defaultValues del form); el union con
+// z.literal('') los acepta sin romper la inferencia de tipos de RHF
+// (z.preprocess/ZodEffects la degradaba y rompía tsc -b).
 export const PatientCreateSchema = z.object({
   nombre: z.string().min(1, 'Nombre requerido'),
   apellidos: z.string().min(1, 'Apellidos requeridos'),
   dni: z.string().optional(),
-  fecha_nacimiento: optionalText(ISODateSchema.optional()),
+  fecha_nacimiento: z.union([z.literal(''), ISODateSchema]).optional(),
   sexo: PatientSexSchema.optional(),
-  email: optionalText(z.string().email('Email inválido').optional()),
+  email: z.union([z.literal(''), z.string().email('Email inválido')]).optional(),
   telefono: z.string().optional(),
   direccion: z.string().optional(),
   profesion: z.string().optional(),
