@@ -18,15 +18,17 @@ declare global {
         paciente_id?: string;
       };
       paciente_id?: string;
+      patient_id?: string;
+      target_patient_id?: string;
       isPatient?: boolean;
-      apiKey?: any;
+      apiKey?: { active: boolean | null; id: string; scopes: string[] | null; [key: string]: unknown };
     }
 
     interface Response {
-      success(data: any, meta?: Record<string, any>): Response;
-      paginated(data: any[], total: number, page?: number, limit?: number): Response;
-      created(data: any, meta?: Record<string, any>): Response;
-      error(status: number, message: string, details?: any): Response;
+      success(data: unknown, meta?: Record<string, unknown>): Response;
+      paginated(data: unknown[], total: number, page?: number, limit?: number): Response;
+      created(data: unknown, meta?: Record<string, unknown>): Response;
+      error(status: number, message: string, details?: unknown): Response;
     }
   }
 }

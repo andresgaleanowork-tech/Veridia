@@ -1,8 +1,19 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // Config única de oxlint (antes había dos archivos: este y oxlint.config.json,
+  // que NO se cargaba — eliminado para evitar confusión).
   "plugins": ["react", "typescript", "oxc"],
   "rules": {
+    "no-unused-vars": "error",
+    "no-console": "warn",
+    "no-debugger": "error",
     "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+
+    // Reglas de React Compiler (advisorias para adopción del compilador).
+    // El proyecto no usa React Compiler: sincronizar estado externo en
+    // effects y usar RHF watch() son patrones deliberados aquí.
+    "react/set-state-in-effect": "off",
+    "react/incompatible-library": "off"
   }
 }

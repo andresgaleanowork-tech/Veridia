@@ -16,7 +16,7 @@ export function logger(req: Request, res: Response, next: NextFunction) {
   const timestamp = new Date().toISOString();
   const originalJson = res.json.bind(res);
 
-  res.json = function (body: any) {
+  res.json = function (body: unknown) {
     const duration = Date.now() - start;
     const log = {
       timestamp,

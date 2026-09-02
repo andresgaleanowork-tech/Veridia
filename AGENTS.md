@@ -1,4 +1,4 @@
-# AGENTS.md - Veridia HealthTech V5.2
+# AGENTS.md - Veridia HealthTech V5.3
 
 ## Project Overview
 ERP de nutrición clínica con interfaz "Clinical Command Center" (dark mode, glassmorphism).

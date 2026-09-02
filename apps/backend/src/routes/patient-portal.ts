@@ -40,26 +40,26 @@ router.post('/login', validateZod(PatientLoginSchema), async (req, res) => {
   } catch (err) { console.error(err); res.error(500, 'Error interno'); }
 });
 
-router.post('/logout', patientAuthenticate, async (req: any, res) => {
+router.post('/logout', patientAuthenticate, async (req, res) => {
   try {
     const token = req.headers.authorization!.split(' ')[1];
     await db.delete(patientSessions).where(eq(patientSessions.token, token));
-    await logAudit(req.patient.id, 'LOGOUT', 'PatientPortal', 'Logout portal', req);
+    await logAudit(req.paciente!.id, 'LOGOUT', 'PatientPortal', 'Logout portal', req);
     res.success({ message: 'Logout exitoso' });
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.get('/profile', patientAuthenticate, async (req: any, res) => {
+router.get('/profile', patientAuthenticate, async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
-    const r = await db.select({ id: patients.id, nombre: patients.nombre, apellidos: patients.apellidos, email: patients.email, telefono: patients.telefono, fechaNacimiento: patients.fechaNacimiento }).from(patients).where(eq(patients.id, req.patient.id));
+    const r = await db.select({ id: patients.id, nombre: patients.nombre, apellidos: patients.apellidos, email: patients.email, telefono: patients.telefono, fechaNacimiento: patients.fechaNacimiento }).from(patients).where(eq(patients.id, req.paciente!.id));
     if (!r.length) return res.error(404, 'Paciente no encontrado');
     res.success(r[0]);
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.put('/profile', patientAuthenticate, async (req: any, res) => {
+router.put('/profile', patientAuthenticate, async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
@@ -68,85 +68,85 @@ router.put('/profile', patientAuthenticate, async (req: any, res) => {
     if (nombre) updates.nombre = nombre;
     if (email) updates.email = email;
     if (telefono) updates.telefono = telefono;
-    const r = await db.update(patients).set(updates).where(eq(patients.id, req.patient.id)).returning({ id: patients.id, nombre: patients.nombre, apellidos: patients.apellidos, email: patients.email, telefono: patients.telefono });
+    const r = await db.update(patients).set(updates).where(eq(patients.id, req.paciente!.id)).returning({ id: patients.id, nombre: patients.nombre, apellidos: patients.apellidos, email: patients.email, telefono: patients.telefono });
     if (!r.length) return res.error(404, 'Paciente no encontrado');
-    await logAudit(req.patient.id, 'UPDATE', 'PatientProfile', req.patient.id, req);
+    await logAudit(req.paciente!.id, 'UPDATE', 'PatientProfile', req.paciente!.id, req);
     res.success(r[0]);
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.get('/plans', patientAuthenticate, async (req: any, res) => {
+router.get('/plans', patientAuthenticate, async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
-    const result = await db.select().from(mealPlans).where(eq(mealPlans.pacienteId, req.patient.id)).orderBy(desc(mealPlans.createdAt));
+    const result = await db.select().from(mealPlans).where(eq(mealPlans.pacienteId, req.paciente!.id)).orderBy(desc(mealPlans.createdAt));
     res.success(result);
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.get('/journal', patientAuthenticate, async (req: any, res) => {
+router.get('/journal', patientAuthenticate, async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
-    const result = await db.select().from(patientFoodJournals).where(eq(patientFoodJournals.pacienteId, req.patient.id)).orderBy(desc(patientFoodJournals.date)).limit(30);
+    const result = await db.select().from(patientFoodJournals).where(eq(patientFoodJournals.pacienteId, req.paciente!.id)).orderBy(desc(patientFoodJournals.date)).limit(30);
     res.success(result);
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.post('/journal', patientAuthenticate, validateZod(PatientFoodJournalCreateSchema), async (req: any, res) => {
+router.post('/journal', patientAuthenticate, validateZod(PatientFoodJournalCreateSchema), async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
     const { meals, symptoms, exercise, waterIntake, mood, notes, photoUrls, date } = req.body;
     const journalDate = date ? new Date(date) : new Date();
     const result = await db.insert(patientFoodJournals).values({
-      pacienteId: req.patient.id, date: journalDate.toISOString().split('T')[0],
+      pacienteId: req.paciente!.id, date: journalDate.toISOString().split('T')[0],
       meals: meals || [], symptoms: symptoms || [], exercise: exercise || [],
       waterIntake: waterIntake || 0, mood, notes, photoUrls: photoUrls || [],
     }).onConflictDoUpdate({
       target: [patientFoodJournals.pacienteId, patientFoodJournals.date],
       set: { meals, symptoms, exercise, waterIntake: waterIntake || 0, mood, notes, photoUrls: photoUrls || [] },
     }).returning();
-    await logAudit(req.patient.id, 'CREATE', 'PatientFoodJournal', result[0].id, req);
+    await logAudit(req.paciente!.id, 'CREATE', 'PatientFoodJournal', result[0].id, req);
     res.created(result[0]);
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.get('/messages', patientAuthenticate, async (req: any, res) => {
+router.get('/messages', patientAuthenticate, async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
-    const result = await db.select().from(messages).where(eq(messages.pacienteId, req.patient.id)).orderBy(desc(messages.createdAt)).limit(50);
+    const result = await db.select().from(messages).where(eq(messages.pacienteId, req.paciente!.id)).orderBy(desc(messages.createdAt)).limit(50);
     res.success(result);
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.post('/messages', patientAuthenticate, validateZod(z.object({ content: z.string().min(1) })), async (req: any, res) => {
+router.post('/messages', patientAuthenticate, validateZod(z.object({ content: z.string().min(1) })), async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
-    const result = await db.insert(messages).values({ pacienteId: req.patient.id, sender: 'patient', text: sanitize(req.body.content) }).returning();
-    await logAudit(req.patient.id, 'CREATE', 'Message', result[0].id, req);
+    const result = await db.insert(messages).values({ pacienteId: req.paciente!.id, sender: 'patient', text: sanitize(req.body.content) }).returning();
+    await logAudit(req.paciente!.id, 'CREATE', 'Message', result[0].id, req);
     res.created(result[0]);
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.get('/onboarding', patientAuthenticate, async (req: any, res) => {
+router.get('/onboarding', patientAuthenticate, async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
-    const result = await executeOne<PatientOnboardingRow>(sql`SELECT * FROM patient_onboarding WHERE patient_id = ${req.patient.id}`);
+    const result = await executeOne<PatientOnboardingRow>(sql`SELECT * FROM patient_onboarding WHERE patient_id = ${req.paciente!.id}`);
     res.success(result || null);
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.post('/onboarding', patientAuthenticate, validateZod(z.object({ responses: z.any(), waiversSigned: z.any().optional(), completed: z.boolean().optional() })), async (req: any, res) => {
+router.post('/onboarding', patientAuthenticate, validateZod(z.object({ responses: z.any(), waiversSigned: z.any().optional(), completed: z.boolean().optional() })), async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
     const { responses, waiversSigned, completed } = req.body;
-    const result = await executeOne<PatientOnboardingRow>(sql`INSERT INTO patient_onboarding (patient_id, responses, waivers_signed, completed_at) VALUES (${req.patient.id}, ${responses}, ${waiversSigned || {}}, ${completed ? new Date() : null}) ON CONFLICT (patient_id) DO UPDATE SET responses = ${responses}, waivers_signed = ${waiversSigned || {}}, completed_at = ${completed ? new Date() : null} RETURNING *`);
-    await logAudit(req.patient.id, 'UPDATE', 'PatientOnboarding', req.patient.id, req);
+    const result = await executeOne<PatientOnboardingRow>(sql`INSERT INTO patient_onboarding (patient_id, responses, waivers_signed, completed_at) VALUES (${req.paciente!.id}, ${responses}, ${waiversSigned || {}}, ${completed ? new Date() : null}) ON CONFLICT (patient_id) DO UPDATE SET responses = ${responses}, waivers_signed = ${waiversSigned || {}}, completed_at = ${completed ? new Date() : null} RETURNING *`);
+    await logAudit(req.paciente!.id, 'UPDATE', 'PatientOnboarding', req.paciente!.id, req);
     res.success(result);
   } catch (err) { res.error(500, 'Error interno'); }
 });

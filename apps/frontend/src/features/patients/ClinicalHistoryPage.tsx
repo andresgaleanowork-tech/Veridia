@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -49,23 +49,25 @@ export function ClinicalHistoryPage() {
     enabled: !!patientId,
   });
 
-  if (history && !initializedRef.current) {
-    reset({
-      antecedentes: history.antecedentes || '',
-      antecedentes_familiares: history.antecedentes_familiares || '',
-      alergias: history.alergias || '',
-      medicacion: history.medicacion || '',
-      suplementacion: history.suplementacion || '',
-      habitos_toxicos: history.habitos_toxicos || '',
-      sueno: history.sueno || '',
-      estres: history.estres || '',
-      ingesta_hidrica: history.ingesta_hidrica || '',
-      observaciones: history.observaciones || '',
-      historial_ponderal: JSON.stringify(history.historial_ponderal || {}, null, 2),
-      actividad_fisica: JSON.stringify(history.actividad_fisica || {}, null, 2),
-    });
-    initializedRef.current = true;
-  }
+  useEffect(() => {
+    if (history && !initializedRef.current) {
+      reset({
+        antecedentes: history.antecedentes || '',
+        antecedentes_familiares: history.antecedentes_familiares || '',
+        alergias: history.alergias || '',
+        medicacion: history.medicacion || '',
+        suplementacion: history.suplementacion || '',
+        habitos_toxicos: history.habitos_toxicos || '',
+        sueno: history.sueno || '',
+        estres: history.estres || '',
+        ingesta_hidrica: history.ingesta_hidrica || '',
+        observaciones: history.observaciones || '',
+        historial_ponderal: JSON.stringify(history.historial_ponderal || {}, null, 2),
+        actividad_fisica: JSON.stringify(history.actividad_fisica || {}, null, 2),
+      });
+      initializedRef.current = true;
+    }
+  }, [history, reset]);
 
   const mutation = useMutation({
     mutationFn: async (data: ClinicalHistoryForm) => {

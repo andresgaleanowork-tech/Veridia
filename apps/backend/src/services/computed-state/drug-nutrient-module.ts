@@ -7,6 +7,9 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+
   DrugNutrientAlert,
   Diagnosis,
 } from '../../types/patient-context.js';
@@ -14,7 +17,7 @@ import type {
 interface DrugNutrientConfig {
   enableAlerts?: boolean;
   severityThreshold?: 'minor' | 'moderate' | 'major' | 'contraindicated';
-  drugDatabase?: Record<string, any>;
+  drugDatabase?: Record<string, unknown>;
 }
 
 const DRUG_NUTRIENT_INTERACTIONS: Record<string, DrugNutrientAlert[]> = {
@@ -312,7 +315,7 @@ export class DrugNutrientModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = [
       'diagnoses',
       'drugs',
@@ -342,7 +345,7 @@ export class DrugNutrientModule implements ModuleInterface {
       label: 'Drug-Nutrient Alerts',
       icon: 'pills',
       order: 1,
-      badge: (ctx: any) => ctx.drugNutrientAlerts?.filter((a: DrugNutrientAlert) => 
+      badge: (ctx: ModuleState) => ctx.drugNutrientAlerts?.filter((a: DrugNutrientAlert) => 
         a.severity === 'major' || a.severity === 'contraindicated'
       ).length > 0 ? String(ctx.drugNutrientAlerts.filter((a: DrugNutrientAlert) => 
         a.severity === 'major' || a.severity === 'contraindicated'
@@ -351,7 +354,7 @@ export class DrugNutrientModule implements ModuleInterface {
   ];
   actions = [];
 
-  private detectInteractions(state: any): DrugNutrientAlert[] {
+  private detectInteractions(state: ModuleState): DrugNutrientAlert[] {
     const alerts: DrugNutrientAlert[] = [];
     const drugs = this.extractDrugs(state);
     
@@ -369,11 +372,11 @@ export class DrugNutrientModule implements ModuleInterface {
     return this.deduplicateAlerts(alerts);
   }
 
-  private extractDrugs(state: any): string[] {
+  private extractDrugs(state: ModuleState): string[] {
     const drugs: string[] = [];
     
     if (state.drugs) {
-      state.drugs.forEach((d: any) => {
+      state.drugs?.forEach((d) => {
         if (d.name) drugs.push(d.name.toLowerCase());
         if (d.class) drugs.push(d.class.toLowerCase());
       });

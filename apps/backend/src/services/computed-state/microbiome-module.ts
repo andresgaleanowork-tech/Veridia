@@ -7,12 +7,18 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+  MedicationLike,
+  MicrobiomeRawData,
+  DietaryIntakeRawData,
+
   MicrobiomeProfile,
 } from '../../types/patient-context.js';
 
 interface MicrobiomeConfig {
   enableAnalysis?: boolean;
-  referenceDatabase?: Record<string, any>;
+  referenceDatabase?: Record<string, unknown>;
 }
 
 const BENEFICIAL_TAXA = [
@@ -84,7 +90,7 @@ export class MicrobiomeModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = ['microbiomeData', 'dietaryIntake', 'drugs'];
     
     const hasRelevantChange = changes.changedFields.some((f: string) => relevantFields.includes(f));
@@ -125,7 +131,7 @@ export class MicrobiomeModule implements ModuleInterface {
   ];
   actions = [];
 
-  private analyzeMicrobiome(state: any): MicrobiomeProfile {
+  private analyzeMicrobiome(state: ModuleState): MicrobiomeProfile {
     const microbiomeData = state.microbiomeData || {};
     const dietaryIntake = state.dietaryIntake || {};
     const drugs = state.drugs || [];
@@ -150,9 +156,9 @@ export class MicrobiomeModule implements ModuleInterface {
   }
 
   private assessDiversity(
-    microbiomeData: any,
-    dietaryIntake: any,
-    drugs: any[]
+    microbiomeData: MicrobiomeRawData,
+    dietaryIntake: DietaryIntakeRawData,
+    drugs: MedicationLike[]
   ): 'low' | 'moderate' | 'high' {
     let diversityScore = 50;
     
@@ -165,10 +171,10 @@ export class MicrobiomeModule implements ModuleInterface {
     if (plantVariety >= 30) diversityScore += 15;
     else if (plantVariety >= 20) diversityScore += 8;
     
-    const antibioticUse = drugs.some((d: any) => d.class === 'antibiotic');
+    const antibioticUse = drugs.some((d) => d.class === 'antibiotic');
     if (antibioticUse) diversityScore -= 25;
     
-    const ppiUse = drugs.some((d: any) => d.class === 'proton-pump-inhibitor');
+    const ppiUse = drugs.some((d) => d.class === 'proton-pump-inhibitor');
     if (ppiUse) diversityScore -= 10;
     
     const fermentedFoods = dietaryIntake.fermentedFoods || false;
@@ -185,7 +191,7 @@ export class MicrobiomeModule implements ModuleInterface {
     return 'low';
   }
 
-  private determineEnterotype(microbiomeData: any, dietaryIntake: any): string | undefined {
+  private determineEnterotype(microbiomeData: MicrobiomeRawData, dietaryIntake: DietaryIntakeRawData): string | undefined {
     if (microbiomeData.enterotype) return microbiomeData.enterotype;
     
     const proteinIntake = dietaryIntake.protein || 70;
@@ -195,12 +201,12 @@ export class MicrobiomeModule implements ModuleInterface {
     
     if (proteinIntake > 100 && fatIntake > 80) return 'Bacteroides';
     if (carbIntake > 300 && fiberIntake > 25) return 'Prevotella';
-    if (dietaryIntake.fiber > 35) return 'Ruminococcus';
+    if (fiberIntake > 35) return 'Ruminococcus';
     
     return undefined;
   }
 
-  private assessBeneficialTaxa(microbiomeData: any): string[] {
+  private assessBeneficialTaxa(microbiomeData: MicrobiomeRawData): string[] {
     if (microbiomeData.beneficialTaxa) return microbiomeData.beneficialTaxa;
     
     const present: string[] = [];
@@ -213,7 +219,7 @@ export class MicrobiomeModule implements ModuleInterface {
     return present.length > 0 ? present : ['Not assessed - sample needed'];
   }
 
-  private assessDetrimentalTaxa(microbiomeData: any): string[] {
+  private assessDetrimentalTaxa(microbiomeData: MicrobiomeRawData): string[] {
     if (microbiomeData.detrimentalTaxa) return microbiomeData.detrimentalTaxa;
     
     const present: string[] = [];
@@ -226,7 +232,7 @@ export class MicrobiomeModule implements ModuleInterface {
     return present.length > 0 ? present : ['Not detected'];
   }
 
-  private assessSCFAProduction(microbiomeData: any, dietaryIntake: any): 'low' | 'moderate' | 'high' {
+  private assessSCFAProduction(microbiomeData: MicrobiomeRawData, dietaryIntake: DietaryIntakeRawData): 'low' | 'moderate' | 'high' {
     let scfaScore = 50;
     
     const fiberIntake = dietaryIntake.fiber || 15;
@@ -257,7 +263,7 @@ export class MicrobiomeModule implements ModuleInterface {
     beneficialTaxa: string[],
     detrimentalTaxa: string[],
     scfaProduction: string,
-    drugs: any[]
+    drugs: MedicationLike[]
   ): string[] {
     const recommendations: string[] = [];
     
@@ -284,7 +290,7 @@ export class MicrobiomeModule implements ModuleInterface {
       recommendations.push('Consider butyrate-producing probiotic (Clostridium butyricum, Faecalibacterium)');
     }
     
-    const antibioticUse = drugs.some((d: any) => d.class === 'antibiotic');
+    const antibioticUse = drugs.some((d) => d.class === 'antibiotic');
     if (antibioticUse) {
       recommendations.push('Antibiotic course - use S. boulardii 250mg BID during and 2 weeks after');
       recommendations.push('Post-antibiotic: high-dose multi-strain probiotic x 4 weeks');
@@ -293,11 +299,11 @@ export class MicrobiomeModule implements ModuleInterface {
     return recommendations;
   }
 
-  private recommendPsychobiotics(state: any): MicrobiomeProfile['psychobiotics'] {
-    const hasDepression = state.diagnoses?.some((d: any) => d.code.startsWith('F32') || d.code.startsWith('F33'));
-    const hasAnxiety = state.diagnoses?.some((d: any) => d.code.startsWith('F41'));
-    const hasStress = state.diagnoses?.some((d: any) => d.code === 'Z73' || d.code.startsWith('R45'));
-    const hasCognitive = state.diagnoses?.some((d: any) => d.code.startsWith('F0') || d.code.startsWith('G3'));
+  private recommendPsychobiotics(state: ModuleState): MicrobiomeProfile['psychobiotics'] {
+    const hasDepression = state.diagnoses.some((d) => d.code.startsWith('F32') || d.code.startsWith('F33'));
+    const hasAnxiety = state.diagnoses.some((d) => d.code.startsWith('F41'));
+    const hasStress = state.diagnoses.some((d) => d.code === 'Z73' || d.code.startsWith('R45'));
+    const hasCognitive = state.diagnoses.some((d) => d.code.startsWith('F0') || d.code.startsWith('G3'));
     
     const recommended = PSYCHOBIOTICS.filter(p => {
       if (hasDepression && p.indication.includes('depression')) return true;

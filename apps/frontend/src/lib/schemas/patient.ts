@@ -10,8 +10,9 @@ export const PatientSchema = z.object({
   nombre: z.string().min(1),
   apellidos: z.string().min(1),
   dni: z.string().optional().nullable(),
-  fecha_nacimiento: ISODateSchema.optional(),
-  sexo: PatientSexSchema.optional(),
+  fecha_nacimiento: ISODateSchema.optional().nullable(),
+  // La API devuelve null (no undefined) para campos opcionales.
+  sexo: PatientSexSchema.optional().nullable(),
   email: z.string().email().optional().or(z.literal('')).nullable(),
   telefono: z.string().optional().nullable(),
   direccion: z.string().optional().nullable(),
@@ -33,13 +34,18 @@ export const PatientSchema = z.object({
 
 export type Patient = z.infer<typeof PatientSchema>;
 
+// Los inputs vacíos llegan como '' (defaultValues del form); el union con
+// z.literal('') los acepta sin romper la inferencia de tipos de RHF
+// (z.preprocess/ZodEffects la degradaba y rompía tsc -b).
 export const PatientCreateSchema = z.object({
   nombre: z.string().min(1, 'Nombre requerido'),
   apellidos: z.string().min(1, 'Apellidos requeridos'),
   dni: z.string().optional(),
-  fecha_nacimiento: ISODateSchema.optional(),
-  sexo: PatientSexSchema.optional(),
-  email: z.string().email('Email inválido').optional(),
+  fecha_nacimiento: z.union([z.literal(''), ISODateSchema]).optional(),
+  // El select de sexo tiene <option value="">No especificado</option>:
+  // su valor "sin elegir" es '' (string), no undefined.
+  sexo: z.union([z.literal(''), PatientSexSchema]).optional(),
+  email: z.union([z.literal(''), z.string().email('Email inválido')]).optional(),
   telefono: z.string().optional(),
   direccion: z.string().optional(),
   profesion: z.string().optional(),

@@ -100,7 +100,7 @@ export function DesarrolladaPage() {
   }, []);
 
   const handleSaveMinuta = useCallback(() => {
-    if (import.meta.env.DEV) console.log('Saving minuta...', state);
+    if (import.meta.env.DEV) console.log('Saving minuta...', state); // eslint-disable-line no-console -- log de depuración dev
     setStep(5);
   }, [state]);
 

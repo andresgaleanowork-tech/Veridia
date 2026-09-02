@@ -29,10 +29,13 @@ interface AuthState {
   stopAutoRefresh: () => void;
 }
 
+const initialToken =
+  typeof window !== 'undefined' ? localStorage.getItem(STORAGE_TOKEN_KEY) : null;
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  accessToken: null,
-  isAuthenticated: false,
+  accessToken: initialToken,
+  isAuthenticated: !!initialToken,
   isLoading: false,
   error: null,
   refreshIntervalId: null,
@@ -48,7 +51,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ user, accessToken: token, isAuthenticated: true, isLoading: false });
       get().startAutoRefresh();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error de autenticación';
+      // Preferimos el mensaje del servidor (p. ej. "Credenciales incorrectas")
+      // al genérico de axios ("Request failed with status code 401").
+      const serverError = (
+        err as { response?: { data?: { error?: string } } }
+      )?.response?.data?.error;
+      const message =
+        serverError || (err instanceof Error ? err.message : 'Error de autenticación');
       set({ error: message, isLoading: false });
       throw err;
     }

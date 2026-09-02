@@ -7,6 +7,9 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+
   ESPENTargets,
   Diagnosis,
 } from '../../types/patient-context.js';
@@ -52,7 +55,7 @@ export class ESPENModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = [
       'diagnoses',
       'anthropometry.weight',
@@ -77,7 +80,7 @@ export class ESPENModule implements ModuleInterface {
         patientId,
         timestamp: new Date().toISOString(),
         source: 'espen',
-        trigger: 'diagnosis',
+        triggerCondition: 'diagnosis',
         previous: null,
         current: cachedTargets,
       });
@@ -94,7 +97,7 @@ export class ESPENModule implements ModuleInterface {
     return state?.espenTargets || null;
   }
 
-  private calculateTargets(state: any): ESPENTargets {
+  private calculateTargets(state: ModuleState): ESPENTargets {
     const weight = state.anthropometry?.weight || 70;
     
     const conditions = this.extractConditions(state);
@@ -152,7 +155,7 @@ export class ESPENModule implements ModuleInterface {
       protein = Math.min(protein, 1.5 * weight);
     }
     
-    if (state.anthropometry?.bmi < 18.5) {
+    if (state.anthropometry?.bmi !== undefined && state.anthropometry.bmi < 18.5) {
       energy = energy * 1.2;
       protein = protein * 1.2;
     }
@@ -204,7 +207,7 @@ export class ESPENModule implements ModuleInterface {
     };
   }
 
-  private extractConditions(state: any): string[] {
+  private extractConditions(state: ModuleState): string[] {
     const conditions: string[] = [];
     
     if (!state.diagnoses) return conditions;
@@ -283,7 +286,7 @@ export class ESPENModule implements ModuleInterface {
     return adjustments;
   }
 
-  private calculateMicronutrients(state: any, conditions: string[]): Record<string, { value: number; unit: string; grade: 'A' | 'B' | 'GPP' }> {
+  private calculateMicronutrients(state: ModuleState, conditions: string[]): Record<string, { value: number; unit: string; grade: 'A' | 'B' | 'GPP' }> {
     const micronutrients: Record<string, { value: number; unit: string; grade: 'A' | 'B' | 'GPP' }> = {};
     
     micronutrients.vitaminD = { value: 800, unit: 'IU', grade: 'A' };

@@ -71,6 +71,7 @@ declare module 'axios' {
   interface InternalAxiosRequestConfig {
     _retry?: boolean;
     _skipRefresh?: boolean;
+    _csrfRetried?: boolean;
     _responseSchema?: z.ZodSchema<any>;
   }
 }
@@ -101,8 +102,59 @@ const API_BASE = '/api';
 const STORAGE_TOKEN_KEY = 'veridia_token';
 const STORAGE_REFRESH_KEY = 'veridia_refresh_token';
 const STORAGE_REQUEST_ID_KEY = 'veridia_request_id';
+const STORAGE_SESSION_ID_KEY = 'veridia_session_id';
 
-export { STORAGE_TOKEN_KEY, STORAGE_REFRESH_KEY, STORAGE_REQUEST_ID_KEY };
+export {
+  STORAGE_TOKEN_KEY,
+  STORAGE_REFRESH_KEY,
+  STORAGE_REQUEST_ID_KEY,
+  STORAGE_SESSION_ID_KEY,
+};
+
+// ---------------------------------------------------------------------------
+// CSRF (el backend exige x-csrf-token + x-session-id en métodos inseguros)
+// ---------------------------------------------------------------------------
+function getSessionId(): string {
+  if (typeof window === 'undefined') return 'node';
+  let id = localStorage.getItem(STORAGE_SESSION_ID_KEY);
+  if (!id) {
+    id = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem(STORAGE_SESSION_ID_KEY, id);
+  }
+  return id;
+}
+
+let csrfTokenCache: string | null = null;
+let csrfTokenPromise: Promise<string> | null = null;
+
+function fetchCsrfToken(): Promise<string> {
+  const sessionId = getSessionId();
+  return axios
+    .get(`${API_BASE}/csrf-token`, { headers: { 'x-session-id': sessionId } })
+    .then((res) => {
+      const token: unknown = res.data?.csrfToken;
+      if (typeof token !== 'string' || !token) throw new Error('Token CSRF inválido');
+      csrfTokenCache = token;
+      return token;
+    });
+}
+
+async function ensureCsrfToken(): Promise<string> {
+  if (csrfTokenCache) return csrfTokenCache;
+  if (!csrfTokenPromise) {
+    csrfTokenPromise = fetchCsrfToken().finally(() => {
+      csrfTokenPromise = null;
+    });
+  }
+  return csrfTokenPromise;
+}
+
+function invalidateCsrfToken(): void {
+  csrfTokenCache = null;
+  csrfTokenPromise = null;
+}
 
 // ---------------------------------------------------------------------------
 // Mapeo de esquemas por endpoint
@@ -217,7 +269,7 @@ const api: AxiosInstance = axios.create({
 // ---------------------------------------------------------------------------
 // Request interceptor: token + requestId + schema attachment
 // ---------------------------------------------------------------------------
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_TOKEN_KEY) : null;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -230,6 +282,17 @@ api.interceptors.request.use((config) => {
   const schema = matchRoute(config.url || '');
   if (schema) {
     config._responseSchema = schema;
+  }
+
+  const method = (config.method || 'get').toLowerCase();
+  if (method === 'post' || method === 'put' || method === 'patch' || method === 'delete') {
+    config.headers['x-session-id'] = getSessionId();
+    try {
+      config.headers['x-csrf-token'] = await ensureCsrfToken();
+    } catch {
+      // Sin token (p. ej. API caído): la petición fallará y el interceptor de
+      // respuesta reintenta tras obtener un token nuevo si es un 403 CSRF.
+    }
   }
 
   return config;
@@ -263,6 +326,21 @@ api.interceptors.response.use(
     if (!originalRequest) {
       handleResponseError(error);
       return Promise.reject(error);
+    }
+
+    if (error.response?.status === 403 && !originalRequest._csrfRetried) {
+      const serverError = String(error.response?.data?.error || '');
+      if (/csrf/i.test(serverError)) {
+        originalRequest._csrfRetried = true;
+        invalidateCsrfToken();
+        try {
+          originalRequest.headers['x-session-id'] = getSessionId();
+          originalRequest.headers['x-csrf-token'] = await ensureCsrfToken();
+          return api(originalRequest);
+        } catch {
+          // Si no se puede renovar el token, se propaga el error original.
+        }
+      }
     }
 
     if (error.response?.status === 401 && !originalRequest._skipRefresh) {

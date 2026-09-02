@@ -87,8 +87,12 @@ export interface BaseEvent {
   patientId: string;
   timestamp: string;
   source: string; // moduleId or 'system'
+  trigger?: string;
   correlationId?: string;
 }
+
+/** Evento genérico para tipos de módulo sin payload dedicado. */
+export interface GenericModuleEvent extends BaseEvent {}
 
 export interface AnthropometryUpdatedEvent extends BaseEvent {
   type: 'ANTHROPOMETRY_UPDATED';
@@ -147,7 +151,7 @@ export interface GLIMRecalculatedEvent extends BaseEvent {
 export interface ESPENTargetsUpdatedEvent extends BaseEvent {
   type: 'ESPEN_TARGETS_UPDATED';
   previous: ESPENTargets | null;
-  current: ESPENTargets;
+  current: ESPENTargets | null;
   triggerCondition: string;
 }
 
@@ -255,6 +259,7 @@ export interface ComputationFailedEvent extends BaseEvent {
 // ============================================
 
 export type PatientEvent =
+  | GenericModuleEvent
   | AnthropometryUpdatedEvent
   | LabsUpdatedEvent
   | DiagnosisAddedEvent

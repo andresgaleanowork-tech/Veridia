@@ -8,6 +8,7 @@
 // ============================================================
 
 import 'dotenv/config';
+import { validateEnv } from './config/env.js';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -28,6 +29,9 @@ import { csrfProtection, csrfTokenEndpoint } from './middleware/csrf.js';
 import { createLogger } from './utils/logger.js';
 
 const appLogger = createLogger('APP');
+
+// Fail-fast: valida variables de entorno antes de arrancar (ver §6 README)
+validateEnv();
 
 const app = express();
 const PORT = process.env.PORT || 3456;
@@ -238,8 +242,11 @@ app.use((_req, res) => {
 });
 
 // Error handler
-app.use((err: any, _req: express.Request, res: express.Response) => {
-  appLogger.error('Unhandled error', { message: err.message, stack: err.stack });
+app.use((err: unknown, _req: express.Request, res: express.Response) => {
+  appLogger.error('Unhandled error', {
+    message: err instanceof Error ? err.message : String(err),
+    stack: err instanceof Error ? err.stack : undefined,
+  });
   res.status(500).json({ error: true, message: 'Error interno del servidor' });
 });
 

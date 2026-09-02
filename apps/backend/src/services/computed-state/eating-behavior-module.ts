@@ -7,6 +7,11 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+  AnthropometrySnapshot,
+  EDScreeningResult,
+
   EatingBehaviorProfile,
 } from '../../types/patient-context.js';
 
@@ -50,7 +55,7 @@ export class EatingBehaviorModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = ['eatingBehavior', 'screeningResults', 'anthropometry'];
     
     const hasRelevantChange = changes.changedFields.some((f: string) => relevantFields.includes(f));
@@ -97,7 +102,7 @@ export class EatingBehaviorModule implements ModuleInterface {
   ];
   actions = [];
 
-  private assessEatingBehavior(state: any): EatingBehaviorProfile {
+  private assessEatingBehavior(state: ModuleState): EatingBehaviorProfile {
     const existing = state.eatingBehavior;
     const anthropometry = state.anthropometry;
     const edScreening = state.edScreening;
@@ -118,7 +123,7 @@ export class EatingBehaviorModule implements ModuleInterface {
     };
   }
 
-  private estimateTFEQ(state: any) {
+  private estimateTFEQ(state: ModuleState) {
     const anthropometry = state.anthropometry;
     const weightChange = anthropometry?.weightChangePercent || 0;
     const bmi = anthropometry?.bmi || 25;
@@ -159,7 +164,7 @@ export class EatingBehaviorModule implements ModuleInterface {
       cognitiveRestraint += 15;
     }
     
-    if (state.dietaryIntake?.bingeEpisodes > 1) {
+    if ((state.dietaryIntake?.bingeEpisodes ?? 0) > 1) {
       uncontrolledEating += 20;
       emotionalEating += 15;
     }
@@ -171,7 +176,7 @@ export class EatingBehaviorModule implements ModuleInterface {
     };
   }
 
-  private estimateDEBQ(state: any) {
+  private estimateDEBQ(state: ModuleState) {
     const anthropometry = state.anthropometry;
     const eatingBehavior = state.eatingBehavior;
     const bmi = anthropometry?.bmi || 25;
@@ -189,23 +194,23 @@ export class EatingBehaviorModule implements ModuleInterface {
       emotional += 5;
     }
     
-    if (eatingBehavior?.tfeq?.cognitiveRestraint > 60) {
+    if ((eatingBehavior?.tfeq?.cognitiveRestraint ?? 0) > 60) {
       restraint += 15;
     }
     
-    if (eatingBehavior?.tfeq?.emotionalEating > 60) {
+    if ((eatingBehavior?.tfeq?.emotionalEating ?? 0) > 60) {
       emotional += 20;
     }
     
-    if (eatingBehavior?.tfeq?.uncontrolledEating > 60) {
+    if ((eatingBehavior?.tfeq?.uncontrolledEating ?? 0) > 60) {
       external += 15;
     }
     
-    if (state.dietaryIntake?.snackFrequency > 3) {
+    if ((state.dietaryIntake?.snackFrequency ?? 0) > 3) {
       external += 10;
     }
     
-    if (state.dietaryIntake?.eatOutFrequency > 3) {
+    if ((state.dietaryIntake?.eatOutFrequency ?? 0) > 3) {
       external += 10;
     }
     
@@ -216,19 +221,19 @@ export class EatingBehaviorModule implements ModuleInterface {
     };
   }
 
-  private estimateMEQ(state: any): number {
+  private estimateMEQ(state: ModuleState): number {
     const eatingBehavior = state.eatingBehavior;
     const anthropometry = state.anthropometry;
     
     let meq = 3.0;
     
-    if (eatingBehavior?.tfeq?.emotionalEating > 70) meq -= 0.8;
-    if (eatingBehavior?.tfeq?.uncontrolledEating > 70) meq -= 0.8;
-    if (eatingBehavior?.debq?.external > 70) meq -= 0.5;
-    if (eatingBehavior?.debq?.emotional > 70) meq -= 0.5;
+    if ((eatingBehavior?.tfeq?.emotionalEating ?? 0) > 70) meq -= 0.8;
+    if ((eatingBehavior?.tfeq?.uncontrolledEating ?? 0) > 70) meq -= 0.8;
+    if ((eatingBehavior?.debq?.external ?? 0) > 70) meq -= 0.5;
+    if ((eatingBehavior?.debq?.emotional ?? 0) > 70) meq -= 0.5;
     
-    if (anthropometry?.bmi > 30) meq -= 0.3;
-    if (anthropometry?.bmi < 18.5) meq -= 0.3;
+    if (anthropometry?.bmi !== undefined && anthropometry.bmi > 30) meq -= 0.3;
+    if (anthropometry?.bmi !== undefined && anthropometry.bmi < 18.5) meq -= 0.3;
     
     if (state.dietaryIntake?.mindfulEatingPractice) meq += 0.5;
     if (state.dietaryIntake?.distractedEating) meq -= 0.5;
@@ -240,8 +245,8 @@ export class EatingBehaviorModule implements ModuleInterface {
     tfeq: EatingBehaviorProfile['tfeq'],
     debq: EatingBehaviorProfile['debq'],
     meq: number,
-    anthropometry: any,
-    edScreening: any
+    anthropometry: AnthropometrySnapshot,
+    edScreening: EDScreeningResult | undefined
   ): string {
     const interpretations: string[] = [];
     
@@ -294,8 +299,8 @@ export class EatingBehaviorModule implements ModuleInterface {
     tfeq: EatingBehaviorProfile['tfeq'],
     debq: EatingBehaviorProfile['debq'],
     meq: number,
-    anthropometry: any,
-    edScreening: any
+    anthropometry: AnthropometrySnapshot,
+    edScreening: EDScreeningResult | undefined
   ): string[] {
     const factors: string[] = [];
     

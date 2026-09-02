@@ -117,7 +117,10 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
               )}
               {group.items.map((item) => (
                 <NavLink
-                  key={item.to}
+                  // Varios items comparten to='/patients' (Historia clínica,
+                  // Anamnesis, ...): la key debe ser única o React avisa
+                  // 'two children with the same key' y degrada el reconcile.
+                  key={`${item.to}-${item.label}`}
                   to={item.to}
                   end={item.to === '/'}
                   aria-current={undefined}

@@ -82,7 +82,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     ].join('\n');
 
     navigator.clipboard.writeText(errorDetails).then(() => {
-      if (import.meta.env.DEV) console.log('Error details copied to clipboard');
+      if (import.meta.env.DEV) console.log('Error details copied to clipboard'); // eslint-disable-line no-console -- feedback dev
     });
   }
 

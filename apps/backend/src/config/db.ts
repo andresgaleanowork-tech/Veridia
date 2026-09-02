@@ -25,7 +25,7 @@ pool.on('error', (err) => {
 export const db = drizzle(pool, { schema });
 
 // Legacy helpers — keep for backward compatibility with middleware/services
-export const query = async (text: string, params?: any[]) => {
+export const query = async (text: string, params?: unknown[]) => {
   const start = Date.now();
   const res = await pool.query(text, params);
   const duration = Date.now() - start;
@@ -35,7 +35,7 @@ export const query = async (text: string, params?: any[]) => {
   return res;
 };
 
-export const transaction = async (callback: (client: pg.PoolClient) => Promise<any>) => {
+export const transaction = async (callback: (client: pg.PoolClient) => Promise<unknown>) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -53,14 +53,14 @@ export const transaction = async (callback: (client: pg.PoolClient) => Promise<a
 export { pool };
 export default db;
 
-type QueryResult<T = any> = { rows: T[] };
+type QueryResult<T = unknown> = { rows: T[] };
 
-export async function queryOne<T>(text: string, params?: any[]): Promise<T | undefined> {
+export async function queryOne<T>(text: string, params?: unknown[]): Promise<T | undefined> {
   const res = (await pool.query(text, params)) as unknown as QueryResult<T>;
   return res.rows[0];
 }
 
-export async function queryMany<T>(text: string, params?: any[]): Promise<T[]> {
+export async function queryMany<T>(text: string, params?: unknown[]): Promise<T[]> {
   const res = (await pool.query(text, params)) as unknown as QueryResult<T>;
   return res.rows;
 }

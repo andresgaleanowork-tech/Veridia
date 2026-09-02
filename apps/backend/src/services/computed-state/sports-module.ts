@@ -7,6 +7,9 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+
   SportsNutritionProfile,
 } from '../../types/patient-context.js';
 
@@ -52,7 +55,7 @@ export class SportsModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = [
       'anthropometry',
       'sportsProfile',
@@ -104,7 +107,7 @@ export class SportsModule implements ModuleInterface {
   ];
   actions = [];
 
-  private calculateSportsProfile(state: any): SportsNutritionProfile {
+  private calculateSportsProfile(state: ModuleState): SportsNutritionProfile {
     const anthropometry = state.anthropometry;
     const weight = anthropometry?.weight || 70;
     const bodyFat = anthropometry?.bodyFat || 15;
@@ -132,7 +135,7 @@ export class SportsModule implements ModuleInterface {
     };
   }
 
-  private calculateTrainingLoad(state: any, level: string): SportsNutritionProfile['trainingLoad'] {
+  private calculateTrainingLoad(state: ModuleState, level: string): SportsNutritionProfile['trainingLoad'] {
     const hoursPerWeek = state.trainingHoursPerWeek || this.getDefaultHours(level);
     const sessionsPerWeek = state.sessionsPerWeek || Math.round(hoursPerWeek / 1.5);
     const intensity = this.determineIntensity(state, level);
@@ -152,9 +155,9 @@ export class SportsModule implements ModuleInterface {
     }
   }
 
-  private determineIntensity(state: any, level: string): SportsNutritionProfile['trainingLoad']['intensity'] {
-    const hasHighIntensity = state.highIntensitySessions > 3;
-    const hasMixed = state.highIntensitySessions > 0 && state.lowIntensitySessions > 0;
+  private determineIntensity(state: ModuleState, level: string): SportsNutritionProfile['trainingLoad']['intensity'] {
+    const hasHighIntensity = (state.highIntensitySessions ?? 0) > 3;
+    const hasMixed = (state.highIntensitySessions ?? 0) > 0 && (state.lowIntensitySessions ?? 0) > 0;
     
     if (hasHighIntensity && !hasMixed) return 'high';
     if (hasMixed) return 'mixed';
@@ -163,7 +166,7 @@ export class SportsModule implements ModuleInterface {
     return 'low';
   }
 
-  private calculateEnergyAvailability(state: any, ffm: number, trainingLoad: SportsNutritionProfile['trainingLoad']): SportsNutritionProfile['energyAvailability'] {
+  private calculateEnergyAvailability(state: ModuleState, ffm: number, trainingLoad: SportsNutritionProfile['trainingLoad']): SportsNutritionProfile['energyAvailability'] {
     const exerciseEnergyExpenditure = this.estimateEEE(trainingLoad);
     const dietaryIntake = state.dietaryIntake?.energy || 2000;
     
@@ -189,7 +192,7 @@ export class SportsModule implements ModuleInterface {
   }
 
   private calculateCarbPeriodization(
-    state: any,
+    state: ModuleState,
     trainingLoad: SportsNutritionProfile['trainingLoad'],
     energyAvailability: SportsNutritionProfile['energyAvailability']
   ): SportsNutritionProfile['carbPeriodization'] {
@@ -205,7 +208,7 @@ export class SportsModule implements ModuleInterface {
   }
 
   private selectStrategy(
-    state: any,
+    state: ModuleState,
     trainingLoad: SportsNutritionProfile['trainingLoad'],
     energyAvailability: SportsNutritionProfile['energyAvailability']
   ): SportsNutritionProfile['carbPeriodization']['strategy'] {
@@ -250,7 +253,7 @@ export class SportsModule implements ModuleInterface {
     });
   }
 
-  private generateSupplementPlan(state: any, energyAvailability: SportsNutritionProfile['energyAvailability']): SportsNutritionProfile['supplementPlan'] {
+  private generateSupplementPlan(state: ModuleState, energyAvailability: SportsNutritionProfile['energyAvailability']): SportsNutritionProfile['supplementPlan'] {
     const plan: SportsNutritionProfile['supplementPlan'] = [];
     
     if (energyAvailability.status === 'low' || energyAvailability.status === 'risk') {
@@ -314,7 +317,7 @@ export class SportsModule implements ModuleInterface {
       goal: 'Reduced RPE, improved endurance/power',
     });
     
-    if (state.dietaryIntake?.iron < 18) {
+    if (state.dietaryIntake?.iron !== undefined && state.dietaryIntake.iron < 18) {
       plan.push({
         supplement: 'Iron (if ferritin <30)',
         dose: '60-100 mg elemental Fe/day',
@@ -327,7 +330,7 @@ export class SportsModule implements ModuleInterface {
     return plan;
   }
 
-  private generateHydrationPlan(state: any, trainingLoad: SportsNutritionProfile['trainingLoad']): SportsNutritionProfile['hydrationPlan'] {
+  private generateHydrationPlan(state: ModuleState, trainingLoad: SportsNutritionProfile['trainingLoad']): SportsNutritionProfile['hydrationPlan'] {
     const sweatRate = state.sweatRate || this.config.defaultSweatRate;
     const sodiumLoss = state.sodiumLoss || this.config.defaultSodiumLoss;
     const weight = state.anthropometry?.weight || 70;

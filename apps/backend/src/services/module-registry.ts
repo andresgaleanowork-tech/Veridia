@@ -200,7 +200,7 @@ export class ModuleRegistry {
     }
   }
 
-  getModuleImports(moduleId: string): any {
+  getModuleImports(moduleId: string): unknown {
     const module = this.modules.get(moduleId);
     if (!module) return null;
     

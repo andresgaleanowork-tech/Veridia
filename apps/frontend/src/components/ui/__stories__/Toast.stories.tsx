@@ -16,20 +16,22 @@ function ToastDemo({ variant, title, description }: { variant: ToastVariant; tit
   );
 }
 
-const meta: Meta<typeof ToastDemo> = {
+// Wrapper providing the ToastProvider context to every story
+function ToastDemoWithProvider(props: { variant: ToastVariant; title: string; description: string }) {
+  return (
+    <ToastProvider>
+      <ToastDemo {...props} />
+    </ToastProvider>
+  );
+}
+
+const meta: Meta<typeof ToastDemoWithProvider> = {
   title: 'UI/Toast',
-  component: ToastDemo,
+  component: ToastDemoWithProvider,
   parameters: {
     layout: 'centered',
   },
   tags: ['autodocs'],
-  decorators: [
-    (Story) => (
-      <ToastProvider>
-        <Story />
-      </ToastProvider>
-    ),
-  ],
 };
 
 export default meta;

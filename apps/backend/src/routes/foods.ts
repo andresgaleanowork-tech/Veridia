@@ -30,14 +30,14 @@ function setCache(key: string, data: unknown) {
   cache.set(key, { data, ts: Date.now() });
 }
 
-function fetchJSON(url: string): Promise<any> {
-  return new Promise((resolve, reject) => {
+function fetchJSON<T = Record<string, unknown>>(url: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
     const u = new URL(url);
     https.get({ hostname: u.hostname, path: u.pathname + u.search, headers: { 'User-Agent': 'VeridiaHT/1.0' } }, (res) => {
       let d = '';
       res.on('data', (c: string) => d += c);
-      res.on('end', () => { try { resolve(JSON.parse(d)); } catch { reject(new Error('Invalid JSON')); } });
-    }).on('error', reject).setTimeout(15000, function (this: any) { this.destroy(); reject(new Error('Timeout')); });
+      res.on('end', () => { try { resolve(JSON.parse(d) as T); } catch { reject(new Error('Invalid JSON')); } });
+    }).on('error', reject).setTimeout(15000, function (this: import('http').ClientRequest) { this.destroy(); reject(new Error('Timeout')); });
   });
 }
 
@@ -48,7 +48,7 @@ router.get('/off/search', authenticate, async (req, res) => {
     const ck = 'off:' + q;
     const cached = getCached(ck);
     if (cached) return res.success(cached);
-    const data = await fetchJSON(`https://world.openfoodfacts.net/cgi/search.pl?search_terms=${encodeURIComponent(q)}&json=1&page_size=30&lc=es&fields=code,product_name,product_name_es,brands,nutriments,nutrition_grades`);
+    const data = await fetchJSON<{ products: unknown[]; count: number }>(`https://world.openfoodfacts.net/cgi/search.pl?search_terms=${encodeURIComponent(q)}&json=1&page_size=30&lc=es&fields=code,product_name,product_name_es,brands,nutriments,nutrition_grades`);
     const result = { products: data.products || [], count: data.count || 0 };
     setCache(ck, result);
     res.success(result);
@@ -81,9 +81,9 @@ router.get('/off/product/:code', authenticate, async (req, res) => {
     const ck = 'off_prod:' + code;
     const cached = getCached(ck);
     if (cached) return res.success(cached);
-    const data = await fetchJSON(`https://world.openfoodfacts.net/api/v2/product/${code}.json?fields=code,product_name,product_name_es,brands,nutriments,nutriments_estimated,nutrition_grades,categories_tags,ingredients_text_es,allergens_tags,quantity`);
+    const data = await fetchJSON<{ status: number; product?: Record<string, unknown> }>(`https://world.openfoodfacts.net/api/v2/product/${code}.json?fields=code,product_name,product_name_es,brands,nutriments,nutriments_estimated,nutrition_grades,categories_tags,ingredients_text_es,allergens_tags,quantity`);
     if (data.status === 0) return res.error(404, 'Producto no encontrado');
-    const p = data.product || {};
+    const p: Record<string, unknown> = { ...(data.product || {}) };
     p.nutriments_all = Object.assign({}, p.nutriments_estimated || {}, p.nutriments || {});
     setCache(ck, { product: p });
     res.success({ product: p });

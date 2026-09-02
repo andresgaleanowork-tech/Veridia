@@ -180,10 +180,10 @@ router.get('/:patientId/stats', authenticate, validateZodParams(ParamsSchema), a
 });
 
 // Helper: extract lab value by name from the labs JSONB
-function extractLab(labs: any, name: string): number | undefined {
-  if (!labs?.marcadores) return undefined;
-  const marker = labs.marcadores.find(
-    (m: any) => m.nombre?.toLowerCase().includes(name.toLowerCase())
+function extractLab(labs: { marcadores?: unknown } | null | undefined, name: string): number | undefined {
+  if (!labs?.marcadores || !Array.isArray(labs.marcadores)) return undefined;
+  const marker = (labs.marcadores as { nombre?: string; valor?: number }[]).find(
+    (m) => m.nombre?.toLowerCase().includes(name.toLowerCase())
   );
   return marker?.valor;
 }

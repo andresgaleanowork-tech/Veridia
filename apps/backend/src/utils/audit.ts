@@ -28,26 +28,29 @@ export async function logAudit(
   entity: string,
   patient: string | null,
   req?: Request,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ): Promise<void> {
   try {
-    const user = (req as any)?.user;
+    const user = req?.user;
     const ip = req ? (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '0.0.0.0') : '0.0.0.0';
     await query(
       `INSERT INTO audit_log (user_id, usuario, rol, accion, entidad, paciente, ip, detalles)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [userId, user?.name || 'Sistema', user?.role || 'system', action, entity, patient || '-', ip, details ? JSON.stringify(details) : null]
     );
-  } catch (err: any) {
-    auditLogger.error('Audit log error', { message: err.message, stack: err.stack });
+  } catch (err) {
+    auditLogger.error('Audit log error', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    });
   }
 }
 
 export async function logSecurityEvent(
   action: string,
   req: Request,
-  details: Record<string, any> = {}
+  details: Record<string, unknown> = {}
 ): Promise<void> {
-  const userId = (req as any)?.user?.id || null;
+  const userId = req.user?.id ?? null;
   return logAudit(userId, action, 'Security', null, req, details);
 }

@@ -6,127 +6,155 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+# Pasos comunes de instalación (caché de store de pnpm vía setup-node)
 jobs:
-  lint-backend:
-    name: Lint Backend
+  # ---------- Lint (0 warnings tolerados) ----------
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4 # version desde packageManager (package.json)
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        working-directory: apps/backend
-      - name: Lint backend
-        run: npm run lint
-        working-directory: apps/backend
+        run: pnpm install --frozen-lockfile
+      - name: Lint frontend (0 warnings)
+        run: pnpm --filter veridia-app exec oxlint --deny-warnings
+      - name: Lint backend (max-warnings 0)
+        run: pnpm --filter @veridia/backend exec eslint src --ext .ts --max-warnings 0
 
-  lint-frontend:
-    name: Lint Frontend
+  # ---------- TypeCheck ----------
+  typecheck:
+    name: Type Check
     runs-on: ubuntu-latest
+    needs: lint
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        working-directory: apps/frontend
-      - name: Lint frontend
-        run: npm run lint
-        working-directory: apps/frontend
+        run: pnpm install --frozen-lockfile
+      - name: Type check frontend
+        run: pnpm --filter veridia-app exec tsc -b
+      - name: Type check backend
+        run: pnpm --filter @veridia/backend exec tsc --noEmit
 
-  typecheck-backend:
-    name: Type Check Backend
+  # ---------- Build ----------
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    needs: typecheck
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        working-directory: apps/backend
-      - name: TypeScript check
-        run: npx tsc --noEmit
-        working-directory: apps/backend
-
-  typecheck-frontend:
-    name: Type Check Frontend
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+        run: pnpm install --frozen-lockfile
+      - name: Build (frontend + backend)
+        run: pnpm build
+      - name: Upload frontend dist
+        uses: actions/upload-artifact@v4
         with:
-          node-version: '22'
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        working-directory: apps/frontend
-      - name: TypeScript check
-        run: npx tsc -p tsconfig.app.json --noEmit
-        working-directory: apps/frontend
+          name: frontend-dist
+          path: apps/frontend/dist
+          retention-days: 7
 
-  build-backend:
-    name: Build Backend
-    runs-on: ubuntu-latest
-    needs: [lint-backend, typecheck-backend]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        working-directory: apps/backend
-      - name: Build backend
-        run: npm run build
-        working-directory: apps/backend
-
-  build-frontend:
-    name: Build Frontend
-    runs-on: ubuntu-latest
-    needs: [lint-frontend, typecheck-frontend]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        working-directory: apps/frontend
-      - name: Build frontend
-        run: npm run build
-        working-directory: apps/frontend
-
+  # ---------- Tests unitarios / componente ----------
   test:
     name: Test
     runs-on: ubuntu-latest
-    needs: [build-backend, build-frontend]
+    needs: typecheck
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        working-directory: apps/backend
-      - name: Run tests
-        run: npm test
-        working-directory: apps/backend
+        run: pnpm install --frozen-lockfile
+      - name: Run tests (frontend + backend)
+        run: pnpm test
 
-  test-frontend:
-    name: Test Frontend
+  # ---------- E2E (Playwright + PostgreSQL real) ----------
+  e2e:
+    name: E2E
     runs-on: ubuntu-latest
-    needs: [build-backend, build-frontend]
+    needs: build
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: veridia_db
+          POSTGRES_USER: veridia
+          POSTGRES_PASSWORD: veridia_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U veridia"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgresql://veridia:veridia_ci@localhost:5432/veridia_db
+      JWT_SECRET: ci-e2e-jwt-secret-ci-e2e-jwt-secret-ci-e2e-jwt-secret=
+      JWT_REFRESH_SECRET: ci-e2e-jwt-refresh-ci-e2e-jwt-refresh-ci-e2e-jwt=
+      NODE_ENV: test
+      VITE_PROXY_TARGET: http://localhost:3456
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        working-directory: apps/frontend
-      - name: Run tests
-        run: npm run test:run
-        working-directory: apps/frontend
+        run: pnpm install --frozen-lockfile
+      - name: Apply schema (Drizzle)
+        run: pnpm --filter @veridia/backend db:push
+      - name: Seed datos
+        run: pnpm --filter @veridia/backend db:seed
+      - name: Build + start API
+        run: |
+          pnpm --filter @veridia/backend build
+          PORT=3456 nohup node apps/backend/dist/index.js > /tmp/api.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3456/api/health > /dev/null && break
+            sleep 2
+          done
+          curl -sf http://localhost:3456/api/health || (echo "API no arrancó:"; cat /tmp/api.log; exit 1)
+      - name: Install Playwright browser
+        run: pnpm --filter veridia-app exec playwright install chromium --with-deps
+      - name: Run E2E
+        run: pnpm --filter veridia-app e2e > /tmp/e2e-run.log 2>&1
+      - name: Annotate E2E diagnostics
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node apps/frontend/e2e/annotate-failures.cjs
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/frontend/playwright-report
+          retention-days: 14
+      - name: API logs (failure)
+        if: failure()
+        run: cat /tmp/api.log

@@ -29,24 +29,37 @@ function cleanupExpiredEntries() {
 setInterval(cleanupExpiredEntries, 5 * 60 * 1000);
 
 export function createRateLimiter(config: RateLimitConfig) {
-  const { windowMs, max, message = 'Demasiadas peticiones', keyGenerator } = config;
+  const { windowMs, max, message = 'Demasiadas peticiones', keyGenerator, skipSuccessfulRequests } = config;
 
   return (req: Request, res: Response, next: NextFunction) => {
     const key = keyGenerator ? keyGenerator(req) : `${req.ip}:${req.path}`;
     const now = Date.now();
-    const entry = rateLimitStores.get(key);
+    let entry = rateLimitStores.get(key);
 
     if (!entry || now > entry.resetTime) {
-      rateLimitStores.set(key, { count: 1, resetTime: now + windowMs });
-      return next();
+      entry = { count: 1, resetTime: now + windowMs };
+      rateLimitStores.set(key, entry);
+    } else {
+      entry.count++;
     }
-
-    entry.count++;
 
     if (entry.count > max) {
       const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
       res.setHeader('Retry-After', retryAfter);
       return res.status(429).json({ error: message, retryAfter });
+    }
+
+    // Las peticiones que terminan con éxito no consumen presupuesto
+    // (p. ej. logins válidos no cuentan contra la protección anti-bruteforce).
+    if (skipSuccessfulRequests) {
+      res.once('finish', () => {
+        if (res.statusCode < 400) {
+          const current = rateLimitStores.get(key);
+          if (current && current === entry) {
+            current.count = Math.max(1, current.count - 1);
+          }
+        }
+      });
     }
 
     next();
@@ -63,6 +76,9 @@ export const globalLimiter = createRateLimiter({
 export const loginLimiter = createRateLimiter({
   windowMs: 5 * 60 * 1000, // 5 minutes
   max: 5,
+  // Solo los intentos fallidos cuentan: una sesión con logins válidos no
+  // se bloquea a sí misma (evita 429 en uso legítimo / suites E2E).
+  skipSuccessfulRequests: true,
   message: 'Demasiados intentos de login. Espera 5 minutos.',
 });
 

@@ -7,7 +7,11 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+
   PlanetaryHealthScore,
+  DietaryIntakeRawData,
 } from '../../types/patient-context.js';
 
 interface PlanetaryConfig {
@@ -89,7 +93,7 @@ export class PlanetaryModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = ['dietaryIntake', 'espenTargets'];
     
     const hasRelevantChange = changes.changedFields.some((f: string) => relevantFields.includes(f));
@@ -114,7 +118,7 @@ export class PlanetaryModule implements ModuleInterface {
       label: 'Planetary Score',
       icon: 'globe',
       order: 1,
-      badge: (ctx: any) => ctx.planetaryScore?.adherenceLevel === 'very_high' ? '★' : null,
+      badge: (ctx: ModuleState) => ctx.planetaryScore?.adherenceLevel === 'very_high' ? '★' : null,
     },
     {
       id: 'environmental-impact',
@@ -125,7 +129,7 @@ export class PlanetaryModule implements ModuleInterface {
   ];
   actions = [];
 
-  private assessPlanetaryHealth(state: any): PlanetaryHealthScore {
+  private assessPlanetaryHealth(state: ModuleState): PlanetaryHealthScore {
     const dietaryIntake = state.dietaryIntake || this.estimateIntakeFromTargets(state);
     
     const foodGroupScores = this.calculateFoodGroupScores(dietaryIntake);
@@ -145,7 +149,7 @@ export class PlanetaryModule implements ModuleInterface {
     };
   }
 
-  private estimateIntakeFromTargets(state: any): Record<string, number> {
+  private estimateIntakeFromTargets(state: ModuleState): Record<string, number> {
     const espen = state.espenTargets || {};
     const energy = espen.energy?.value || 2000;
     const protein = espen.protein?.value || 70;
@@ -171,7 +175,7 @@ export class PlanetaryModule implements ModuleInterface {
     };
   }
 
-  private calculateFoodGroupScores(dietaryIntake: Record<string, number>): PlanetaryHealthScore['foodGroupScores'] {
+  private calculateFoodGroupScores(dietaryIntake: Record<string, number> | DietaryIntakeRawData): PlanetaryHealthScore['foodGroupScores'] {
     const scores: PlanetaryHealthScore['foodGroupScores'] = {};
     
     for (const [group, targetInfo] of Object.entries(EAT_LANCET_TARGETS)) {
@@ -189,7 +193,7 @@ export class PlanetaryModule implements ModuleInterface {
     
     for (const [source, targetInfo] of Object.entries(EAT_LANCET_TARGETS.proteinSources)) {
       const target = targetInfo.target;
-      const actual = dietaryIntake[source] || 0;
+      const actual = typeof dietaryIntake[source] === 'number' ? dietaryIntake[source] : 0;
       const score = Math.min(100, (actual / target) * 100);
       
       scores[`protein_${source}`] = {
@@ -202,7 +206,7 @@ export class PlanetaryModule implements ModuleInterface {
     
     for (const [fat, targetInfo] of Object.entries(EAT_LANCET_TARGETS.addedFats)) {
       const target = targetInfo.target;
-      const actual = dietaryIntake[fat] || 0;
+      const actual = typeof dietaryIntake[fat] === 'number' ? dietaryIntake[fat] : 0;
       const score = Math.min(100, (actual / target) * 100);
       
       scores[`fat_${fat}`] = {
@@ -216,7 +220,7 @@ export class PlanetaryModule implements ModuleInterface {
     return scores;
   }
 
-  private getActualIntake(group: string, intake: Record<string, number>): number {
+  private getActualIntake(group: string, intake: Record<string, number> | DietaryIntakeRawData): number {
     const mapping: Record<string, string[]> = {
       wholeGrains: ['wholeGrains'],
       tubers: ['tubers'],
@@ -227,14 +231,14 @@ export class PlanetaryModule implements ModuleInterface {
     };
     
     const keys = mapping[group] || [group];
-    return keys.reduce((sum, key) => sum + (intake[key] || 0), 0);
+    return keys.reduce((sum, key) => sum + (typeof intake[key] === 'number' ? intake[key] : 0), 0);
   }
 
-  private calculateEnvironmentalImpact(dietaryIntake: Record<string, number>): PlanetaryHealthScore['environmentalImpact'] {
+  private calculateEnvironmentalImpact(dietaryIntake: Record<string, number> | DietaryIntakeRawData): PlanetaryHealthScore['environmentalImpact'] {
     let ghge = 0, land = 0, water = 0, eutro = 0, biodiv = 0;
     
     for (const [food, factors] of Object.entries(ENVIRONMENTAL_FACTORS)) {
-      const amount = dietaryIntake[food] || 0;
+      const amount = typeof dietaryIntake[food] === 'number' ? dietaryIntake[food] : 0;
       const factor = amount / 100;
       
       ghge += factors.ghge * factor;

@@ -7,6 +7,11 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+  Diagnosis,
+  DietaryIntakeRawData,
+
   BioactivesProfile,
 } from '../../types/patient-context.js';
 
@@ -79,7 +84,7 @@ export class BioactivesModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = ['dietaryIntake', 'bioactivesProfile', 'diagnoses'];
     
     const hasRelevantChange = changes.changedFields.some((f: string) => relevantFields.includes(f));
@@ -120,7 +125,7 @@ export class BioactivesModule implements ModuleInterface {
   ];
   actions = [];
 
-  private assessBioactives(state: any): BioactivesProfile {
+  private assessBioactives(state: ModuleState): BioactivesProfile {
     const dietaryIntake = state.dietaryIntake || this.estimateIntakeFromPatterns(state);
     const diagnoses = state.diagnoses || [];
     
@@ -132,7 +137,7 @@ export class BioactivesModule implements ModuleInterface {
     return {
       totalPolyphenols: Math.round(totalPolyphenols),
       flavonoidClasses: this.groupFlavonoids(specificCompounds),
-      topSources: foodSources.map(f => ({ food: f, polyphenols: dietaryIntake[f] || 0, serving: '1 serving' })),
+      topSources: foodSources.map(f => ({ food: f, polyphenols: typeof dietaryIntake[f] === 'number' ? dietaryIntake[f] : 0, serving: '1 serving' })),
       retentionAdjusted: false,
       targets: {
         totalPolyphenols: targets.polyphenols?.value || this.config.targetPolyphenols,
@@ -143,7 +148,7 @@ export class BioactivesModule implements ModuleInterface {
     };
   }
 
-  private estimateIntakeFromPatterns(state: any): Record<string, number> {
+  private estimateIntakeFromPatterns(state: ModuleState): Record<string, number> {
     const pattern = state.dietaryPattern || 'mixed';
     
     const basePatterns: Record<string, Record<string, number>> = {
@@ -191,7 +196,7 @@ export class BioactivesModule implements ModuleInterface {
     return basePatterns[pattern] || basePatterns.mixed;
   }
 
-  private calculateIntake(dietaryIntake: Record<string, number>) {
+  private calculateIntake(dietaryIntake: Record<string, number> | DietaryIntakeRawData) {
     let totalPolyphenols = 0;
     const specificCompounds: Record<string, number> = {};
     
@@ -199,7 +204,7 @@ export class BioactivesModule implements ModuleInterface {
       const source = POLYPHENOL_SOURCES[food];
       if (!source) continue;
       
-      const factor = amount / 100;
+      const factor = (typeof amount === 'number' ? amount : 0) / 100;
       
       totalPolyphenols += source.total * factor;
       
@@ -211,15 +216,15 @@ export class BioactivesModule implements ModuleInterface {
     return { totalPolyphenols, specificCompounds };
   }
 
-  private calculateTargets(diagnoses: any[], currentPolyphenols: number) {
+  private calculateTargets(diagnoses: Diagnosis[], currentPolyphenols: number) {
     let targetPolyphenols = this.config.targetPolyphenols;
     let targetFlavonoids = 500;
     
-    const hasCVD = diagnoses.some((d: any) => d.code.startsWith('I'));
-    const hasCancer = diagnoses.some((d: any) => d.code.startsWith('C'));
-    const hasDiabetes = diagnoses.some((d: any) => d.code.startsWith('E1'));
-    const hasNeuro = diagnoses.some((d: any) => d.code.startsWith('G') || d.code.startsWith('F0'));
-    const hasInflammation = diagnoses.some((d: any) => d.code.startsWith('M') || d.code.startsWith('L'));
+    const hasCVD = diagnoses.some((d) => d.code.startsWith('I'));
+    const hasCancer = diagnoses.some((d) => d.code.startsWith('C'));
+    const hasDiabetes = diagnoses.some((d) => d.code.startsWith('E1'));
+    const hasNeuro = diagnoses.some((d) => d.code.startsWith('G') || d.code.startsWith('F0'));
+    const hasInflammation = diagnoses.some((d) => d.code.startsWith('M') || d.code.startsWith('L'));
     
     if (hasCVD) { targetPolyphenols = 1500; targetFlavonoids = 800; }
     if (hasCancer) { targetPolyphenols = 2000; targetFlavonoids = 1000; }
@@ -233,7 +238,7 @@ export class BioactivesModule implements ModuleInterface {
     };
   }
 
-  private identifyGaps(specificCompounds: Record<string, number>, diagnoses: any[]): string[] {
+  private identifyGaps(specificCompounds: Record<string, number>, diagnoses: Diagnosis[]): string[] {
     const gaps: string[] = [];
     const targets = this.getCompoundTargets(diagnoses);
     
@@ -251,7 +256,7 @@ export class BioactivesModule implements ModuleInterface {
     return gaps;
   }
 
-  private getCompoundTargets(diagnoses: any[]): Record<string, number> {
+  private getCompoundTargets(diagnoses: Diagnosis[]): Record<string, number> {
     const targets: Record<string, number> = {
       'EGCG': 100,
       'curcumin': 100,
@@ -264,9 +269,9 @@ export class BioactivesModule implements ModuleInterface {
       'chlorogenic_acid': 150,
     };
     
-    const hasCVD = diagnoses.some((d: any) => d.code.startsWith('I'));
-    const hasDiabetes = diagnoses.some((d: any) => d.code.startsWith('E1'));
-    const hasInflammation = diagnoses.some((d: any) => d.code.startsWith('M') || d.code.startsWith('L'));
+    const hasCVD = diagnoses.some((d) => d.code.startsWith('I'));
+    const hasDiabetes = diagnoses.some((d) => d.code.startsWith('E1'));
+    const hasInflammation = diagnoses.some((d) => d.code.startsWith('M') || d.code.startsWith('L'));
     
     if (hasCVD) {
       targets['EGCG'] = 200;
@@ -290,11 +295,11 @@ export class BioactivesModule implements ModuleInterface {
     return targets;
   }
 
-  private identifyFoodSources(dietaryIntake: Record<string, number>): string[] {
+  private identifyFoodSources(dietaryIntake: Record<string, number> | DietaryIntakeRawData): string[] {
     const sources: string[] = [];
     
     for (const [food, amount] of Object.entries(dietaryIntake)) {
-      if (POLYPHENOL_SOURCES[food] && amount > 10) {
+      if (POLYPHENOL_SOURCES[food] && typeof amount === 'number' && amount > 10) {
         sources.push(food.replace(/_/g, ' '));
       }
     }
@@ -302,7 +307,7 @@ export class BioactivesModule implements ModuleInterface {
     return sources;
   }
 
-  private assessHealthEffects(specificCompounds: Record<string, number>, diagnoses: any[]) {
+  private assessHealthEffects(specificCompounds: Record<string, number>, diagnoses: Diagnosis[]) {
     const effects: Record<string, { achieved: boolean; evidence: string }> = {};
     
     for (const [compound, info] of Object.entries(HEALTH_EFFECTS)) {

@@ -443,8 +443,9 @@ function ClinicalActionLink({ to, icon, label, color }: { to: string; icon: Reac
   );
 }
 
+const ContextHubPage = React.lazy(() => import('./ContextHubPage').then(m => ({ default: m.ContextHubPage })));
+
 function ContextHubTab({ patientId: _patientId }: { patientId: string }) {
-  const ContextHubPage = React.lazy(() => import('./ContextHubPage').then(m => ({ default: m.ContextHubPage })));
   return (
     <React.Suspense fallback={<Card className="p-6"><Skeleton variant="rect" className="h-48 w-full" /></Card>}>
       <ContextHubPage />

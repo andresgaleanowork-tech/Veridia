@@ -57,7 +57,7 @@ router.post('/deliver', authenticate, async (req, res) => {
 
     await axios.post(webhook.url, { event, payload, timestamp: new Date().toISOString() }, {
       headers: { 'X-Veridia-Signature': webhook.secret ? `sha256=${crypto.createHmac('sha256', webhook.secret).update(JSON.stringify(payload)).digest('hex')}` : '' },
-    }).catch((err: any) => console.error('Webhook delivery failed:', err.message));
+    }).catch((err) => console.error('Webhook delivery failed:', err instanceof Error ? err.message : String(err)));
     res.success({ message: 'Webhook enviado' });
   } catch (err) { console.error(err); res.error(500, 'Error interno'); }
 });

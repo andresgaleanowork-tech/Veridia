@@ -99,6 +99,7 @@ export function SupplementsPage({ patientId }: Props) {
       adherenceMutation.mutate({ ...existing, tomado: !existing.tomado });
     } else {
       const newEntry: AdherenceEntry = {
+        // eslint-disable-next-line react/purity -- id local generado en handler de evento, no en render
         id: `local_${Date.now()}`,
         supplementId,
         fecha: date,

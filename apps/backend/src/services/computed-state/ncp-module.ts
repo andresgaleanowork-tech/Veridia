@@ -7,6 +7,8 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+
   NCPStatus,
   NCPStep,
   PESStatement,
@@ -110,7 +112,7 @@ export class NCPModule implements ModuleInterface {
     },
   ];
 
-  private buildNCPStatus(state: any): NCPStatus {
+  private buildNCPStatus(state: ModuleState): NCPStatus {
     const currentStep = this.determineCurrentStep(state);
     const completeness = this.calculateCompleteness(state);
     const targetSources = this.selectTargetSources();
@@ -127,7 +129,7 @@ export class NCPModule implements ModuleInterface {
     };
   }
 
-  private determineCurrentStep(state: any): NCPStep {
+  private determineCurrentStep(state: ModuleState): NCPStep {
     const hasDemographics = !!state.demographics;
     const hasAnthropometry = !!state.anthropometry?.weight;
     const hasScreening = state.screeningResults?.length > 0;
@@ -145,7 +147,7 @@ export class NCPModule implements ModuleInterface {
     return 'monitoring';
   }
 
-  private calculateCompleteness(state: any): number {
+  private calculateCompleteness(state: ModuleState): number {
     const scores: number[] = [];
     
     scores.push(state.demographics ? 10 : 0);
@@ -161,7 +163,7 @@ export class NCPModule implements ModuleInterface {
     return Math.min(100, scores.reduce((a, b) => a + b, 0));
   }
 
-  private identifyGaps(state: any): NCPGap[] {
+  private identifyGaps(state: ModuleState): NCPGap[] {
     const gaps: NCPGap[] = [];
     
     if (!state.anthropometry?.weight) {
@@ -212,7 +214,7 @@ export class NCPModule implements ModuleInterface {
     return gaps;
   }
 
-  private generatePES(state: any): PESStatement[] {
+  private generatePES(state: ModuleState): PESStatement[] {
     const statements: PESStatement[] = [];
     
     if (state.anthropometry?.bmi) {
@@ -245,14 +247,14 @@ export class NCPModule implements ModuleInterface {
     return statements;
   }
 
-  private calculateTargets(state: any, sources: string[]): NCPTargets {
+  private calculateTargets(state: ModuleState, sources: string[]): NCPTargets {
     const weight = state.anthropometry?.weight || 70;
     
     let energy = 25 * weight;
     let protein = 1.0 * weight;
     
     if (state.diagnoses) {
-      state.diagnoses.forEach((d: any) => {
+      state.diagnoses.forEach((d) => {
         if (d.code.startsWith('E')) {
           energy *= 1.2;
           protein *= 1.2;
@@ -274,7 +276,7 @@ export class NCPModule implements ModuleInterface {
     return ['ESPEN', 'ASPEN', 'NKF'];
   }
 
-  private buildStepProgress(state: any): Record<NCPStep, { completed: boolean; completedAt?: string }> {
+  private buildStepProgress(state: ModuleState): Record<NCPStep, { completed: boolean; completedAt?: string }> {
     return {
       screening: { completed: !!state.screeningResults?.length },
       assessment: { completed: !!state.anthropometry?.weight },
