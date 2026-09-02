@@ -35,7 +35,7 @@ export type Patient = z.infer<typeof PatientSchema>;
 
 // Los inputs vacíos llegan como '' (defaultValues del form). Los
 // normalizamos a undefined para que no fallen la validación.
-const optionalText = (schema: z.ZodTypeAny, message?: string) =>
+const optionalText = (schema: z.ZodTypeAny) =>
   z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), schema);
 
 export const PatientCreateSchema = z.object({
