@@ -10,6 +10,7 @@ import crypto from 'crypto';
 import { db } from '../config/db.js';
 import { apiKeys, patients, appointments } from '../db/schema/index.js';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { toPublicPatient } from '../utils/patientSerializer.js';
 import { validateZod, validateZodQuery } from '../middleware/zodValidate.js';
 import { logAudit } from '../utils/audit.js';
 import { AppointmentCreateSchema } from '../schemas/index.js';
@@ -74,7 +75,7 @@ router.get('/patients', apiKeyAuth, validateZodQuery(z.object({ page: z.coerce.n
     const { page, limit } = req.query as unknown as { page: number; limit: number };
     const data = await db.select().from(patients).where(eq(patients.activo, true)).limit(limit).offset((page - 1) * limit);
     const c = await db.select({ count: count() }).from(patients).where(eq(patients.activo, true));
-    res.paginated(data, parseInt(String(c[0].count)), page, limit);
+    res.paginated(data.map(toPublicPatient), parseInt(String(c[0].count)), page, limit);
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
@@ -82,7 +83,7 @@ router.get('/patients/:id', apiKeyAuth, async (req, res) => {
   try {
     const r = await db.select().from(patients).where(eq(patients.id, req.params.id));
     if (!r.length) return res.error(404, 'Paciente no encontrado');
-    res.success(r[0]);
+    res.success(toPublicPatient(r[0]));
   } catch (err) { res.error(500, 'Error interno'); }
 });
 

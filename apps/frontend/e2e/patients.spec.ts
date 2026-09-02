@@ -18,9 +18,11 @@ test.describe('Pacientes', () => {
     await page.goto('/patients');
     await page.getByRole('button', { name: 'Nuevo Paciente' }).click();
 
-    await page.getByPlaceholder('Juan').fill(nombre);
-    await page.getByPlaceholder('García López').fill('Paciente E2E');
-    await page.getByPlaceholder('12345678A').fill(dni);
+    // exact: 'Juan' substring-matching would also hit the email
+    // input (placeholder "juan@email.com"), breaking strict mode.
+    await page.getByPlaceholder('Juan', { exact: true }).fill(nombre);
+    await page.getByPlaceholder('García López', { exact: true }).fill('Paciente E2E');
+    await page.getByPlaceholder('12345678A', { exact: true }).fill(dni);
     await page.getByRole('button', { name: 'Crear Paciente' }).click();
 
     await expect(page.getByText(nombre, { exact: true })).toBeVisible({ timeout: 20_000 });

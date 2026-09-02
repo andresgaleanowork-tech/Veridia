@@ -10,6 +10,7 @@ import { validateZod, validateZodQuery, validateZodParams } from '../middleware/
 import { PatientCreateSchema, PatientUpdateSchema, PatientListQuerySchema, UUIDSchema } from '../schemas/index.js';
 import { logAudit } from '../utils/audit.js';
 import { sanitize } from '../middleware/validate.js';
+import { toPublicPatient } from '../utils/patientSerializer.js';
 
 const router = Router();
 
@@ -48,7 +49,12 @@ router.get('/', authenticate, validateZodQuery(PatientListQuerySchema), async (r
         .where(whereClause),
     ]);
 
-    res.paginated(data, parseInt(String(countResult[0].count)), parseInt(String(page)), parseInt(String(limit)));
+    res.paginated(
+      data.map(toPublicPatient),
+      parseInt(String(countResult[0].count)),
+      parseInt(String(page)),
+      parseInt(String(limit)),
+    );
   } catch (err) {
     console.error('GET patients error:', err);
     res.error(500, 'Error interno');
@@ -64,7 +70,7 @@ router.get('/:id', authenticate, validateZodParams(z.object({ id: UUIDSchema }))
     if (!result.length) return res.error(404, 'Paciente no encontrado');
 
     await logAudit(user?.id, 'READ', 'Patient', result[0].nombre + ' ' + result[0].apellidos, req);
-    res.success(result[0]);
+    res.success(toPublicPatient(result[0]));
   } catch (err) {
     res.error(500, 'Error interno');
   }
@@ -102,7 +108,7 @@ router.post('/', authenticate, authorize('admin', 'nutricionista', 'secretaria')
     }).returning();
 
     await logAudit(user?.id, 'CREATE', 'Patient', nombre + ' ' + apellidos, req);
-    res.created(result[0]);
+    res.created(toPublicPatient(result[0]));
   } catch (err) {
     console.error('POST patient error:', err);
     res.error(500, 'Error interno');
@@ -139,7 +145,7 @@ router.put('/:id', authenticate, authorize('admin', 'nutricionista', 'secretaria
     if (!result.length) return res.error(404, 'No encontrado');
 
     await logAudit(user?.id, 'UPDATE', 'Patient', result[0].nombre + ' ' + result[0].apellidos, req);
-    res.success(result[0]);
+    res.success(toPublicPatient(result[0]));
   } catch (err) {
     res.error(500, 'Error interno');
   }
@@ -166,7 +172,7 @@ router.get('/:id/full', authenticate, validateZodParams(z.object({ id: UUIDSchem
     if (!patientResult.length) return res.error(404, 'No encontrado');
 
     res.success({
-      patient: patientResult[0],
+      patient: toPublicPatient(patientResult[0]),
       clinicalHistory: historyResult[0] || null,
       antropometrias: antroResult,
       analiticas: analResult,
