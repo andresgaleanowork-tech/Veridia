@@ -249,13 +249,21 @@ La CI (`.github/workflows/ci.yml`) ejecuta lint → typecheck → build → test
 
 ## 9. Build y despliegue
 
-### Frontend
+### Frontend (Vercel)
 
 ```bash
 pnpm build:frontend   # genera apps/frontend/dist/
 ```
 
-Deploy estático en Vercel/Netlify (SPA, rewrites a `index.html`).
+Conectado GitHub → Vercel, el deploy usa `vercel.json` (raíz del repo):
+
+- `buildCommand: pnpm --filter veridia-app build` y `outputDirectory: apps/frontend/dist`
+  (monorepo: sin esto Vercel no encuentra la build).
+- Rewrite `/api/*` → `${VERIDIA_API_URL}/api/*`: **define la variable
+  `VERIDIA_API_URL` en Vercel (Project → Settings → Environment Variables)**
+  con la URL pública de la API (p. ej. `https://api.tudominio.com` — tu
+  backend Docker). El proxy se hace en el borde de Vercel, así no hay CORS.
+- Fallback SPA: cualquier ruta no existente sirve `index.html`.
 
 ### Backend (Docker)
 
