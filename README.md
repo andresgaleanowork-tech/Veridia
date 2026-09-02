@@ -1,576 +1,303 @@
----
-© 2026 GalcoCapital LLC. Todos los derechos reservados.
-
-Creador, Propietario y Director de Arquitectura: Eduardo Andres Galeano Aido (NIE: Z0002918W).
-
-Este documento contiene información confidencial y propiedad intelectual exclusiva de GalcoCapital LLC. Queda prohibida su reproducción o distribución sin autorización expresa.
-
----
-
 # 🌿 Veridia HealthTech — Clinical Nutrition ERP
 
-**Plataforma Enterprise de Nutrición Clínica y Restauración Colectiva**
+**Plataforma enterprise de nutrición clínica y restauración colectiva.**
+
+ERP que integra el ciclo completo de la práctica del nutricionista — desde la primera consulta hasta la facturación — con decisiones basadas en evidencia clínica (guías ESPEN, IDDSI, APPCC) y asistencia de IA (Google Gemini).
 
 | Metadato | Valor |
 |----------|-------|
-| **Documento** | `README.md` — Documentación Técnica Principal |
-| **Versión** | `5.2.0` |
-| **Prioridad** | 1º Grado — Crítico |
+| **Versión** | `5.3.0` |
 | **Clasificación** | Confidencial — Uso Interno |
-| **Última actualización** | 25 de junio de 2026 |
-| **Propietario** | GalcoCapital LLC / Eduardo Andres Galeano Aido |
+| **Propietario** | GalcoCapital LLC — Eduardo Andres Galeano Aido |
 | **Contacto técnico** | `admin@veridia.tech` |
 
 ---
 
-## 1. Introducción
+## 1. Alcance funcional
 
-Veridia HealthTech es un sistema ERP (Enterprise Resource Planning) especializado en nutrición clínica y restauración colectiva institucional. La plataforma integra inteligencia artificial (Google Gemini 2.0), motor de guías clínicas ESPEN, framework IDDSI para disfagia, control APPCC de seguridad alimentaria, y gestión integral de consultorios nutricionales — desde la primera consulta hasta la facturación.
+| Dominio | Módulos |
+|---------|---------|
+| **Clínico** | Historia clínica, anamnesis (13 sistemas), antropometría (percentiles OMS), analíticas biomarcadores, fórmula clínica (5 ecuaciones + calorimetría Weir), motor de guías ESPEN (NRS-2002, GLIM, NUTRIC, MNA-SF), alertas de ciclo vital, soporte nutricional UCI (enteral/parenteral) |
+| **Nutricional** | Copiloto clínico 5 pasos multi-patología, base BEDCA + USDA FDC + OpenFoodFacts, recetas, planes alimentarios, diario del paciente |
+| **Institucional** | Restauración colectiva: menús, 14 alérgenos UE, IDDSI 0-7, APPCC, trazabilidad, recall sanitario |
+| **Gestión** | Agenda con citas recurrentes, facturación multilínea, caja, contabilidad, mensajería bidireccional, telemedicina, reportes |
+| **Administración** | Portal del paciente, panel multi-tenante (SaaS), auditoría, plantillas, automatizaciones, integraciones (Stripe, Twilio, IA) |
 
-### 1.1 Alcance funcional
+**Herramientas externas:** Google Gemini 2.0 (IA clínica con anonimización de PII), USDA FoodData Central, OpenFoodFacts, TheMealDB.
 
-| Dominio | Módulos | Descripción |
-|---------|---------|-------------|
-| **Clínico** | Historia Clínica (10 tabs), Antropometría, Analíticas, Fórmula Clínica (5 ecuaciones), Alertas Ciclo Vital, ESPEN Guidelines Engine, Soporte Nutricional UCI | Gestión integral del paciente con screening NRS-2002, GLIM, NUTRIC, MNA-SF. Nutrición enteral (15 fórmulas), parenteral, protocolo insulina Yale, destete 6 fases. |
-| **Nutricional** | Desarrollada (5 pasos), BEDCA (969 alimentos), OpenFoodFacts, USDA FDC, Recetas, Planes Alimentarios | Copiloto clínico con multi-patología (438 ICD-10), cuadraje de macronutrientes, minuta exportable. |
-| **Institucional** | Restauración Colectiva (9 tabs) | Menús para colegios/hospitales/geriátricos, 14 alérgenos UE, IDDSI 0-7, derivaciones automáticas, escalado con factores de merma, APPCC, trazabilidad, recall sanitario. |
-| **Gestión** | Facturación, Caja, Contabilidad, Agenda, Mensajería, IA Copilot | Facturas multilínea, citas recurrentes, chat bidireccional, asistente IA clínico. |
-| **Administración** | Portal del Paciente, SuperAdmin SaaS, Auditoría | Portal web del paciente con registro DNI, panel SaaS para gestión multi-clínica, audit log. |
-
-### 1.2 Métricas del sistema
-
-| Métrica | Valor |
-|---------|-------|
-| Módulos JS | 31 archivos |
-| Líneas de código frontend | 13,491 |
-| Funciones | 578 |
-| Tests automatizados | 343 (281 unitarios + 62 E2E) |
-| Datos estáticos offline | BEDCA 969 alimentos + 438 patologías ICD-10 |
-| Idiomas | 3 (ES, EN, PT) |
-| Monedas | 9 (EUR, USD, ARS, MXN, CLP, COP, PEN, GBP, BRL) |
-| Build (single-file deploy) | 1,153 KB |
-| Tablas PostgreSQL | 18 |
-| Endpoints API REST | 5 route groups + health + proxy |
+**Multi-idioma:** ES, EN, PT · **Multi-moneda:** 9 (EUR, USD, ARS, MXN, CLP, COP, PEN, GBP, BRL)
 
 ---
 
-## 2. Requisitos Previos
+## 2. Stack tecnológico
 
-### 2.1 Entorno de desarrollo
+```
+┌────────────────────────────────────────────────────────────┐
+│  FRONTEND  (apps/frontend)                                  │
+│  React 19 · TypeScript · Vite 8 · Tailwind CSS v4           │
+│  shadcn/ui · Zustand · TanStack Query · Recharts · PWA      │
+│  Storybook 10 · Vitest · oxlint                             │
+├────────────────────────────────────────────────────────────┤
+│  BACKEND   (apps/backend)                                   │
+│  Node.js · Express · TypeScript · Drizzle ORM · PostgreSQL  │
+│  JWT + bcrypt · Zod · Helmet · CSRF · Rate limiting         │
+│  Stripe · Twilio · Firebase Admin · Puppeteer (PDF) · cron  │
+├────────────────────────────────────────────────────────────┤
+│  SHARED    (packages/shared-types)                          │
+│  Tipos TypeScript generados desde el esquema Drizzle        │
+└────────────────────────────────────────────────────────────┘
+```
 
-| Requisito | Versión mínima | Verificación |
-|-----------|---------------|--------------|
-| **Node.js** | `>=18.0.0` | `node --version` |
-| **npm** | `>=9.0.0` | `npm --version` |
-| **Git** | `>=2.30` | `git --version` |
-| **Docker** (opcional, para backend) | `>=20.10` | `docker --version` |
-| **Docker Compose** (opcional) | `>=2.0` | `docker compose version` |
-
-### 2.2 Cuentas y servicios externos
-
-| Servicio | Propósito | Obligatorio | URL de registro |
-|----------|-----------|-------------|-----------------|
-| **Firebase** | Firestore sync + Analytics | Sí (sync cloud) | https://console.firebase.google.com |
-| **Google AI Studio** | Gemini API key | Sí (IA clínica) | https://aistudio.google.com/apikey |
-| **USDA FDC** | API key para alimentos | Opcional (DEMO_KEY funciona) | https://fdc.nal.usda.gov/api-key-signup |
-
-> ⚠️ **SEGURIDAD**: Las API keys NUNCA deben estar hardcodeadas en el código fuente. Se gestionan exclusivamente desde SuperAdmin → 🔑 APIs & Keys, y se almacenan en `localStorage('veridia_api_config')`. En producción, utilizar el backend proxy (`/api/proxy/*`) para que las keys no lleguen al browser.
+**Monorepo pnpm** — Node.js `>=20`, pnpm `9.x`.
 
 ---
 
-## 3. Arquitectura del Sistema
-
-### 3.1 Stack tecnológico
+## 3. Estructura del proyecto
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                    FRONTEND (Client-Side)                 │
-│  Vanilla JavaScript · Zero Frameworks · CSS Custom Props  │
-│  PWA (Service Worker + Manifest) · SVG Charts Inline     │
-│  VERIDIA_CONFIG (centralized API management)             │
-├──────────────────────────────────────────────────────────┤
-│                    BACKEND (API Proxy)                    │
-│  Express.js 4.18 · Helmet · CORS · Rate Limiting        │
-│  JWT (jsonwebtoken) · bcrypt · express-validator         │
-│  Proxy: /api/proxy/gemini · /api/proxy/usda             │
-├──────────────────────────────────────────────────────────┤
-│                    DATA LAYER                            │
-│  Primary: localStorage (offline-first, 5MB)             │
-│  Sync: Firebase Firestore (cloud backup)                │
-│  Relational: PostgreSQL 15 (18 tables, 20 indexes)      │
-│  Static: BEDCA 969 foods + Pathology DB 438 ICD-10      │
-├──────────────────────────────────────────────────────────┤
-│                    EXTERNAL APIs                         │
-│  Google Gemini 2.0 Flash Lite (IA clínica)              │
-│  USDA FoodData Central (114 nutrientes/alimento)        │
-│  OpenFoodFacts (productos comerciales + barcode)        │
-│  TheMealDB (recetas internacionales)                    │
-├──────────────────────────────────────────────────────────┤
-│                    SECURITY LAYER                        │
-│  CSP (Content Security Policy) · Helmet headers         │
-│  RBAC (3 roles) · Session timeout + lock screen         │
-│  Data anonymization (RGPD) · Firestore Security Rules   │
-│  JWT 128-char random secrets · HTTPS enforcement        │
-└──────────────────────────────────────────────────────────┘
+veridia/
+├── apps/
+│   ├── frontend/                # SPA React 19 (PWA)
+│   │   ├── src/
+│   │   │   ├── components/      # ui (shadcn), layout, shared, error
+│   │   │   ├── features/        # auth, dashboard, patients, clinical,
+│   │   │   │                     nutrition, business, telehealth, portal,
+│   │   │   │                     reports, care-process, settings… (lazy)
+│   │   │   ├── hooks/           # usePermission, useDebounce…
+│   │   │   ├── i18n/            # ES / EN / PT
+│   │   │   ├── lib/             # api client (axios + JWT refresh), pwa
+│   │   │   ├── stores/          # Zustand (auth, ui)
+│   │   │   └── types/           # Interfaces de dominio
+│   │   ├── public/              # manifest.json, service-worker.js, icons
+│   │   └── .storybook/
+│   └── backend/                 # API REST (~200 endpoints)
+│       ├── src/
+│       │   ├── db/schema/       # Esquema Drizzle (~44 tablas)
+│       │   ├── middleware/      # auth (JWT+RBAC), tenant, zod, security…
+│       │   ├── routes/          # ~37 módulos de rutas
+│       │   ├── services/        # Lógica de dominio, PDF (puppeteer)
+│       │   ├── jobs/            # Tareas programadas (node-cron)
+│       │   ├── utils/           # logger (winston), audit, seed
+│       │   └── index.ts         # Bootstrap: seguridad, routes, shutdown
+│       ├── drizzle/             # Migraciones SQL
+│       └── tests/               # Vitest (middleware, routes, services, utils)
+├── packages/
+│   └── shared-types/            # Tipos compartidos (generados de Drizzle)
+├── docker-compose.yml           # DB + API + frontend (desarrollo)
+├── docker-compose.staging.yml   # Entorno staging
+├── docker-compose.prod.yml      # Entorno producción
+├── .github/workflows/           # CI/CD (ci.yml, staging.yml, deploy.yml)
+└── legal/                       # Aviso legal, privacidad, cookies, T&C
 ```
 
-### 3.2 Estructura del proyecto
-
-```
-veridia-healthtech/
-├── veridia.html                 # App shell principal (ERP) — 168 líneas
-├── index.html                   # Landing page — 424 líneas
-├── portal-paciente.html         # Portal del paciente — 842 líneas
-├── superadmin.html              # Panel administración SaaS — 1,107 líneas
-├── app-styles.css               # Design system + responsive — 765 líneas
-├── bedca-data.js                # 969 alimentos BEDCA (offline) — 168 KB
-├── manifest.json                # PWA manifest
-├── sw.js                        # Service Worker (cache-first strategy)
-├── firestore.rules              # Firestore Security Rules
-├── build-deploy.js              # Build: genera single-file deploy
-├── docker-compose.yml           # PostgreSQL + API containerized
-├── package.json                 # v5.2.0, 10 scripts npm
-│
-├── js/                          # 31 módulos JavaScript
-│   ├── firebase.js              # VERIDIA_CONFIG + Firebase + Gemini proxy
-│   ├── i18n.js                  # 3 idiomas, 9 monedas, tema
-│   ├── charts.js                # SVG charts (line, bar, donut)
-│   ├── core.js                  # Router, helpers, onboarding, memory mgmt
-│   ├── auth.js                  # Login, RBAC, seguridad, sesión
-│   ├── dashboard.js             # KPIs, widgets, alertas
-│   ├── agenda.js                # Citas, drag&drop, recurrentes, iCal
-│   ├── pacientes.js             # CRUD pacientes, tags, foto
-│   ├── historia.js              # HC 10 tabs, documentos, farmacología
-│   ├── antropometria.js         # Mediciones, DW, OMS percentiles, donut
-│   ├── analiticas.js            # Biomarcadores, trend, import CSV
-│   ├── formula.js               # 5 fórmulas, calorimetría Weir
-│   ├── espen.js                 # Guidelines engine, 6 flowcharts
-│   ├── pathology-db.js          # 438 patologías ICD-10 (60 KB)
-│   ├── desarrollada.js          # Copiloto 5 pasos, plantillas
-│   ├── soporte-nutricional.js   # UCI: 4 tabs, 66 funciones, 1,681 líneas
-│   ├── alimentos.js             # BEDCA + OFF + USDA, barcode
-│   ├── recetas.js               # CRUD + TheMealDB, foto
-│   ├── planes.js                # Wizard, adherencia, templates
-│   ├── restauracion.js          # 9 tabs institucional, 68 funciones
-│   ├── facturacion.js           # Facturas, caja, recurrentes, fiscal
-│   ├── contabilidad.js          # Gastos, P&L, inventario, stock
-│   ├── favoritos.js             # Alimentos y platos favoritos
-│   ├── anamnesis.js             # 13 sistemas, multi-versión
-│   ├── lifecycle-alerts.js      # Alertas ciclo vital (ped/adult/ger)
-│   ├── clinical-tools.js        # Acta, comparador, RGPD, CSV import
-│   ├── mensajeria.js            # Chat bidireccional, templates
-│   ├── ia-copilot.js            # Gemini IA, prompts contextuales
-│   ├── feedback.js              # NPS, emojis, demo guiado
-│   ├── settings.js              # Config, export/import
-│   └── utilities.js             # Backup, export, PDF universal
-│
-├── tests/
-│   ├── test-veridia.js          # 281 tests unitarios — 901 líneas
-│   └── test-e2e.js              # 62 tests E2E (10 flujos) — 658 líneas
-│
-├── scripts/
-│   └── build-deploy.js          # Script de build (copia organizada)
-│
-├── docs/
-│   ├── CHANGELOG.md             # Historial de cambios v5.0→v5.2
-│   ├── ARCHITECTURE-AUDIT.md    # Auditoría de arquitectura (27 recs)
-│   ├── SECURITY-AUDIT.md        # Auditoría de ciberseguridad (22 vulns)
-│   ├── FLUTTER-MIGRATION-PLAN.md # Plan migración mobile (12 fases)
-│   └── MEJORAS-PLAN.md          # Plan de mejoras (84 completadas)
-│
-├── backend/
-│   ├── .env                     # Variables de entorno (CONFIDENCIAL)
-│   ├── Dockerfile               # Container para API
-│   ├── package.json             # Dependencias backend
-│   └── src/
-│       ├── index.js             # Express app (141 líneas)
-│       ├── config/db.js         # PostgreSQL pool (42 líneas)
-│       ├── middleware/
-│       │   ├── auth.js          # JWT verify + RBAC authorize
-│       │   └── validate.js      # express-validator sanitization
-│       ├── routes/
-│       │   ├── auth.js          # POST /login, /register, /refresh
-│       │   ├── patients.js      # CRUD /api/patients
-│       │   ├── clinical.js      # /api/clinical/*
-│       │   ├── foods.js         # /api/foods/off/search, /bedca
-│       │   └── proxy.js         # /api/proxy/gemini, /usda/search
-│       └── utils/
-│           ├── migrate.js       # 18 CREATE TABLE + 20 indexes
-│           ├── seed.js          # Datos iniciales
-│           ├── audit.js         # Logging de acciones
-│           └── test-api.js      # Tests de API
-│
-├── LICENSE                      # Propietario: GalcoCapital LLC
-├── .gitignore
-└── .editorconfig
-```
+**Puertos:** Frontend `5173` · API `3456` (Docker `3457`) · PostgreSQL `5444`
 
 ---
 
-## 4. Guía de Instalación y Ejecución
+## 4. Puesta en marcha
 
-### 4.1 Instalación del frontend
+### 4.1 Requisitos
+
+| Requisito | Versión |
+|-----------|---------|
+| Node.js | `>=20` |
+| pnpm | `9.x` (`corepack enable`) |
+| Docker + Compose | opcional (para DB y API containerizadas) |
+
+### 4.2 Opción A — Desarrollo local (recomendado)
 
 ```bash
-# Clonar el repositorio
-git clone https://github.com/veridia-healthtech/erp.git
-cd erp
+git clone <repo> && cd veridia
+corepack enable
+pnpm install
 
-# Instalar dependencias de desarrollo (solo jsdom para tests)
-npm install
+# Base de datos (PostgreSQL 16 en puerto 5444)
+docker compose up -d db
 
-# Verificar sintaxis de los 31 módulos JS
-npm run check
-# Output esperado: ✅ All JS files valid
+# Esquema + datos iniciales
+cp .env.example .env        # genera secretos reales (ver §6)
+pnpm db:push                # aplica el esquema Drizzle
+pnpm db:seed                # usuarios y pacientes demo
 
-# Ejecutar tests unitarios (281 tests)
-npm test
-# Output esperado: 📊 RESULTS: 281/281 passed
-
-# Ejecutar tests E2E (62 tests, 10 flujos completos)
-npm run test:e2e
-# Output esperado: 📊 E2E RESULTS: 62/62 passed
-
-# Ejecutar ambos suites
-npm run test:all
-# Output esperado: 343/343 passed
-
-# Abrir en navegador (desarrollo local)
-open veridia.html
-# O servir con cualquier servidor estático:
-npx serve .
+# Arrancar API (puerto 3456) y frontend (puerto 5173)
+pnpm dev
 ```
 
-### 4.2 Build para producción
+Frontend: <http://localhost:5173> · API health: <http://localhost:3456/api/health> · Docs API: <http://localhost:3456/api/docs>
+
+> El Vite dev server proxya `/api` hacia el backend (por defecto `host.docker.internal:3457`; en host nativo usa `localhost:3456`).
+
+### 4.3 Opción B — Todo con Docker
 
 ```bash
-# Genera veridia-deploy.html (single-file, ~1.1MB, todo inlined + minificado)
-npm run build
-
-# Output:
-# ✅ veridia-deploy.html generated
-#    32 scripts inlined
-#    Size: 1153 KB
+cp .env.example .env        # genera secretos reales (ver §6)
+docker compose up -d --build
 ```
 
-> ⚠️ **IMPORTANTE**: El archivo `veridia-deploy.html` contiene TODOS los scripts y CSS inlined. Para Vercel/Netlify, renombrarlo a `index.html` o configurar rewrite rules.
+### 4.4 Credenciales de desarrollo (seed)
 
-### 4.3 Instalación del backend (opcional para Beta)
+> ⚠️ **Solo para desarrollo/demo.** En producción, la autenticación usa bcrypt y las credenciales se gestionan por el panel multi-tenante.
 
-```bash
-cd backend
-npm install
-
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con las credenciales reales:
-#   DATABASE_URL=postgresql://user:pass@host:5432/db
-#   JWT_SECRET=<128-char-random-hex>
-#   GEMINI_API_KEY=<your-key>
-
-# Con Docker (recomendado):
-cd ..
-docker compose up -d
-# Inicia PostgreSQL + API en http://localhost:3456
-
-# Sin Docker:
-cd backend
-npm start
-# API en http://localhost:3456/api/health
-```
-
-### 4.4 Configuración de Docker
-
-```yaml
-# docker-compose.yml
-version: '3.8'
-services:
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: nutrisuite_db
-      POSTGRES_USER: nutrisuite
-      POSTGRES_PASSWORD: nutrisuite_secret
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-  api:
-    build: ./backend
-    ports:
-      - "3456:3456"
-    depends_on:
-      - db
-    environment:
-      DATABASE_URL: postgresql://nutrisuite:nutrisuite_secret@db:5432/nutrisuite_db
-      NODE_ENV: production
-      JWT_SECRET: ${JWT_SECRET}
-
-volumes:
-  pgdata:
-```
+| Rol | Email | Contraseña |
+|-----|-------|------------|
+| Admin | `admin@veridia.tech` | `Admin2026!` |
+| Nutricionista | `antonella@veridia.tech` | `Nutri2026!` |
+| Secretaria | `maria@veridia.tech` | `Secre2026!` |
 
 ---
 
-## 5. Autenticación y Control de Acceso (RBAC)
+## 5. Scripts
 
-### 5.1 Roles y permisos
+### Raíz (monorepo)
 
-| Rol | Módulos permitidos | Restricciones |
-|-----|-------------------|---------------|
-| **Nutricionista** | Dashboard, Agenda, Pacientes, Historia Clínica, Antropometría, Analíticas, Alertas, Fórmula, Soporte, Desarrollada, BEDCA, Recetas, Planes, Restauración, Mensajes, IA, Settings | Sin acceso a: Auditoría, Contabilidad, Caja |
-| **Secretaria** | Dashboard, Agenda, Pacientes, Facturación, Caja, Contabilidad, Settings | Sin acceso a: módulos clínicos ni nutricionales |
-| **Admin** | TODOS los módulos + Auditoría + Settings completos | Acceso total |
+| Script | Descripción |
+|--------|-------------|
+| `pnpm dev` | API + frontend en paralelo |
+| `pnpm build` | Build de producción (frontend + backend) |
+| `pnpm lint` | Lint de ambos apps |
+| `pnpm test` | Suite completa (frontend + backend) |
+| `pnpm db:push` / `db:migrate` | Sincronizar / migrar esquema |
+| `pnpm db:seed` | Datos iniciales (usuarios + demo) |
+| `pnpm types:sync` | Regenerar `packages/shared-types` desde Drizzle |
 
-### 5.2 Credenciales de desarrollo
+### Frontend (`apps/frontend`)
 
-| Usuario | Email | Contraseña | Rol |
-|---------|-------|------------|-----|
-| Lic. Antonella Caverzan | `antonella@veridia.tech` | `nutri123` | Nutricionista |
-| María Recepción | `maria@veridia.tech` | `secre123` | Secretaria |
-| Andrés Galeano | `admin@veridia.tech` | `admin123` | Admin |
+| Script | Descripción |
+|--------|-------------|
+| `pnpm dev` | Vite dev server (`:5173`) |
+| `pnpm build` | `tsc -b` + build de producción |
+| `pnpm test:run` | Tests unitario/componente (Vitest + jsdom) |
+| `pnpm storybook` | Storybook (`:6006`) |
+| `pnpm lint` | oxlint |
 
-**SuperAdmin** (portal de gestión SaaS):
+### Backend (`apps/backend`)
 
-| Email | Contraseña |
-|-------|------------|
-| `superadmin@veridia.tech` | `superadmin123` |
-
-> ⚠️ **SEGURIDAD CRÍTICA**: Estas credenciales son EXCLUSIVAMENTE para desarrollo y demo. En producción, la autenticación DEBE migrarse al backend con bcrypt ($2b$12) o Firebase Authentication. El hash actual (`syncHash`) es un DJB2a+FNV-1a NO criptográfico — vulnerable a fuerza bruta. Ver `docs/SECURITY-AUDIT.md` § SEC-F1.
+| Script | Descripción |
+|--------|-------------|
+| `pnpm dev` | `tsx watch` (hot reload) |
+| `pnpm build` | Compila a `dist/` |
+| `pnpm test` | Vitest (unitarios con mocks) |
+| `pnpm db:generate` / `db:migrate` / `db:studio` | Herramientas Drizzle |
+| `pnpm lint` | ESLint |
 
 ---
 
-## 6. Gestión de API Keys (VERIDIA_CONFIG)
+## 6. Variables de entorno
 
-### 6.1 Flujo de configuración
+Referencia: [`.env.example`](.env.example). Genera los secretos con:
 
-```
-SuperAdmin → 🔑 APIs & Keys → Configura keys
-         ↓
-localStorage('veridia_api_config') = {gemini_key: "...", usda_key: "...", ...}
-         ↓
-ERP carga → VERIDIA_CONFIG.get('gemini_key') → usa la key
-         ↓
-Si hay backend activo → /api/proxy/gemini (key NUNCA llega al browser)
+```bash
+openssl rand -hex 24      # DB_PASSWORD (URL-safe)
+openssl rand -base64 32   # JWT_SECRET, JWT_REFRESH_SECRET
 ```
 
-### 6.2 APIs gestionables
+| Variable | Requerida | Descripción |
+|----------|-----------|-------------|
+| `DB_PASSWORD` | Sí (dev) | Password de PostgreSQL (embebido en `DATABASE_URL`) |
+| `JWT_SECRET` | Sí | Firma de tokens de acceso |
+| `JWT_REFRESH_SECRET` | Sí | Firma de tokens de refresco |
+| `USDA_API_KEY` | No | Default `DEMO_KEY` |
+| `GEMINI_API_KEY` / `GEMINI_MODEL` | No (IA) | Clave de Google AI Studio |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | No (cobros) | Pasarela de pagos |
+| `FIREBASE_*` | No (push/backup) | Firebase Admin |
+| `TWILIO_*` | No (SMS) | Twilio |
+| `CORS_ORIGIN` | **Sí en producción** | Orígenes permitidos (coma) |
 
-| API | Key requerida | Toggle | Test en vivo | Proxy backend |
-|-----|--------------|--------|-------------|---------------|
-| 🤖 Google Gemini AI | Sí (aistudio.google.com) | ✅ | ✅ | `POST /api/proxy/gemini` |
-| 🔥 Firebase | Sí (pública por diseño) | — | Auto | — |
-| 🇺🇸 USDA FDC | Opcional (DEMO_KEY funciona) | ✅ | ✅ | `GET /api/proxy/usda/search` |
-| 🌍 OpenFoodFacts | No (gratuita) | ✅ | — | — |
-| 👨‍🍳 TheMealDB | No (gratuita) | ✅ | — | — |
-
-### 6.3 API de VERIDIA_CONFIG
-
-```javascript
-VERIDIA_CONFIG.get('gemini_key');         // Obtener valor
-VERIDIA_CONFIG.set('gemini_key', 'AQ..'); // Establecer valor
-VERIDIA_CONFIG.getAll();                  // Obtener toda la config
-VERIDIA_CONFIG.isConfigured('gemini_key');// true si no está vacío
-VERIDIA_CONFIG.reset();                  // Restaurar defaults
-```
+> 🔐 Las API keys **nunca** llegan al navegador: el frontend llama a `/api/proxy/*` y el backend inyecta la key.
 
 ---
 
 ## 7. Seguridad
 
-### 7.1 Medidas implementadas
+| Capa | Medida |
+|------|--------|
+| **CSP** | Content-Security-Policy con **nonce por request** (frontend y backend) |
+| **CORS** | Restringido a `CORS_ORIGIN`; bloqueado por defecto en producción |
+| **Rate limiting** | Limiter global + limiter específico de login (memoria) |
+| **CSRF** | Doble token (`/api/csrf-token`) para peticiones mutativas |
+| **Auth** | JWT (acceso + refresh), bcrypt `$12`, RBAC 3 roles (admin / nutricionista / secretaria) |
+| **Multi-tenancy** | Middleware de aislamiento por tenant en todas las rutas |
+| **Headers** | Helmet (HSTS en producción, noSniff, referrerPolicy), validación Zod en entradas |
+| **PII + IA** | `anonymizeForAI()` redacta datos personales antes de llamar a Gemini |
+| **Auditoría** | Log de acciones en PG + winston con request-id |
 
-| Capa | Medida | Estado |
-|------|--------|--------|
-| **XSS** | `sanitize()` (127 calls) + CSP meta tag | ✅ Activo |
-| **CSP** | Content-Security-Policy en 3 HTML + Helmet backend | ✅ Activo |
-| **CORS** | Restringido a `veridia.tech` + localhost | ✅ Activo |
-| **Rate Limiting** | 100 req/15min general, 20 req/15min auth | ✅ Activo |
-| **HTTPS** | Redirect 301 HTTP→HTTPS (producción) | ✅ Activo |
-| **JWT** | 128-char random secrets (crypto.randomBytes) | ✅ Activo |
-| **Helmet** | Headers de seguridad + CSP con whitelist | ✅ Activo |
-| **Firestore Rules** | Default DENY, append-only audit | ✅ Listo para deploy |
-| **Anonimización IA** | `anonymizeForAI()` redacta PII antes de Gemini | ✅ Activo |
-| **Session Lock** | Timeout configurable + lock screen por inactividad | ✅ Activo |
-| **Memory Limits** | `trimDBArrays()` con límites por array | ✅ Activo |
+### ⚠️ Datos de salud (RGPD Art. 9)
 
-### 7.2 Datos sensibles (PII)
+La plataforma procesa datos de categoría especial (salud). **Antes de producción con pacientes reales** es obligatorio:
 
-> ⚠️ **RGPD Art. 9 — Datos de categoría especial (salud)**
->
-> Esta aplicación procesa datos clínicos de pacientes: nombre, DNI, email, teléfono, dirección, patologías, analíticas, antropometría, medicación. Estos datos están protegidos por el Reglamento General de Protección de Datos (UE 2016/679) y la Ley Orgánica 3/2018 (LOPD-GDD).
->
-> Medidas obligatorias antes de producción con pacientes reales:
-> - [ ] DPIA (Data Protection Impact Assessment) completada
-> - [ ] Registro de actividades de tratamiento
-> - [ ] Política de privacidad visible al paciente
-> - [ ] Cifrado de localStorage con AES-256-GCM
-> - [ ] Consentimiento explícito del paciente para uso de IA
-> - [ ] DPO (Data Protection Officer) designado
+- [ ] DPIA (Data Protection Impact Assessment)
+- [ ] Registro de actividades de tratamiento + DPO designado
+- [ ] Consentimiento explícito del paciente para el uso de IA
+- [ ] Contratos de encargado de tratamiento con los proveedores externos
+
+Documentación legal en [`legal/`](legal/).
 
 ---
 
 ## 8. Tests
 
-### 8.1 Suite de tests
+| Suite | Ubicación | Ejecución |
+|-------|-----------|-----------|
+| Frontend (unit + componente) | `apps/frontend/src/**/*.test.tsx` | `pnpm test:frontend` |
+| Backend (middleware, routes, services, utils) | `apps/backend/tests/` | `pnpm test:backend` |
+| Storybook (visual/a11y, browser) | `apps/frontend/.storybook` | vía Vitest browser mode |
+| E2E (Playwright) | `apps/frontend/e2e/` | `pnpm e2e` (requiere API + DB corriendo) |
 
-| Suite | Archivo | Tests | Cobertura |
-|-------|---------|-------|-----------|
-| **Unitarios** | `tests/test-veridia.js` | 281 | Estructura, renders, CRUD, fórmulas, ESPEN, RBAC, i18n, CSS, RC |
-| **E2E** | `tests/test-e2e.js` | 62 | 10 flujos completos de usuario real |
-| **Total** | — | **343** | — |
-
-### 8.2 Flujos E2E cubiertos
-
-| Flujo | Tests | Descripción |
-|-------|-------|-------------|
-| Paciente completo | 11 | Crear → medir → analizar → planificar → facturar |
-| Consulta clínica | 6 | Agendar → realizar → acta → facturar → cobrar |
-| Fórmula desarrollada | 5 | GEB → GET → macros → calorimetría → comparación |
-| Restauración colectiva | 9 | Centro → menú → derivaciones → escalar → APPCC → merma |
-| Soporte nutricional | 8 | NRS-2002 → NUTRIC → Child-Pugh → Penn State → realimentación |
-| Facturación | 3 | Multilínea → vencer → caja |
-| Mensajería | 4 | Chat → buscar → render |
-| Backup/Restore | 2 | Serialización + integridad |
-| Multi-idioma/moneda | 6 | ES↔EN↔PT + EUR↔USD↔ARS |
-| RBAC | 5 | Admin vs Nutri vs Secre + hashes |
-
-### 8.3 Ejecución
-
-```bash
-npm test                 # 281 unit tests (~3s)
-npm run test:e2e         # 62 E2E tests (~3s)
-npm run test:all         # 343 tests combinados (~6s)
-npm run qa               # Syntax check + unit tests
-npm run stats            # Líneas, funciones, archivos
-```
+La CI (`.github/workflows/ci.yml`) ejecuta lint → typecheck → build → tests en cada PR.
 
 ---
 
-## 9. Deploy
+## 9. Build y despliegue
 
-### 9.1 Vercel (recomendado para frontend)
-
-```bash
-npm run build
-# Subir los siguientes archivos a Vercel:
-#   veridia-deploy.html → renombrar a index.html
-#   index.html (landing) → renombrar a landing.html o usar rewrite
-#   portal-paciente.html
-#   superadmin.html
-#   logo-icon.png, logo-full.png, icon-192.png, icon-512.png
-#   manifest.json, sw.js
-```
-
-### 9.2 Firebase Hosting
+### Frontend
 
 ```bash
-npm install -g firebase-tools
-firebase login
-firebase init hosting
-# Public directory: .
-# Single-page app: No
-firebase deploy
+pnpm build:frontend   # genera apps/frontend/dist/
 ```
 
-### 9.3 Backend (Docker)
+Deploy estático en Vercel/Netlify (SPA, rewrites a `index.html`).
+
+### Backend (Docker)
 
 ```bash
-docker compose up -d
-
-# Verificar:
-curl http://localhost:3456/api/health
-# {"ok":true,"service":"Veridia HealthTech API","version":"5.2.0"}
+docker compose -f docker-compose.prod.yml up -d --build
 ```
+
+Imagen multi-stage (build → runner no-privilegiado) con healthcheck en `/api/health`.
 
 ---
 
 ## 10. Planes SaaS
 
-| Plan | Precio | Usuarios | Pacientes | Módulos | RC |
-|------|--------|----------|-----------|---------|-----|
-| **Starter** | 0 €/mes | 1 | 20 | 5 | ❌ |
-| **Professional** | 49 €/mes | 3 | 500 | 18 | ❌ |
-| **Enterprise** | 149 €/mes | 10 | ∞ | 22 | ✅ |
+| Plan | Precio | Usuarios | Pacientes | Módulos |
+|------|--------|----------|-----------|---------|
+| **Starter** | 0 €/mes | 1 | 20 | 5 |
+| **Professional** | 49 €/mes | 3 | 500 | 18 |
+| **Enterprise** | 149 €/mes | 10 | ∞ | 22 + RC |
 
 ---
 
-## 11. Mantenimiento y Monitoreo
+## 11. Documentación
 
-### 11.1 Comandos de mantenimiento
-
-```bash
-npm run check            # Verificar sintaxis 31 archivos
-npm run lint             # Solo verificación (sin tests)
-npm run stats            # Métricas del código
-npm run build            # Regenerar build de producción
-```
-
-### 11.2 Monitoreo de localStorage
-
-La función `getStorageUsage()` reporta el uso de localStorage:
-- ⚠️ Warning al 80% (4MB/5MB)
-- 🔴 Critical al 90% (4.5MB/5MB) con toast visible al usuario
-
-`trimDBArrays()` se ejecuta automáticamente en cada `saveData()` con los siguientes límites:
-
-| Array | Límite máximo |
-|-------|--------------|
-| `auditLog` | 500 registros |
-| `alerts` | 200 registros |
-| `feedback` | 100 registros |
-| `rcAppcc` | 500 registros |
-| `rcMermas` | 300 registros |
-| `rcLotes` | 200 registros |
-| `chatDB` (por paciente) | 200 mensajes |
-
-### 11.3 Logs del backend
-
-```bash
-# Verificar health
-curl http://localhost:3456/api/health
-
-# Logs en tiempo real (Docker)
-docker compose logs -f api
-
-# Verificar DB
-docker compose exec db psql -U nutrisuite -d nutrisuite_db -c "SELECT count(*) FROM patients;"
-```
+| Documento | Contenido |
+|-----------|-----------|
+| [`AGENTS.md`](AGENTS.md) | Guía de arquitectura para agentes/developers |
+| [`PRODUCT.md`](PRODUCT.md) | Truth de producto: usuarios, propósito, principios |
+| [`DESIGN.md`](DESIGN.md) | Design system (tokens, tipografía, componentes) |
+| `legal/` | Aviso legal, privacidad, cookies, términos |
 
 ---
 
-## 12. Documentación Complementaria
-
-| Documento | Ubicación | Contenido |
-|-----------|-----------|-----------|
-| Historial de cambios | `docs/CHANGELOG.md` | v5.0.0 → v5.2.0 con 84 mejoras detalladas |
-| Auditoría de arquitectura | `docs/ARCHITECTURE-AUDIT.md` | 27 recomendaciones (Frontend + Backend) |
-| Auditoría de seguridad | `docs/SECURITY-AUDIT.md` | 22 vulnerabilidades con remediación |
-| Plan de migración Flutter | `docs/FLUTTER-MIGRATION-PLAN.md` | 12 fases, ~32-44 días estimados |
-| Plan de mejoras | `docs/MEJORAS-PLAN.md` | 84 mejoras completadas (4 sprints) |
-| Firestore Security Rules | `firestore.rules` | Default DENY, reglas por colección |
-
----
-
-## 13. Equipo
+## 12. Equipo
 
 | Nombre | Rol | Contacto |
 |--------|-----|----------|
-| **Eduardo Andres Galeano Aido** | Director de Arquitectura, CTO, Desarrollador Principal | `admin@veridia.tech` |
-| **Lic. Antonella Caverzan** | Directora Clínica, Nutricionista | `antonella@veridia.tech` |
+| **Eduardo Andres Galeano Aido** | Director de Arquitectura / CTO | `admin@veridia.tech` |
+| **Lic. Antonella Caverzan** | Directora Clínica | `antonella@veridia.tech` |
 
 ---
 
-## 14. Licencia
+## Licencia
 
 Copyright © 2026 GalcoCapital LLC. Todos los derechos reservados.
-
-Este software y su código fuente son propiedad exclusiva de GalcoCapital LLC. Queda prohibida su reproducción, distribución o transmisión sin autorización expresa del propietario.
-
-Para consultas de licenciamiento: `admin@veridia.tech`
-
----
-
-*Documento generado el 25 de junio de 2026. Versión 1.0.0.*
-*Clasificación: CONFIDENCIAL — Uso Interno — GalcoCapital LLC.*
+Software propietario — prohibida su reproducción o distribución sin autorización expresa.
