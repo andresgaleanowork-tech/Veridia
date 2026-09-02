@@ -29,8 +29,20 @@ test.describe('Pacientes', () => {
           .catch(() => {});
       }
     });
+    const keyWarnings: string[] = [];
+    const keyWarningPromises: Promise<void>[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') consoleErrors.push(msg.text().slice(0, 150));
+      // Las warnings de React conservan el %s (texto de la key) sin
+      // formatear en msg.text(): el valor real va en args[0].
+      if (msg.type() === 'warning' && msg.text().includes('same key')) {
+        keyWarningPromises.push(
+          msg.args()
+            .then((args) => args[0]?.jsonValue())
+            .then((v) => keyWarnings.push(`key=${JSON.stringify(v)}`))
+            .catch(() => keyWarnings.push('(args no legibles)')),
+        );
+      }
     });
 
     await page.goto('/patients');
@@ -47,14 +59,22 @@ test.describe('Pacientes', () => {
     try {
       await expect(page.getByText(nombre, { exact: true })).toBeVisible({ timeout: 15_000 });
     } catch {
+      await Promise.all(keyWarningPromises);
       const formErrors = await page.locator('.text-red-400').allTextContents().catch(() => []);
       const dialogOpen = await page.getByRole('dialog').isVisible().catch(() => false);
+      const rowCount = await page.locator('tbody tr').count().catch(() => -1);
+      const firstCol = await page
+        .locator('tbody tr td:nth-child(2)')
+        .allTextContents()
+        .catch(() => []);
       throw new Error(
         [
           'Diagnóstico creación de paciente:',
-          `  POST /patients: ${post ? `${post.status} ${post.body}` : 'NINGUNA (el form no envió la petición)'}`,
+          `  POST /patients: ${post ? `${post.status} ${post.body.slice(0, 120)}` : 'NINGUNA (el form no envió la petición)'}`,
           `  diálogo abierto al final: ${dialogOpen}`,
           `  errores visibles del form: ${formErrors.join(' | ') || 'ninguno'}`,
+          `  filas en la tabla: ${rowCount} → ${JSON.stringify(firstCol)}`,
+          `  keys duplicadas (React): ${keyWarnings.join(' , ') || 'ninguna'}`,
           `  llamadas /api: ${apiCalls.join(' , ') || 'ninguna'}`,
           `  errores de consola: ${consoleErrors.slice(0, 3).join(' || ') || 'ninguno'}`,
         ].join('\n'),
