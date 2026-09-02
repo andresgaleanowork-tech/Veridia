@@ -10,8 +10,9 @@ export const PatientSchema = z.object({
   nombre: z.string().min(1),
   apellidos: z.string().min(1),
   dni: z.string().optional().nullable(),
-  fecha_nacimiento: ISODateSchema.optional(),
-  sexo: PatientSexSchema.optional(),
+  fecha_nacimiento: ISODateSchema.optional().nullable(),
+  // La API devuelve null (no undefined) para campos opcionales.
+  sexo: PatientSexSchema.optional().nullable(),
   email: z.string().email().optional().or(z.literal('')).nullable(),
   telefono: z.string().optional().nullable(),
   direccion: z.string().optional().nullable(),
