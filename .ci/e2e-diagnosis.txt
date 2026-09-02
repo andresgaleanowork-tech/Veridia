@@ -1,11 +1,11 @@
-RUN: local-test-2
+RUN: local-test-3
 SHA: n/a
 REF: refs/pull/27/merge
-FECHA: 2026-09-02T13:16:08.041Z
+FECHA: 2026-09-02T13:16:21.872Z
 
 Diagnóstico del último fallo de E2E (actualizado automáticamente por CI).
-Run: /andresgaleanowork-tech/Veridia/actions/runs/local-test-2
-SHA: n/a · fecha: 2026-09-02T13:16:08.010Z
+Run: /andresgaleanowork-tech/Veridia/actions/runs/local-test-3
+SHA: n/a · fecha: 2026-09-02T13:16:19.013Z
 
 ❌ No se generó el reporte JSON (`e2e/.results/results.json`): el runner falló antes de escribirlo.
 ## Output del runner (tail)
