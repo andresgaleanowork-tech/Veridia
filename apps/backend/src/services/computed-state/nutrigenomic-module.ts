@@ -7,13 +7,16 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+
   NutrigenomicProfile,
   NutrigenomicVariant,
 } from '../../types/patient-context.js';
 
 interface NutrigenomicConfig {
   enableAnalysis?: boolean;
-  variantDatabase?: Record<string, any>;
+  variantDatabase?: Record<string, unknown>;
 }
 
 const VARIANT_DATABASE: Record<string, NutrigenomicVariant> = {
@@ -174,7 +177,7 @@ export class NutrigenomicModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = ['genomicData', 'nutrigenomicProfile'];
     
     const hasRelevantChange = changes.changedFields.some((f: string) => relevantFields.includes(f));
@@ -209,7 +212,7 @@ export class NutrigenomicModule implements ModuleInterface {
   ];
   actions = [];
 
-  private analyzeGenomics(state: any): NutrigenomicProfile {
+  private analyzeGenomics(state: ModuleState): NutrigenomicProfile {
     const variants = this.getPatientVariants(state);
     const requirements = this.calculateRequirements(variants);
     const sensitivities = this.assessSensitivities(variants);
@@ -227,7 +230,7 @@ export class NutrigenomicModule implements ModuleInterface {
     };
   }
 
-  private getPatientVariants(state: any): NutrigenomicVariant[] {
+  private getPatientVariants(state: ModuleState): NutrigenomicVariant[] {
     const patientVariants = state.genomicData?.variants || [];
     const variants: NutrigenomicVariant[] = [];
     

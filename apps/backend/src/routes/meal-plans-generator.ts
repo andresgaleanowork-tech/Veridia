@@ -11,33 +11,43 @@ import { logAudit } from '../utils/audit.js';
 
 const router = Router();
 
-function generateMealPlan(objectives: any, foodRows: any[]) {
+interface FoodRow {
+  id: string;
+  name: string;
+  caloriesPer100g: string | null;
+  proteinPer100g?: string | null;
+  carbsPer100g?: string | null;
+  fatPer100g?: string | null;
+  allergens?: string | null;
+}
+
+function generateMealPlan(objectives: { calories: number; allergens?: string[]; durationDays: number }, foodRows: FoodRow[]) {
   const { calories, allergens = [], durationDays } = objectives;
   const mealTypes = ['desayuno', 'almuerzo', 'cena', 'colacion'];
   const mealRatios = [0.25, 0.35, 0.30, 0.10];
   const plan = [];
   for (let day = 1; day <= durationDays; day++) {
     const dayMeals = [];
-    const dayUsedFoods = new Set();
+    const dayUsedFoods = new Set<string>();
     for (let m = 0; m < mealTypes.length; m++) {
       const mealCalories = Math.round(calories * mealRatios[m]);
       let available = foodRows.filter(f => !allergens.some((a: string) => (f.allergens || '').includes(a)));
-      available = available.filter((f: any) => !dayUsedFoods.has(f.id));
+      available = available.filter((f) => !dayUsedFoods.has(f.id));
       const selected = [];
       let currentCal = 0;
       const shuffled = available.sort(() => Math.random() - 0.5);
       for (const food of shuffled) {
         if (currentCal >= mealCalories * 0.9 && currentCal <= mealCalories * 1.1) break;
-        const portion = Math.round((parseFloat(food.caloriesPer100g) / parseFloat(food.caloriesPer100g || '1')) * 100);
+        const portion = Math.round((parseFloat(food.caloriesPer100g ?? '0') / parseFloat(food.caloriesPer100g || '1')) * 100);
         if (portion > 0 && portion <= 1000) {
-          selected.push({ foodId: food.id, name: food.name, portion, calories: Math.round(parseFloat(food.caloriesPer100g) * portion / 100), protein: Math.round(parseFloat(food.proteinPer100g || '0') * portion / 100), carbs: Math.round(parseFloat(food.carbsPer100g || '0') * portion / 100), fat: Math.round(parseFloat(food.fatPer100g || '0') * portion / 100) });
-          currentCal += Math.round(parseFloat(food.caloriesPer100g) * portion / 100);
+          selected.push({ foodId: food.id, name: food.name, portion, calories: Math.round(parseFloat(food.caloriesPer100g ?? '0') * portion / 100), protein: Math.round(parseFloat(food.proteinPer100g || '0') * portion / 100), carbs: Math.round(parseFloat(food.carbsPer100g || '0') * portion / 100), fat: Math.round(parseFloat(food.fatPer100g || '0') * portion / 100) });
+          currentCal += Math.round(parseFloat(food.caloriesPer100g ?? '0') * portion / 100);
           dayUsedFoods.add(food.id);
         }
       }
       dayMeals.push({ type: mealTypes[m], time: m === 0 ? '08:00' : m === 1 ? '13:00' : m === 2 ? '20:00' : '16:00', foods: selected, totalCalories: currentCal });
     }
-    plan.push({ day, meals: dayMeals, totalCalories: dayMeals.reduce((sum: number, m: any) => sum + m.totalCalories, 0) });
+    plan.push({ day, meals: dayMeals, totalCalories: dayMeals.reduce((sum: number, m: { totalCalories: number }) => sum + m.totalCalories, 0) });
   }
   return plan;
 }

@@ -59,8 +59,8 @@ const router = Router();
 const FITNESS_PLATFORMS = ['google_fit', 'apple_health', 'fitbit', 'samsung_health', 'garmin'] as const;
 const ACTIVITY_FACTORS: Record<string, number> = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9 };
 
-function parseFactor(value: any): number | null {
-  const n = typeof value === 'number' ? value : parseFloat(value);
+function parseFactor(value: unknown): number | null {
+  const n = typeof value === 'number' ? value : parseFloat(String(value));
   if (isNaN(n) || n < 1.0 || n > 2.5) return null;
   return +n.toFixed(3);
 }
@@ -107,7 +107,7 @@ router.get('/activities/:patientId', authenticate, authorize('nutricionista'), v
     const { patientId } = req.params;
     const { from, to, limit = 100 } = req.query;
     let sql = 'SELECT * FROM fitness_activities WHERE paciente_id = $1';
-    const params: any[] = [patientId];
+    const params: unknown[] = [patientId];
     let idx = 2;
     if (from) { sql += ` AND start_time >= $${idx++}`; params.push(from); }
     if (to) { sql += ` AND start_time <= $${idx++}`; params.push(to); }
@@ -125,7 +125,7 @@ router.get('/summary/:patientId', authenticate, authorize('nutricionista'), vali
     const { patientId } = req.params;
     const { from, to } = req.query;
     let where = 'WHERE paciente_id = $1';
-    const params: any[] = [patientId];
+    const params: unknown[] = [patientId];
     let idx = 2;
     if (from) { where += ` AND start_time >= $${idx++}`; params.push(from); }
     if (to) { where += ` AND start_time <= $${idx++}`; params.push(to); }

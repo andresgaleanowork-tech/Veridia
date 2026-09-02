@@ -1,6 +1,6 @@
 // Patient Food Journal routes - Drizzle ORM
-import { Router } from 'express';
-import { eq, and, desc, gte, lte, count } from 'drizzle-orm';
+import { Router, Request, Response, NextFunction } from 'express';
+import { eq, and, desc, gte, lte, count, type SQL } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { db } from '../config/db.js';
@@ -23,40 +23,43 @@ const router = Router();
 const PROFESSIONAL_ROLES = ['admin', 'nutricionista', 'secretaria'];
 const JournalIdParamsSchema = z.object({ id: UUIDSchema });
 
-function resolvePatientId(req: any, _res: any, next: any) {
+function resolvePatientId(req: Request, _res: Response, next: NextFunction) {
   if (req.isPatient) { req.target_patient_id = req.paciente_id; }
   else { req.target_patient_id = req.body?.patient_id || req.query?.patient_id || req.params.patientId; }
   next();
 }
 
-router.get('/', authOrPatient(PROFESSIONAL_ROLES), validateZodQuery(PatientFoodJournalQuerySchema), resolvePatientId, async (req: any, res) => {
+router.get('/', authOrPatient(PROFESSIONAL_ROLES), validateZodQuery(PatientFoodJournalQuerySchema), resolvePatientId, async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
-    const { patient_id, fecha_desde, fecha_hasta, page = 1, limit = 50 } = req.query;
+    const { patient_id, fecha_desde, fecha_hasta } = req.query as { patient_id?: string; fecha_desde?: string; fecha_hasta?: string };
+    const page = parseInt((req.query as { page?: string }).page ?? '1', 10);
+    const limit = parseInt((req.query as { limit?: string }).limit ?? '50', 10);
     if (patient_id && !req.isPatient) {
       const check = await db.select({ id: patients.id }).from(patients).where(eq(patients.id, patient_id));
       if (!check.length) return res.error(404, 'Paciente no encontrado');
     }
-    const conditions = [];
-    if (req.isPatient) conditions.push(eq(patientFoodJournals.pacienteId, req.paciente_id));
+    const conditions: SQL[] = [];
+    if (req.isPatient && req.paciente_id) conditions.push(eq(patientFoodJournals.pacienteId, req.paciente_id));
     else if (patient_id) conditions.push(eq(patientFoodJournals.pacienteId, patient_id));
     if (fecha_desde) conditions.push(gte(patientFoodJournals.date, fecha_desde));
     if (fecha_hasta) conditions.push(lte(patientFoodJournals.date, fecha_hasta));
     const where = conditions.length > 0 ? and(...conditions) : undefined;
 
     const data = await db.select().from(patientFoodJournals).where(where).orderBy(desc(patientFoodJournals.date))
-      .limit(parseInt(limit)).offset((parseInt(page) - 1) * parseInt(limit));
+      .limit(limit).offset((page - 1) * limit);
     const c = await db.select({ count: count() }).from(patientFoodJournals).where(where);
-    res.paginated(data, parseInt(String(c[0].count)), parseInt(page), parseInt(limit));
+    res.paginated(data, parseInt(String(c[0].count)), page, limit);
   } catch (err) { console.error('GET patient-journal error:', err); res.error(500, 'Error interno'); }
 });
 
-router.post('/', authOrPatient(PROFESSIONAL_ROLES), validateZod(PatientFoodJournalCreateSchema), resolvePatientId, async (req: any, res) => {
+router.post('/', authOrPatient(PROFESSIONAL_ROLES), validateZod(PatientFoodJournalCreateSchema), resolvePatientId, async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
     const patientId = req.target_patient_id;
+    if (!patientId) return res.error(400, 'patient_id requerido');
     const check = await db.select({ id: patients.id }).from(patients).where(eq(patients.id, patientId));
     if (!check.length) return res.error(404, 'Paciente no encontrado');
     const { date, meals, symptoms, exercise, water_intake, mood, notes, photo_urls } = req.body;
@@ -75,7 +78,7 @@ router.post('/', authOrPatient(PROFESSIONAL_ROLES), validateZod(PatientFoodJourn
   } catch (err) { console.error('POST patient-journal error:', err); res.error(500, 'Error interno'); }
 });
 
-router.get('/:id', authOrPatient(PROFESSIONAL_ROLES), validateZodParams(JournalIdParamsSchema), async (req: any, res) => {
+router.get('/:id', authOrPatient(PROFESSIONAL_ROLES), validateZodParams(JournalIdParamsSchema), async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
@@ -87,7 +90,7 @@ router.get('/:id', authOrPatient(PROFESSIONAL_ROLES), validateZodParams(JournalI
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.put('/:id', authOrPatient(PROFESSIONAL_ROLES), validateZodParams(JournalIdParamsSchema), validateZod(PatientFoodJournalUpdateSchema), async (req: any, res) => {
+router.put('/:id', authOrPatient(PROFESSIONAL_ROLES), validateZodParams(JournalIdParamsSchema), validateZod(PatientFoodJournalUpdateSchema), async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
@@ -106,7 +109,7 @@ router.put('/:id', authOrPatient(PROFESSIONAL_ROLES), validateZodParams(JournalI
   } catch (err) { console.error('PUT patient-journal error:', err); res.error(500, 'Error interno'); }
 });
 
-router.delete('/:id', authOrPatient(PROFESSIONAL_ROLES), validateZodParams(JournalIdParamsSchema), async (req: any, res) => {
+router.delete('/:id', authOrPatient(PROFESSIONAL_ROLES), validateZodParams(JournalIdParamsSchema), async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
@@ -119,7 +122,7 @@ router.delete('/:id', authOrPatient(PROFESSIONAL_ROLES), validateZodParams(Journ
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.get('/stats/:patientId', authOrPatient(PROFESSIONAL_ROLES), validateZodParams(z.object({ patientId: UUIDSchema })), async (req: any, res) => {
+router.get('/stats/:patientId', authOrPatient(PROFESSIONAL_ROLES), validateZodParams(z.object({ patientId: UUIDSchema })), async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');

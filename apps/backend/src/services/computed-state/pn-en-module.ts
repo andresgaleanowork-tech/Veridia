@@ -7,6 +7,9 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+
   PNENPrescription,
   PNPrescription,
   ENPrescription,
@@ -63,7 +66,7 @@ export class PNENModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = [
       'diagnoses',
       'anthropometry.weight',
@@ -104,7 +107,7 @@ export class PNENModule implements ModuleInterface {
   ];
   actions = [];
 
-  private calculatePrescription(state: any): PNENPrescription {
+  private calculatePrescription(state: ModuleState): PNENPrescription {
     const weight = state.anthropometry?.weight || 70;
     const espenTargets = state.espenTargets;
     
@@ -131,7 +134,7 @@ export class PNENModule implements ModuleInterface {
     };
   }
 
-  private assessPNIndication(state: any): boolean {
+  private assessPNIndication(state: ModuleState): boolean {
     const diagnoses = state.diagnoses || [];
     const giFailure = diagnoses.some((d: Diagnosis) => 
       d.code.startsWith('K5') || d.code.startsWith('K6') || d.code === 'K91.2'
@@ -149,7 +152,7 @@ export class PNENModule implements ModuleInterface {
     return giFailure || severeMalabsorption || bowelObstruction || highOutputFistula;
   }
 
-  private assessENIndication(state: any): boolean {
+  private assessENIndication(state: ModuleState): boolean {
     const diagnoses = state.diagnoses || [];
     const functionalGI = diagnoses.some((d: Diagnosis) => 
       d.code.startsWith('K2') || d.code.startsWith('K3') || d.code.startsWith('K59')
@@ -270,7 +273,7 @@ export class PNENModule implements ModuleInterface {
     };
   }
 
-  private getIndication(state: any): string {
+  private getIndication(state: ModuleState): string {
     const indications: string[] = [];
     
     if (this.assessPNIndication(state)) indications.push('GI failure/malabsorption');
@@ -288,7 +291,7 @@ export class PNENModule implements ModuleInterface {
     ];
   }
 
-  private getMonitoringPlan(): any {
+  private getMonitoringPlan(): { parameter: string; frequency: string; target: string }[] {
     return [
       { parameter: 'Glucose', frequency: 'Q6H', target: '80-180 mg/dL' },
       { parameter: 'Electrolytes', frequency: 'Daily', target: 'Normal range' },
@@ -298,10 +301,10 @@ export class PNENModule implements ModuleInterface {
     ];
   }
 
-  private getContraindications(state: any): string[] {
+  private getContraindications(state: ModuleState): string[] {
     const contraindications: string[] = [];
     
-    if (state.labs?.triglycerides > 400) {
+    if ((state.labs?.triglycerides ?? 0) > 400) {
       contraindications.push('Severe hypertriglyceridemia (lipids contraindicated)');
     }
     

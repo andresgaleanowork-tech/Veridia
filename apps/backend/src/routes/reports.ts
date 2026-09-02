@@ -56,10 +56,40 @@ function generateVeridiaHTML(title: string, bodyContent: string): string {
 </html>`;
 }
 
-function buildPatientReport(patient: any, data: any): string {
+interface ReportPatient {
+  nombre?: string | null;
+  apellidos?: string | null;
+  dni?: string | null;
+  fechaNacimiento?: string | null;
+  sexo?: string | null;
+  telefono?: string | null;
+  email?: string | null;
+  alerts?: unknown[];
+}
+
+interface ReportData {
+  history?: {
+    antecedentes?: string | null;
+    alergias?: string | null;
+    medicacion?: string | null;
+    observaciones?: string | null;
+  } | null;
+  antropometrias?: { fecha: string; peso?: string | number | null; altura?: string | number | null; imc?: string | number | null; metodo?: string | null }[];
+  mealPlans?: { fechaCreacion?: string | null; nombre?: string | null; kcalObjetivo?: number | null; estado?: string | null }[];
+}
+
+interface KpiSummary {
+  totalPatients: number;
+  totalAppointments: number;
+  totalRevenue: number;
+  avgAppointmentsPerPatient: number;
+  generatedAt: string;
+}
+
+function buildPatientReport(patient: ReportPatient, data: ReportData): string {
   const sections: string[] = [];
   sections.push(`<div class="card"><h2>Datos del Paciente</h2>
-    <div class="row"><span class="label">Nombre</span><span class="value">${patient.nombre} ${patient.apellidos}</span></div>
+    <div class="row"><span class="label">Nombre</span><span class="value">${patient.nombre || ''} ${patient.apellidos || ''}</span></div>
     <div class="row"><span class="label">DNI</span><span class="value">${patient.dni || '—'}</span></div>
     <div class="row"><span class="label">Fecha de nacimiento</span><span class="value">${patient.fechaNacimiento || '—'}</span></div>
     <div class="row"><span class="label">Sexo</span><span class="value">${patient.sexo || '—'}</span></div>
@@ -77,12 +107,12 @@ function buildPatientReport(patient: any, data: any): string {
   }
 
   if (data.antropometrias?.length) {
-    const rows = data.antropometrias.map((a: any) => `<tr><td>${new Date(a.fecha).toLocaleDateString('es-ES')}</td><td>${a.peso || '—'}</td><td>${a.altura || '—'}</td><td>${a.imc || '—'}</td><td>${a.metodo || '—'}</td></tr>`).join('');
+    const rows = data.antropometrias.map((a) => `<tr><td>${new Date(a.fecha).toLocaleDateString('es-ES')}</td><td>${a.peso || '—'}</td><td>${a.altura || '—'}</td><td>${a.imc || '—'}</td><td>${a.metodo || '—'}</td></tr>`).join('');
     sections.push(`<div class="card"><h2>Antropometría</h2><table><thead><tr><th>Fecha</th><th>Peso (kg)</th><th>Altura (cm)</th><th>IMC</th><th>Método</th></tr></thead><tbody>${rows}</tbody></table></div>`);
   }
 
   if (data.mealPlans?.length) {
-    const rows = data.mealPlans.map((p: any) => `<tr><td>${new Date(p.fechaCreacion).toLocaleDateString('es-ES')}</td><td>${p.nombre || '—'}</td><td>${p.kcalObjetivo || '—'}</td><td>${p.estado}</td></tr>`).join('');
+    const rows = data.mealPlans.map((p) => `<tr><td>${p.fechaCreacion ? new Date(p.fechaCreacion).toLocaleDateString('es-ES') : '—'}</td><td>${p.nombre || '—'}</td><td>${p.kcalObjetivo ?? '—'}</td><td>${p.estado}</td></tr>`).join('');
     sections.push(`<div class="card"><h2>Planes Alimenticios</h2><table><thead><tr><th>Fecha</th><th>Nombre</th><th>Kcal objetivo</th><th>Estado</th></tr></thead><tbody>${rows}</tbody></table></div>`);
   }
 
@@ -100,7 +130,7 @@ router.post('/generate', authenticate, authorize('nutricionista'), async (req, r
     if (!patientRes.length) return res.error(404, 'Paciente no encontrado');
     const patient = patientRes[0];
 
-    let extraData: any = {};
+    let extraData: ReportData = {};
     if (['paciente_completo', 'clinico', 'nutricional'].includes(tipo)) {
       const [history, antro, plans] = await Promise.all([
         db.select().from(clinicalHistories).where(eq(clinicalHistories.pacienteId, paciente_id)).orderBy(desc(clinicalHistories.version)).limit(1),
@@ -126,7 +156,7 @@ router.post('/analytics', authenticate, validateZod(ReportGenerateSchema), async
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
     const { name, type, params } = req.body;
-    const result: Record<string, any> = { totalPatients: 0, totalAppointments: 0, totalRevenue: 0, avgAppointmentsPerPatient: 0, generatedAt: new Date().toISOString() };
+    const result: KpiSummary = { totalPatients: 0, totalAppointments: 0, totalRevenue: 0, avgAppointmentsPerPatient: 0, generatedAt: new Date().toISOString() };
 
     const patientsResult = await db.select({ count: count() }).from(patients).where(eq(patients.activo, true));
     result.totalPatients = parseInt(String(patientsResult[0].count));
@@ -227,13 +257,12 @@ try {
     if (!user) return res.error(401, 'Unauthorized');
       const patientRes = await db.select().from(patients).where(eq(patients.id, req.params.patientId));
       if (!patientRes.length) return res.error(404, 'Paciente no encontrado');
-      const patient: any = patientRes[0];
       const historyRes = await db.select().from(clinicalHistories).where(eq(clinicalHistories.pacienteId, req.params.patientId)).orderBy(desc(clinicalHistories.version)).limit(1);
       const history = historyRes[0];
       const analyticsRes = await db.select().from(analiticas).where(eq(analiticas.pacienteId, req.params.patientId)).orderBy(desc(analiticas.fecha)).limit(1);
       const analytics = (analyticsRes[0] as unknown as { marcadores?: unknown[] }).marcadores || [];
       const alertsRes = await db.select().from(alerts).where(and(eq(alerts.pacienteId, req.params.patientId), eq(alerts.estado, 'pendiente')));
-      patient.alerts = alertsRes;
+      const patient: ReportPatient = { ...patientRes[0], alerts: alertsRes };
       const settingsRes = await db.select().from(userSettings).where(eq(userSettings.userId, user?.id));
       const branding = (settingsRes[0] as unknown as { branding?: Record<string, unknown> }).branding || {};
       const pdfBuffer = await generateClinicalReportPDF(patient, history, analytics, branding);

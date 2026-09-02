@@ -29,7 +29,7 @@ router.post('/gemini', authenticate, validateZod(GeminiRequestSchema), async (re
     const data = await response.json() as any;
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     res.success({ text, model, tokens: text.length });
-  } catch (err: any) { res.error(500, 'Proxy error: ' + err.message); }
+  } catch (err) { res.error(500, 'Proxy error: ' + (err instanceof Error ? err.message : String(err))); }
 });
 
 router.get('/usda/search', authenticate, validateZodQuery(USDAQuerySchema), async (req, res) => {
@@ -44,7 +44,7 @@ router.get('/usda/search', authenticate, validateZodQuery(USDAQuerySchema), asyn
     if (!response.ok) return res.error(response.status, 'USDA API error: ' + response.status);
     const data = await response.json();
     res.success(data);
-  } catch (err: any) { res.error(500, 'Proxy error: ' + err.message); }
+  } catch (err) { res.error(500, 'Proxy error: ' + (err instanceof Error ? err.message : String(err))); }
 });
 
 export default router;

@@ -7,6 +7,9 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+
   GLIMDiagnosis,
   GLIMCriteria,
   Diagnosis,
@@ -62,7 +65,7 @@ export class GLIMModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = [
       'anthropometry.weight',
       'anthropometry.bmi',
@@ -98,7 +101,7 @@ export class GLIMModule implements ModuleInterface {
   tabs = [];
   actions = [];
 
-  private computeGLIM(state: any): GLIMDiagnosis {
+  private computeGLIM(state: ModuleState): GLIMDiagnosis {
     const criteria = this.assessCriteria(state);
     
     const phenotypicScore = this.calculatePhenotypicScore(criteria.phenotypic);
@@ -120,7 +123,7 @@ export class GLIMModule implements ModuleInterface {
     };
   }
 
-  private assessCriteria(state: any): GLIMCriteria {
+  private assessCriteria(state: ModuleState): GLIMCriteria {
     const phenotypic = {
       weightLoss: this.assessWeightLoss(state),
       lowBMI: this.assessBMI(state),
@@ -135,7 +138,7 @@ export class GLIMModule implements ModuleInterface {
     return { phenotypic, etiologic };
   }
 
-  private assessWeightLoss(state: any): GLIMCriteria['phenotypic']['weightLoss'] {
+  private assessWeightLoss(state: ModuleState): GLIMCriteria['phenotypic']['weightLoss'] {
     const weightLoss = state.anthropometry?.weightChangePercent;
     const period = state.anthropometry?.weightChangePeriod || 'unknown';
     
@@ -156,7 +159,7 @@ export class GLIMModule implements ModuleInterface {
     };
   }
 
-  private assessBMI(state: any): GLIMCriteria['phenotypic']['lowBMI'] {
+  private assessBMI(state: ModuleState): GLIMCriteria['phenotypic']['lowBMI'] {
     const bmi = state.anthropometry?.bmi;
     
     if (!bmi) {
@@ -175,7 +178,7 @@ export class GLIMModule implements ModuleInterface {
     };
   }
 
-  private assessMuscleMass(state: any): GLIMCriteria['phenotypic']['reducedMuscleMass'] {
+  private assessMuscleMass(state: ModuleState): GLIMCriteria['phenotypic']['reducedMuscleMass'] {
     const hasBodyComp = state.anthropometry?.bodyFat !== undefined || 
                         state.anthropometry?.muscleMass !== undefined;
     
@@ -204,7 +207,7 @@ export class GLIMModule implements ModuleInterface {
     };
   }
 
-  private assessReducedIntake(state: any): GLIMCriteria['etiologic']['reducedIntake'] {
+  private assessReducedIntake(state: ModuleState): GLIMCriteria['etiologic']['reducedIntake'] {
     const intakeScore = state.nutritionAssessment?.intakeScore;
     
     if (intakeScore === undefined) {
@@ -218,7 +221,7 @@ export class GLIMModule implements ModuleInterface {
     };
   }
 
-  private assessInflammation(state: any): GLIMCriteria['etiologic']['inflammation'] {
+  private assessInflammation(state: ModuleState): GLIMCriteria['etiologic']['inflammation'] {
     if (!this.config.includeInflammation) {
       return { present: false, crp: 0, diagnosis: 'none' };
     }
@@ -243,7 +246,7 @@ export class GLIMModule implements ModuleInterface {
     return score; // 0-3
   }
 
-  private calculateEtiologicScore(etiologic: GLIMCriteria['etiologic'], state: any): number {
+  private calculateEtiologicScore(etiologic: GLIMCriteria['etiologic'], state: ModuleState): number {
     let score = 0;
     
     if (etiologic.reducedIntake.present) score += 1;
@@ -271,12 +274,12 @@ export class GLIMModule implements ModuleInterface {
     return score >= 2 ? 'severe' : 'moderate';
   }
 
-  private calculateConfidence(state: any): 'high' | 'moderate' | 'low' {
+  private calculateConfidence(state: ModuleState): 'high' | 'moderate' | 'low' {
     const dataPoints = [
       state.anthropometry?.weight !== undefined,
       state.anthropometry?.bmi !== undefined,
       state.labs?.albumin !== undefined,
-      state.labResults?.length > 0,
+      (state.labResults?.length ?? 0) > 0,
       state.screeningResults?.length > 0,
     ].filter(Boolean).length;
     

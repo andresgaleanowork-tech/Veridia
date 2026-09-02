@@ -127,7 +127,7 @@ router.post('/', authenticate, authorize('admin', 'nutricionista'), validateZod(
     const { paciente_id, lineas, total, estado, fecha } = req.body;
     const countResult = await db.select({ count: count() }).from(invoices);
     const num = `VH-${String(parseInt(String(countResult[0].count)) + 1).padStart(4, '0')}`;
-    const calculatedTotal = lineas?.reduce((sum: number, l: any) => sum + (l.cantidad || 1) * (l.precio || 0), 0) || total;
+    const calculatedTotal = lineas?.reduce((sum: number, l: { cantidad?: number; precio?: number }) => sum + (l.cantidad || 1) * (l.precio || 0), 0) || total;
 
     const result = await db.insert(invoices).values({
       numero: num,
@@ -189,7 +189,7 @@ router.put('/:id/pay', authenticate, validateZodParams(z.object({ id: UUIDSchema
     const pagos = (inv.pagos as any[]) || [];
     pagos.push({ importe: parseFloat(req.body.importe), metodo: req.body.metodo || 'Efectivo', fecha: req.body.fecha || new Date().toISOString() });
 
-    const totalPagado = pagos.reduce((s: number, p: any) => s + p.importe, 0);
+    const totalPagado = pagos.reduce((s: number, p: { importe: number }) => s + p.importe, 0);
     const nuevoEstado = totalPagado >= parseFloat(String(inv.total)) ? 'Pagada' : 'Pendiente';
 
     const result = await db.update(invoices).set({ pagos, estado: nuevoEstado }).where(eq(invoices.id, req.params.id)).returning();

@@ -1,6 +1,9 @@
 import { db } from '../config/db.js';
 import { professionalNotifications, pushSubscriptions } from '../db/schema/index.js';
 import { eq } from 'drizzle-orm';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('NOTIFY');
 
 export interface NotificationPayload {
   professionalId?: string;
@@ -8,7 +11,7 @@ export interface NotificationPayload {
   type: string;
   title: string;
   body?: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 export async function createNotification(payload: NotificationPayload): Promise<void> {
@@ -25,9 +28,9 @@ export async function sendPushNotification(pacienteId: string, title: string): P
     .where(eq(pushSubscriptions.pacienteId, pacienteId));
   // In production, integrate with Firebase Admin SDK
   // For now, just log
-  console.log(`Push notification to ${subscriptions.length} devices: ${title}`);
+  logger.debug(`Push notification to ${subscriptions.length} devices: ${title}`);
 }
 
-export async function notifyProfessional(professionalId: string, type: string, title: string, body?: string, data?: Record<string, any>): Promise<void> {
+export async function notifyProfessional(professionalId: string, type: string, title: string, body?: string, data?: Record<string, unknown>): Promise<void> {
   await createNotification({ professionalId, type, title, body, data });
 }

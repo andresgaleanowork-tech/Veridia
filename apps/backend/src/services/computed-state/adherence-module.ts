@@ -7,6 +7,9 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+
   AdherenceRiskScore,
 } from '../../types/patient-context.js';
 
@@ -58,7 +61,7 @@ export class AdherenceModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = [
       'adherenceRisk',
       'eatingBehavior',
@@ -89,12 +92,12 @@ export class AdherenceModule implements ModuleInterface {
       label: 'Adherence Dashboard',
       icon: 'chart-line',
       order: 1,
-      badge: (ctx: any) => ctx.adherenceRisk?.level === 'high' || ctx.adherenceRisk?.level === 'critical' ? '!' : null,
+      badge: (ctx: ModuleState) => ctx.adherenceRisk?.level === 'high' || ctx.adherenceRisk?.level === 'critical' ? '!' : null,
     },
   ];
   actions = [];
 
-  private assessAdherenceRisk(state: any): AdherenceRiskScore {
+  private assessAdherenceRisk(state: ModuleState): AdherenceRiskScore {
     const factors: AdherenceRiskScore['factors'] = [];
     let totalScore = 0;
     const maxScore = 100;
@@ -123,7 +126,7 @@ export class AdherenceModule implements ModuleInterface {
     };
   }
 
-  private assessDemographicFactors(state: any, factors: AdherenceRiskScore['factors']): void {
+  private assessDemographicFactors(state: ModuleState, factors: AdherenceRiskScore['factors']): void {
     const age = state.demographics?.age || 0;
     
     if (age > 75) {
@@ -152,10 +155,10 @@ export class AdherenceModule implements ModuleInterface {
     }
   }
 
-  private assessClinicalFactors(state: any, factors: AdherenceRiskScore['factors']): void {
+  private assessClinicalFactors(state: ModuleState, factors: AdherenceRiskScore['factors']): void {
     const diagnoses = state.diagnoses || [];
     
-    if (diagnoses.some((d: any) => d.code.startsWith('F') || d.code.startsWith('R45'))) {
+    if (diagnoses.some((d) => d.code.startsWith('F') || d.code.startsWith('R45'))) {
       factors.push({
         factor: 'Psychiatric diagnosis',
         weight: 15,
@@ -164,7 +167,7 @@ export class AdherenceModule implements ModuleInterface {
       });
     }
     
-    if (diagnoses.some((d: any) => d.code.startsWith('E10') || d.code.startsWith('E11'))) {
+    if (diagnoses.some((d) => d.code.startsWith('E10') || d.code.startsWith('E11'))) {
       factors.push({
         factor: 'Diabetes mellitus',
         weight: 10,
@@ -173,7 +176,7 @@ export class AdherenceModule implements ModuleInterface {
       });
     }
     
-    if (diagnoses.some((d: any) => d.code.startsWith('I10') || d.code.startsWith('I50'))) {
+    if (diagnoses.some((d) => d.code.startsWith('I10') || d.code.startsWith('I50'))) {
       factors.push({
         factor: 'Cardiovascular disease',
         weight: 8,
@@ -209,7 +212,7 @@ export class AdherenceModule implements ModuleInterface {
     }
   }
 
-  private assessBehavioralFactors(state: any, factors: AdherenceRiskScore['factors']): void {
+  private assessBehavioralFactors(state: ModuleState, factors: AdherenceRiskScore['factors']): void {
     const eatingBehavior = state.eatingBehavior;
     
     if (eatingBehavior) {
@@ -261,7 +264,7 @@ export class AdherenceModule implements ModuleInterface {
     }
   }
 
-  private assessSocialFactors(state: any, factors: AdherenceRiskScore['factors']): void {
+  private assessSocialFactors(state: ModuleState, factors: AdherenceRiskScore['factors']): void {
     const livingAlone = state.demographics?.livingSituation === 'alone';
     if (livingAlone) {
       factors.push({
@@ -293,7 +296,7 @@ export class AdherenceModule implements ModuleInterface {
     }
   }
 
-  private assessTreatmentFactors(state: any, factors: AdherenceRiskScore['factors']): void {
+  private assessTreatmentFactors(state: ModuleState, factors: AdherenceRiskScore['factors']): void {
     const hasPNEN = state.pnEnPrescription?.pn || state.pnEnPrescription?.en;
     if (hasPNEN) {
       factors.push({
@@ -314,7 +317,7 @@ export class AdherenceModule implements ModuleInterface {
       });
     }
     
-    const missedAppointments = state.appointments?.filter((a: any) => a.status === 'no-show').length > 2;
+    const missedAppointments = (state.appointments?.filter((a) => a.status === 'no-show').length ?? 0) > 2;
     if (missedAppointments) {
       factors.push({
         factor: 'History of missed appointments',

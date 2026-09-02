@@ -7,6 +7,10 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+  Diagnosis,
+
   PrecisionTargets,
   MicrobiomeProfile,
   NutrigenomicProfile,
@@ -59,7 +63,7 @@ export class PrecisionModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = [
       'nutrigenomicProfile',
       'microbiomeProfile',
@@ -99,7 +103,7 @@ export class PrecisionModule implements ModuleInterface {
   ];
   actions = [];
 
-  private calculatePrecisionTargets(state: any): PrecisionTargets {
+  private calculatePrecisionTargets(state: ModuleState): PrecisionTargets {
     const espenTargets = state.espenTargets || {};
     const nutrigenomic = state.nutrigenomicProfile;
     const microbiome = state.microbiomeProfile;
@@ -219,13 +223,13 @@ export class PrecisionModule implements ModuleInterface {
 
   private applyClinicalAdjustments(
     targets: PrecisionTargets['adjustedTargets'],
-    diagnoses: any[],
+    diagnoses: Diagnosis[],
     reasons: string[]
   ): void {
-    const hasDiabetes = diagnoses.some((d: any) => d.code.startsWith('E10') || d.code.startsWith('E11'));
-    const hasCKD = diagnoses.some((d: any) => d.code.startsWith('N18'));
-    const hasHeartFailure = diagnoses.some((d: any) => d.code.startsWith('I50'));
-    const hasLiverDisease = diagnoses.some((d: any) => d.code.startsWith('K7'));
+    const hasDiabetes = diagnoses.some((d) => d.code.startsWith('E10') || d.code.startsWith('E11'));
+    const hasCKD = diagnoses.some((d) => d.code.startsWith('N18'));
+    const hasHeartFailure = diagnoses.some((d) => d.code.startsWith('I50'));
+    const hasLiverDisease = diagnoses.some((d) => d.code.startsWith('K7'));
     
     if (hasDiabetes) {
       targets.carbohydrates.value = Math.min(targets.carbohydrates.value, 200);
@@ -257,7 +261,7 @@ export class PrecisionModule implements ModuleInterface {
   private predictDietResponse(
     nutrigenomic?: NutrigenomicProfile,
     microbiome?: MicrobiomeProfile,
-    diagnoses?: any[]
+    diagnoses?: Diagnosis[]
   ): PrecisionTargets['dietResponsePrediction'] {
     const base = { ...this.config.defaultDietProbabilities };
     
@@ -285,9 +289,9 @@ export class PrecisionModule implements ModuleInterface {
     }
     
     if (diagnoses) {
-      const hasDiabetes = diagnoses.some((d: any) => d.code.startsWith('E10') || d.code.startsWith('E11'));
-      const hasObesity = diagnoses.some((d: any) => d.code === 'E66');
-      const hasHTN = diagnoses.some((d: any) => d.code.startsWith('I10'));
+      const hasDiabetes = diagnoses.some((d) => d.code.startsWith('E10') || d.code.startsWith('E11'));
+      const hasObesity = diagnoses.some((d) => d.code === 'E66');
+      const hasHTN = diagnoses.some((d) => d.code.startsWith('I10'));
       
       if (hasDiabetes) {
         base.lowCarb += 0.2;

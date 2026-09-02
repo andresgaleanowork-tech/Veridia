@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
 
-export function validateZod(schema: z.ZodType<any>) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- `ZodType<any, any>` es el patrón estándar para middlewares de validación por schema
+export function validateZod(schema: z.ZodType<any, any>) {
   return (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse(req.body);
     if (!result.success) {
@@ -16,7 +17,8 @@ export function validateZod(schema: z.ZodType<any>) {
   };
 }
 
-export function validateZodQuery(schema: z.ZodType<any>) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- `ZodType<any, any>` es el patrón estándar para middlewares de validación por schema
+export function validateZodQuery(schema: z.ZodType<any, any>) {
   return (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse(req.query);
     if (!result.success) {
@@ -31,7 +33,8 @@ export function validateZodQuery(schema: z.ZodType<any>) {
   };
 }
 
-export function validateZodParams(schema: z.ZodType<any>) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- `ZodType<any, any>` es el patrón estándar para middlewares de validación por schema
+export function validateZodParams(schema: z.ZodType<any, any>) {
   return (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse(req.params);
     if (!result.success) {

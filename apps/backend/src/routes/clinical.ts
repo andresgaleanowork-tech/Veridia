@@ -205,7 +205,7 @@ router.get('/patients/:id/anthropometry/trends', authenticate, validateZodParams
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
     const metric = String(req.query.metric || 'peso') as keyof typeof antropometrias;
-    const columnMap: Record<string, any> = {
+    const columnMap: Record<string, import('drizzle-orm').Column> = {
       peso: antropometrias.peso,
       altura: antropometrias.altura,
       imc: antropometrias.imc,
@@ -221,11 +221,11 @@ router.get('/patients/:id/anthropometry/trends', authenticate, validateZodParams
     if (req.query.to) conditions.push(lte(antropometrias.fecha, String(req.query.to)));
     const result = await db.select({
       fecha: antropometrias.fecha,
-      value: columnMap[metric],
+      value: columnMap[metric] as unknown as import('drizzle-orm').SQL,
     }).from(antropometrias)
       .where(and(...conditions))
       .orderBy(asc(antropometrias.fecha));
-    res.success(result.map(r => ({ fecha: r.fecha, value: parseFloat(r.value) || 0 })));
+    res.success(result.map(r => ({ fecha: r.fecha, value: parseFloat(String(r.value)) || 0 })));
   } catch (err) {
     res.error(500, 'Error interno');
   }

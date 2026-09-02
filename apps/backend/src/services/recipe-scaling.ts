@@ -28,7 +28,19 @@ function parseIngredient(text: string): { nombre: string; cantidad: number; unid
   return { nombre, cantidad, unidad };
 }
 
-export function scaleRecipe(recipe: any, targetServings: number): ScaledRecipe {
+export interface RecipeLike {
+  id: string | number;
+  nombre?: string | null;
+  raciones?: number | string | null;
+  kcal?: number | string | null;
+  prot?: number | string | null;
+  grasas?: number | string | null;
+  hc?: number | string | null;
+  fibra?: number | string | null;
+  ingredientes?: string[] | null;
+}
+
+export function scaleRecipe(recipe: RecipeLike, targetServings: number): ScaledRecipe {
   const scaleFactor = targetServings / (Number(recipe.raciones) || 1);
 
   const ingredientes: ScaledIngredient[] = (Array.isArray(recipe.ingredientes) ? recipe.ingredientes : [])
@@ -41,7 +53,7 @@ export function scaleRecipe(recipe: any, targetServings: number): ScaledRecipe {
       };
     });
 
-  const toNum = (v: any) => {
+  const toNum = (v: unknown) => {
     const n = typeof v === 'number' ? v : parseFloat(String(v));
     return Number.isFinite(n) ? n : 0;
   };

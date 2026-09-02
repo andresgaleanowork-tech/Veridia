@@ -1,5 +1,8 @@
 // API v1 routes — Drizzle ORM (hybrid: raw SQL for unmodeled tables)
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('API-V1');
 import { eq, desc, count } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
@@ -13,9 +16,9 @@ import { AppointmentCreateSchema } from '../schemas/index.js';
 
 const router = Router();
 
-async function apiKeyAuth(req: any, res: any, next: any) {
+async function apiKeyAuth(req: Request, res: Response, next: NextFunction) {
   const key = req.headers['x-api-key'];
-  if (!key) return res.error(401, 'API key requerida');
+  if (typeof key !== 'string' || !key) return res.error(401, 'API key requerida');
   try {
     const keyHash = crypto.createHash('sha256').update(key).digest('hex');
     const r = await db.select().from(apiKeys).where(eq(apiKeys.keyHash, keyHash));
@@ -24,7 +27,10 @@ async function apiKeyAuth(req: any, res: any, next: any) {
     await db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, r[0].id));
     req.apiKey = r[0];
     next();
-  } catch (err: any) { console.error('API key auth error:', err.message); res.error(500, 'Error interno'); }
+  } catch (err) {
+    logger.error('API key auth error', { message: err instanceof Error ? err.message : String(err) });
+    res.error(500, 'Error interno');
+  }
 }
 
 router.post('/api-keys', authenticate, authorize('admin'), validateZod(z.object({
@@ -63,12 +69,12 @@ router.delete('/api-keys/:id', authenticate, authorize('admin'), async (req, res
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.get('/patients', apiKeyAuth, validateZodQuery(z.object({ page: z.coerce.number().int().positive().default(1), limit: z.coerce.number().int().positive().max(100).default(50) })), async (req: any, res) => {
+router.get('/patients', apiKeyAuth, validateZodQuery(z.object({ page: z.coerce.number().int().positive().default(1), limit: z.coerce.number().int().positive().max(100).default(50) })), async (req, res) => {
   try {
-    const { page, limit } = req.query;
+    const { page, limit } = req.query as unknown as { page: number; limit: number };
     const data = await db.select().from(patients).where(eq(patients.activo, true)).limit(limit).offset((page - 1) * limit);
     const c = await db.select({ count: count() }).from(patients).where(eq(patients.activo, true));
-    res.paginated(data, parseInt(String(c[0].count)), parseInt(page), parseInt(limit));
+    res.paginated(data, parseInt(String(c[0].count)), page, limit);
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
@@ -80,8 +86,9 @@ router.get('/patients/:id', apiKeyAuth, async (req, res) => {
   } catch (err) { res.error(500, 'Error interno'); }
 });
 
-router.post('/appointments', apiKeyAuth, validateZod(AppointmentCreateSchema), async (req: any, res) => {
+router.post('/appointments', apiKeyAuth, validateZod(AppointmentCreateSchema), async (req, res) => {
   try {
+    if (!req.apiKey) return res.error(403, 'API key inválida');
     const { paciente_id, fecha, hora, tipo, asunto, estado, pago, precio, duracion, nota, color } = req.body;
     const r = await db.insert(appointments).values({
       pacienteId: paciente_id, fecha, hora, tipo, asunto, estado: estado || 'Pendiente', pago, precio: String(precio), duracion, nota, color,

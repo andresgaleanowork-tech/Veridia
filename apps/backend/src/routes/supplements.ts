@@ -63,7 +63,7 @@ router.post('/', authenticate, authorize('admin', 'nutricionista'), validateZod(
       activo: f.activo ?? true,
       createdBy: user.id,
     }).returning();
-    await logAudit(user.id, 'CREATE', 'Supplement', result[0].id, req as any);
+    await logAudit(user.id, 'CREATE', 'Supplement', result[0].id, req);
     res.created(result[0]);
   } catch (err) { console.error(err); res.error(500, 'Error interno'); }
 });
@@ -78,7 +78,7 @@ router.put('/:id', authenticate, authorize('admin', 'nutricionista'), validateZo
       updatedAt: new Date(),
     }).where(eq(supplements.id, req.params.id)).returning();
     if (!result.length) return res.error(404, 'Suplemento no encontrado');
-    await logAudit(user.id, 'UPDATE', 'Supplement', result[0].id, req as any);
+    await logAudit(user.id, 'UPDATE', 'Supplement', result[0].id, req);
     res.success(result[0]);
   } catch (err) { res.error(500, 'Error interno'); }
 });
@@ -89,7 +89,7 @@ router.delete('/:id', authenticate, authorize('admin', 'nutricionista'), async (
     if (!user) return res.error(401, 'Unauthorized');
     const result = await db.delete(supplements).where(eq(supplements.id, req.params.id)).returning();
     if (!result.length) return res.error(404, 'Suplemento no encontrado');
-    await logAudit(user.id, 'DELETE', 'Supplement', result[0].id, req as any);
+    await logAudit(user.id, 'DELETE', 'Supplement', result[0].id, req);
     res.success(result[0]);
   } catch (err) { res.error(500, 'Error interno'); }
 });
@@ -124,7 +124,7 @@ router.post('/:id/adherence', authenticate, validateZod(SupplementAdherenceCreat
       horaTomado: f.horaTomado,
       notas: f.notas,
     }).returning();
-    await logAudit(user.id, 'CREATE', 'SupplementAdherence', result[0].id, req as any);
+    await logAudit(user.id, 'CREATE', 'SupplementAdherence', result[0].id, req);
     res.created(result[0]);
   } catch (err) { console.error(err); res.error(500, 'Error interno'); }
 });

@@ -7,6 +7,10 @@ import type {
   ModuleInterface,
   ModuleOutput,
   PatientContextHub,
+  ModuleState,
+  ChangeSet,
+  EDScreeningResult,
+
 } from '../../types/patient-context.js';
 
 interface EDConfig {
@@ -49,7 +53,7 @@ export class EDModule implements ModuleInterface {
     };
   }
 
-  async onContextChange(patientId: string, changes: any): Promise<void> {
+  async onContextChange(patientId: string, changes: ChangeSet): Promise<void> {
     const relevantFields = [
       'anthropometry.bmi',
       'anthropometry.weightChangePercent',
@@ -79,12 +83,12 @@ export class EDModule implements ModuleInterface {
       label: 'ED Screening',
       icon: 'user-check',
       order: 1,
-      badge: (ctx: any) => ctx.edScreening?.overallRisk === 'high' ? '⚠' : null,
+      badge: (ctx: ModuleState) => ctx.edScreening?.overallRisk === 'high' ? '⚠' : null,
     },
   ];
   actions = [];
 
-  private performScreening(state: any): any {
+  private performScreening(state: ModuleState): EDScreeningResult {
     const scoff = this.config.toolsEnabled.includes('SCOFF') ? this.administerSCOFF(state) : undefined;
     const eat26 = this.config.toolsEnabled.includes('EAT26') ? this.administerEAT26(state) : undefined;
     const esp = this.config.toolsEnabled.includes('ESP') ? this.administerESP(state) : undefined;
@@ -101,7 +105,7 @@ export class EDModule implements ModuleInterface {
     };
   }
 
-  private administerSCOFF(state: any): any {
+  private administerSCOFF(state: ModuleState): EDScreeningResult['scoff'] {
     const eatingBehavior = state.eatingBehavior;
     const bmi = state.anthropometry?.bmi;
     const weightLoss = state.anthropometry?.weightChangePercent || 0;
@@ -124,7 +128,7 @@ export class EDModule implements ModuleInterface {
     };
   }
 
-  private administerEAT26(state: any): any {
+  private administerEAT26(state: ModuleState): EDScreeningResult['eat26'] {
     const eatingBehavior = state.eatingBehavior;
     const bmi = state.anthropometry?.bmi;
     const weightLoss = state.anthropometry?.weightChangePercent || 0;
@@ -153,7 +157,7 @@ export class EDModule implements ModuleInterface {
     return { score, riskLevel };
   }
 
-  private administerESP(state: any): any {
+  private administerESP(state: ModuleState): EDScreeningResult['esp'] {
     const eatingBehavior = state.eatingBehavior;
     const bmi = state.anthropometry?.bmi;
     
@@ -175,11 +179,11 @@ export class EDModule implements ModuleInterface {
   }
 
   private calculateOverallRisk(
-    scoff: any,
-    eat26: any,
-    esp: any,
-    state: any
-  ): any {
+    scoff: EDScreeningResult['scoff'] | undefined,
+    eat26: EDScreeningResult['eat26'] | undefined,
+    esp: EDScreeningResult['esp'] | undefined,
+    state: ModuleState
+  ): EDScreeningResult['overallRisk'] {
     let riskPoints = 0;
     
     if (scoff?.positive) riskPoints += 2;
@@ -202,7 +206,7 @@ export class EDModule implements ModuleInterface {
     return 'none';
   }
 
-  private getRecommendedActions(risk: any): string[] {
+  private getRecommendedActions(risk: EDScreeningResult['overallRisk']): string[] {
     const actions: string[] = [];
     
     switch (risk) {

@@ -1,5 +1,8 @@
 // Subscription management service
 import { db } from '../config/db.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('SUBSCRIPTION');
 import { patients, patientSubscriptions } from '../db/schema/index.js';
 import { eq } from 'drizzle-orm';
 
@@ -43,7 +46,7 @@ export async function createSubscription(
 export async function cancelSubscription(subscriptionId: string): Promise<void> {
   // Cancel in Stripe (simulated)
   // Update local record
-  console.log(`Subscription ${subscriptionId} cancelled`);
+  logger.info(`Subscription ${subscriptionId} cancelled`);
 }
 
 export async function upgradeSubscription(

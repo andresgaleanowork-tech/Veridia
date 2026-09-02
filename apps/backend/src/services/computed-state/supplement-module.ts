@@ -28,13 +28,13 @@ export class SupplementModule implements ModuleInterface {
         errors: [],
         warnings: [],
       };
-    } catch (err: any) {
+    } catch (err) {
       return {
         moduleId: 'supplements',
         success: false,
         data: { supplements: [], adherenceStats: {}, interactions: [] },
         durationMs: Date.now() - start,
-        errors: [err.message],
+        errors: [err instanceof Error ? err.message : String(err)],
         warnings: [],
       };
     }

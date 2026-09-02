@@ -15,14 +15,14 @@ import { scaleRecipe } from '../services/recipe-scaling.js';
 
 const router = Router();
 
-function fetchJSON(url: string): Promise<any> {
-  return new Promise((resolve, reject) => {
+function fetchJSON<T = Record<string, unknown>>(url: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
     const u = new URL(url);
     https.get({ hostname: u.hostname, path: u.pathname + u.search, headers: { 'User-Agent': 'VeridiaHT/1.0' } }, (res) => {
       let d = '';
       res.on('data', (c: string) => d += c);
-      res.on('end', () => { try { resolve(JSON.parse(d)); } catch { reject(new Error('Invalid JSON')); } });
-    }).on('error', reject).setTimeout(15000, function (this: any) { this.destroy(); reject(new Error('Timeout')); });
+      res.on('end', () => { try { resolve(JSON.parse(d) as T); } catch { reject(new Error('Invalid JSON')); } });
+    }).on('error', reject).setTimeout(15000, function (this: import('http').ClientRequest) { this.destroy(); reject(new Error('Timeout')); });
   });
 }
 
@@ -30,14 +30,14 @@ router.get('/mealdb/search', async (req, res) => {
   try {
     const q = (req.query.q as string) || '';
     if (q.length < 2) return res.error(400, 'Mínimo 2 caracteres');
-    const data = await fetchJSON(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(q)}`);
+    const data = await fetchJSON<{ meals: unknown[] }>(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(q)}`);
     res.success({ meals: data.meals || [] });
   } catch (err) { res.error(502, 'Error al buscar en TheMealDB'); }
 });
 
 router.get('/mealdb/:id', async (req, res) => {
   try {
-    const data = await fetchJSON(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${req.params.id}`);
+    const data = await fetchJSON<{ meals?: Record<string, string>[] }>(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${req.params.id}`);
     const meal = data.meals?.[0];
     if (!meal) return res.error(404, 'Receta no encontrada');
     res.success(meal);
@@ -48,7 +48,7 @@ router.get('/mealdb/:id/ingredients/map', authenticate, async (req, res) => {
   try {
     const user = req.user;
     if (!user) return res.error(401, 'Unauthorized');
-    const meal = await fetchJSON(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${req.params.id}`);
+    const meal = await fetchJSON<{ meals?: Record<string, string>[] }>(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${req.params.id}`);
     const m = meal.meals?.[0];
     if (!m) return res.error(404, 'Receta no encontrada');
 

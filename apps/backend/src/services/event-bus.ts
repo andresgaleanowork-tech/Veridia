@@ -4,6 +4,9 @@
  */
 
 import { EventEmitter } from 'events';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('EVENT-BUS');
 import type {
   PatientEvent,
   EventType,
@@ -63,7 +66,7 @@ export class PatientEventBus {
     this.addToHistory(event);
     
     if (this.debug) {
-      console.log(`[EventBus] ${event.type}`, {
+      logger.debug(`[EventBus] ${event.type}`, {
         patientId: event.patientId,
         source: event.source,
         timestamp: event.timestamp,
@@ -76,7 +79,7 @@ export class PatientEventBus {
     return result;
   }
 
-  off(type: string, listener: (...args: any[]) => void): this {
+  off(type: string, listener: (event: PatientEvent) => void): this {
     this.emitter.off(type, listener);
     return this;
   }

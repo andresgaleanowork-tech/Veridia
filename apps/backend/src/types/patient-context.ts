@@ -3,6 +3,9 @@
  * Single Source of Truth for all computed clinical state
  */
 
+import type { Router } from 'express';
+import type { PatientEventBus } from '../services/event-bus.js';
+
 // Re-export events types
 export * from './events.js';
 
@@ -16,10 +19,17 @@ export interface Demographics {
   email: string;
   birthDate: string;
   sex: 'M' | 'F' | 'OTHER';
-  role: 'admin' | 'nutricionista' | 'secretaria' | 'trial';
+  role: 'admin' | 'nutricionista' | 'secretaria' | 'trial' | 'patient';
   initials?: string;
   avatar?: string;
   active: boolean;
+  age?: number;
+  livingSituation?: string;
+  incomeLevel?: string;
+  educationLevel?: string;
+  isAthlete?: boolean;
+  sport?: string;
+  sportLevel?: 'recreational' | 'competitive' | 'elite';
 }
 
 export interface AnthropometrySnapshot {
@@ -58,6 +68,7 @@ export interface LabSnapshot {
   glucose?: number;
   hba1c?: number;
   insulin?: number;
+  triglycerides?: number;
   // Renal
   urea?: number;
   creatinine?: number;
@@ -546,20 +557,100 @@ export interface ChangeSet {
   source: string;
   changedFields: string[];
   timestamp: string;
-  previousValues: Record<string, any>;
-  newValues: Record<string, any>;
+  previousValues: Record<string, unknown>;
+  newValues: Record<string, unknown>;
+}
+
+export interface ComputationStats {
+  totalComputations: number;
+  totalCacheHits: number;
+  totalComputationTimeMs: number;
+  avgComputationTimeMs: number;
+}
+
+export interface ScopedEventBus {
+  bus: PatientEventBus;
+  patientId: string;
+  source: string;
 }
 
 export interface PatientContextHub {
   getContext(patientId: string, forceRefresh?: boolean): Promise<PatientComputedState>;
   computeAll(patientId: string): Promise<PatientComputedState>;
   invalidate(patientId: string, source: string, fields: string[]): Promise<void>;
-  updateField(patientId: string, fieldName: string, value: any, source?: string): Promise<PatientComputedState>;
-  getEventBus(): any;
-  getScopedEventBus(patientId: string): any;
-  getStats(patientId: string): any;
+  updateField(patientId: string, fieldName: string, value: unknown, source?: string): Promise<PatientComputedState>;
+  getEventBus(): PatientEventBus;
+  getScopedEventBus(patientId: string): ScopedEventBus;
+  getStats(patientId: string): ComputationStats;
   clearCache(patientId: string): void;
-  registerModule(module: any): void;
+  registerModule(module: ModuleInterface): void;
+}
+
+// ============================================
+// MODULE INPUT STATE
+// ============================================
+
+export interface MedicationLike {
+  id?: string;
+  name?: string;
+  class?: string;
+  dose?: string;
+}
+
+export interface AppointmentLike {
+  id?: string;
+  date?: string;
+  status?: string;
+}
+
+/**
+ * Superset of {@link PatientComputedState} that computation modules may read.
+ * Modules can access raw fields not (yet) modeled in the main interface.
+ */
+export interface MicrobiomeRawData {
+  shannonIndex?: number;
+  enterotype?: string;
+  beneficialTaxa?: string[];
+  detrimentalTaxa?: string[];
+  abundance?: Record<string, number>;
+  scfaProfile?: { acetate?: number; propionate?: number; butyrate?: number };
+  [key: string]: unknown;
+}
+
+export interface DietaryIntakeRawData {
+  energy?: number;
+  protein?: number;
+  carbohydrates?: number;
+  fat?: number;
+  fiber?: number;
+  plantVariety?: number;
+  fermentedFoods?: boolean;
+  resistantStarch?: number;
+  iron?: number;
+  bingeEpisodes?: number;
+  snackFrequency?: number;
+  eatOutFrequency?: number;
+  mindfulEatingPractice?: boolean;
+  distractedEating?: boolean;
+  [key: string]: number | boolean | undefined;
+}
+
+export interface ModuleState extends PatientComputedState {
+  // Datos crudos (aún no modelados en el estado principal)
+  drugs?: MedicationLike[];
+  appointments?: AppointmentLike[];
+  microbiomeData?: MicrobiomeRawData;
+  dietaryIntake?: DietaryIntakeRawData;
+  dietaryPattern?: string;
+  trainingHoursPerWeek?: number;
+  sessionsPerWeek?: number;
+  sweatRate?: number;
+  sodiumLoss?: number;
+  highIntensitySessions?: number;
+  lowIntensitySessions?: number;
+  nutritionAssessment?: { intakeScore?: number };
+  labResults?: unknown[];
+  genomicData?: { variants?: { variantId: string; genotype: string }[] };
 }
 
 export interface ModuleInterface {
@@ -568,9 +659,9 @@ export interface ModuleInterface {
   version: string;
   dependencies: string[];
   provides: string[];
-  compute(patientId: string, hub: any): Promise<ModuleOutput>;
+  compute(patientId: string, hub: PatientContextHub): Promise<ModuleOutput>;
   onContextChange(patientId: string, changes: ChangeSet): Promise<void>;
-  routes: any; // Express Router
+  routes?: Router | null;
   hooks: ModuleHooks;
   tabs: TabDefinition[];
   actions: ActionDefinition[];
@@ -579,7 +670,7 @@ export interface ModuleInterface {
 export interface ModuleOutput {
   moduleId: string;
   success: boolean;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   durationMs: number;
   errors: string[];
   warnings: string[];
@@ -597,8 +688,8 @@ export interface TabDefinition {
   label: string;
   icon: string;
   order: number;
-  condition?: (ctx: PatientComputedState) => boolean;
-  badge?: (ctx: PatientComputedState) => string | null;
+  condition?: (ctx: ModuleState) => boolean;
+  badge?: (ctx: ModuleState) => string | null;
 }
 
 export interface ActionDefinition {

@@ -238,8 +238,11 @@ app.use((_req, res) => {
 });
 
 // Error handler
-app.use((err: any, _req: express.Request, res: express.Response) => {
-  appLogger.error('Unhandled error', { message: err.message, stack: err.stack });
+app.use((err: unknown, _req: express.Request, res: express.Response) => {
+  appLogger.error('Unhandled error', {
+    message: err instanceof Error ? err.message : String(err),
+    stack: err instanceof Error ? err.stack : undefined,
+  });
   res.status(500).json({ error: true, message: 'Error interno del servidor' });
 });
 

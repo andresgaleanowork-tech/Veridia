@@ -27,8 +27,8 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     }
     req.user = decoded;
     next();
-  } catch (err: any) {
-    if (err.name === 'TokenExpiredError') return res.status(401).json({ error: 'Token expirado', code: 'TOKEN_EXPIRED' });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'TokenExpiredError') return res.status(401).json({ error: 'Token expirado', code: 'TOKEN_EXPIRED' });
     return res.status(401).json({ error: 'Token inválido' });
   }
 }
@@ -47,8 +47,8 @@ export function patientAuthenticate(req: Request, res: Response, next: NextFunct
     req.paciente = decoded;
     req.paciente_id = decoded.paciente_id;
     next();
-  } catch (err: any) {
-    if (err.name === 'TokenExpiredError') return res.status(401).json({ error: 'Token expirado', code: 'TOKEN_EXPIRED' });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'TokenExpiredError') return res.status(401).json({ error: 'Token expirado', code: 'TOKEN_EXPIRED' });
     return res.status(401).json({ error: 'Token inválido' });
   }
 }
@@ -74,8 +74,8 @@ export function authOrPatient(allowedRoles: string[] | null = null) {
       req.user = decoded;
       req.isPatient = false;
       next();
-    } catch (err: any) {
-      if (err.name === 'TokenExpiredError') return res.status(401).json({ error: 'Token expirado', code: 'TOKEN_EXPIRED' });
+    } catch (err) {
+      if (err instanceof Error && err.name === 'TokenExpiredError') return res.status(401).json({ error: 'Token expirado', code: 'TOKEN_EXPIRED' });
       return res.status(401).json({ error: 'Token inválido' });
     }
   };
