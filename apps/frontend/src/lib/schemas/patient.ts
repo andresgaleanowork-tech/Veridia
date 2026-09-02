@@ -41,7 +41,9 @@ export const PatientCreateSchema = z.object({
   apellidos: z.string().min(1, 'Apellidos requeridos'),
   dni: z.string().optional(),
   fecha_nacimiento: z.union([z.literal(''), ISODateSchema]).optional(),
-  sexo: PatientSexSchema.optional(),
+  // El select de sexo tiene <option value="">No especificado</option>:
+  // su valor "sin elegir" es '' (string), no undefined.
+  sexo: z.union([z.literal(''), PatientSexSchema]).optional(),
   email: z.union([z.literal(''), z.string().email('Email inválido')]).optional(),
   telefono: z.string().optional(),
   direccion: z.string().optional(),
