@@ -8,6 +8,7 @@
 // ============================================================
 
 import 'dotenv/config';
+import { validateEnv } from './config/env.js';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -28,6 +29,9 @@ import { csrfProtection, csrfTokenEndpoint } from './middleware/csrf.js';
 import { createLogger } from './utils/logger.js';
 
 const appLogger = createLogger('APP');
+
+// Fail-fast: valida variables de entorno antes de arrancar (ver §6 README)
+validateEnv();
 
 const app = express();
 const PORT = process.env.PORT || 3456;
