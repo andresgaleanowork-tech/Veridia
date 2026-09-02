@@ -116,29 +116,67 @@ function run(args, opts = {}) {
   });
 }
 
-function publishToGithub() {
+/** POST/PATCH a la API de GitHub con node https (sin dependencias de CLI). */
+function ghHttp(method, path, payload) {
+  const https = require('node:https');
+  const requestPath = path.startsWith('/') ? path : `/${path}`;
+  return new Promise((resolve, reject) => {
+    const data = payload ? JSON.stringify(payload) : '';
+    const req = https.request(
+      {
+        hostname: 'api.github.com',
+        path: requestPath,
+        method,
+        headers: {
+          Authorization: `Bearer ${process.env.GH_TOKEN}`,
+          'User-Agent': 'veridia-e2e-diagnostics',
+          Accept: 'application/vnd.github+json',
+          'Content-Length': Buffer.byteLength(data),
+          ...(data ? { 'Content-Type': 'application/json' } : {}),
+        },
+      },
+      (res) => {
+        let out = '';
+        res.on('data', (c) => (out += c));
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) resolve(out);
+          else reject(new Error(`HTTP ${res.statusCode}: ${out.slice(0, 300)}`));
+        });
+      }
+    );
+    req.on('error', reject);
+    req.write(data);
+    req.end();
+  });
+}
+
+async function publishToGithub() {
   const repo = process.env.GITHUB_REPOSITORY;
-  if (!repo || !process.env.GH_TOKEN) return;
-  const gh = (args) => run(['gh', ...args]);
+  if (!repo || !process.env.GH_TOKEN) {
+    console.error('::warning title=E2E publish::Faltan GITHUB_REPOSITORY o GH_TOKEN — no se puede publicar.');
+    return;
+  }
+  console.error(
+    `::notice title=E2E publish env::repo=${repo} ref=${process.env.GITHUB_REF || 'n/a'} token_len=${String(process.env.GH_TOKEN).length}`
+  );
 
   const fullBody = `${MARKER}\n${body}`;
   const prMatch = String(process.env.GITHUB_REF || '').match(/^refs\/pull\/(\d+)\//);
+  if (!prMatch) return;
+  const pr = prMatch[1];
 
   try {
-    if (prMatch) {
-      const pr = prMatch[1];
-      const listed = gh(['api', `repos/${repo}/issues/${pr}/comments`, '--jq', '.[] | select(.body | contains("e2e-diagnostics")) | .id']);
-      const id = listed.trim().split('\n').filter(Boolean)[0];
-      if (id) {
-        gh(['api', `repos/${repo}/issues/comments/${id}`, '-X', 'PATCH', '-F', `body=${fullBody}`]);
-        console.log(`Diagnóstico actualizado en el comentario del PR #${pr}`);
-      } else {
-        gh(['api', `repos/${repo}/issues/${pr}/comments`, '-F', `body=${fullBody}`]);
-        console.log(`Diagnóstico publicado en el PR #${pr}`);
-      }
+    const listed = JSON.parse(await ghHttp('GET', `repos/${repo}/issues/${pr}/comments?per_page=50`));
+    const existing = listed.find((c) => (c.body || '').includes('e2e-diagnostics'));
+    if (existing) {
+      await ghHttp('PATCH', `repos/${repo}/issues/comments/${existing.id}`, { body: fullBody });
+      console.log(`Diagnóstico actualizado en el comentario del PR #${pr}`);
+    } else {
+      await ghHttp('POST', `repos/${repo}/issues/${pr}/comments`, { body: fullBody });
+      console.log(`Diagnóstico publicado en el PR #${pr}`);
     }
   } catch (e) {
-    console.error(`::warning title=E2E comentario no publicado::${String(e.stderr || e.message || e).slice(0, 200).replace(/\n/g, ' ⏎ ')}`);
+    console.error(`::warning title=E2E comentario no publicado::${String(e.message || e).slice(0, 300).replace(/\n/g, ' ⏎ ')}`);
   }
 }
 
@@ -168,5 +206,7 @@ function pushDiagnosisBranch() {
   }
 }
 
-publishToGithub();
-pushDiagnosisBranch();
+(async () => {
+  await publishToGithub();
+  pushDiagnosisBranch();
+})();
