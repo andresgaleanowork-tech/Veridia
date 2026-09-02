@@ -99,7 +99,8 @@ export default defineConfig(async () => {
       host: '0.0.0.0',
       proxy: {
         '/api': {
-          target: 'http://host.docker.internal:3457',
+          // Docker por defecto; en host/CI se puede apuntar con VITE_PROXY_TARGET
+          target: process.env.VITE_PROXY_TARGET || 'http://host.docker.internal:3457',
           changeOrigin: true,
           rewrite: (path: string) => path
         }

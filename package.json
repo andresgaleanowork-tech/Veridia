@@ -18,7 +18,8 @@
     "lint": "pnpm --filter veridia-app lint && pnpm --filter @veridia/backend lint",
     "test": "pnpm --filter veridia-app test:run && pnpm --filter @veridia/backend test",
     "test:frontend": "pnpm --filter veridia-app test:run",
-    "test:backend": "pnpm --filter @veridia/backend test"
+    "test:backend": "pnpm --filter @veridia/backend test",
+    "e2e": "pnpm --filter veridia-app e2e"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
