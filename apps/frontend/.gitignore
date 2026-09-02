@@ -31,3 +31,9 @@ dist-ssr
 
 *storybook.log
 storybook-static
+
+# Playwright: estado de sesión y resultados locales
+e2e/.auth/
+e2e/.results/
+playwright-report/
+test-results/

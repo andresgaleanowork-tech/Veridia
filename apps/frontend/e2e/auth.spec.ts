@@ -1,10 +1,15 @@
 import { test, expect } from '@playwright/test';
-import { login, expectLoggedIn, ADMIN } from './helpers';
+import { login, ADMIN } from './helpers';
+
+// Estos tests prueban el flujo de login/autenticación, así que necesitan un
+// contexto SIN sesión guardada (anulan el storageState del proyecto chromium).
+test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('Autenticación', () => {
   test('login válido redirige al dashboard', async ({ page }) => {
     await login(page);
-    await expectLoggedIn(page);
+    await expect(page).not.toHaveURL(/\/login/);
+    await expect(page.getByRole('link', { name: 'Dashboard' })).toBeVisible();
     await expect(page).toHaveURL(/\/$/);
   });
 

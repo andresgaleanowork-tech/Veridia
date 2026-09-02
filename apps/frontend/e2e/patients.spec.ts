@@ -1,11 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { login } from './helpers';
 
+// Ejecuta bajo el proyecto chromium, que ya arranca autenticado gracias a
+// auth.setup.ts (storageState). No hace falta login por test.
 test.describe('Pacientes', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page);
-  });
-
   test('muestra la lista de pacientes (seed demo)', async ({ page }) => {
     await page.goto('/patients');
     await expect(page.getByRole('button', { name: 'Nuevo Paciente' })).toBeVisible();
