@@ -116,7 +116,7 @@ function run(args, opts = {}) {
   });
 }
 
-/** POST/PATCH a la API de GitHub con node https (sin dependencias de CLI). */
+/** POST/PATCH/GET a la API de GitHub con node https (sin dependencias de CLI). */
 function ghHttp(method, path, payload) {
   const https = require('node:https');
   const requestPath = path.startsWith('/') ? path : `/${path}`;
@@ -134,6 +134,7 @@ function ghHttp(method, path, payload) {
           'Content-Length': Buffer.byteLength(data),
           ...(data ? { 'Content-Type': 'application/json' } : {}),
         },
+        timeout: 30_000,
       },
       (res) => {
         let out = '';
@@ -145,68 +146,99 @@ function ghHttp(method, path, payload) {
       }
     );
     req.on('error', reject);
+    req.on('timeout', () => req.destroy(new Error('timeout 30s')));
     req.write(data);
     req.end();
   });
 }
 
-async function publishToGithub() {
-  const repo = process.env.GITHUB_REPOSITORY;
-  if (!repo || !process.env.GH_TOKEN) {
-    console.error('::warning title=E2E publish::Faltan GITHUB_REPOSITORY o GH_TOKEN — no se puede publicar.');
-    return;
-  }
-  console.error(
-    `::notice title=E2E publish env::repo=${repo} ref=${process.env.GITHUB_REF || 'n/a'} token_len=${String(process.env.GH_TOKEN).length}`
-  );
-
-  const fullBody = `${MARKER}\n${body}`;
-  const prMatch = String(process.env.GITHUB_REF || '').match(/^refs\/pull\/(\d+)\//);
-  if (!prMatch) return;
-  const pr = prMatch[1];
-
-  try {
-    const listed = JSON.parse(await ghHttp('GET', `repos/${repo}/issues/${pr}/comments?per_page=50`));
-    const existing = listed.find((c) => (c.body || '').includes('e2e-diagnostics'));
-    if (existing) {
-      await ghHttp('PATCH', `repos/${repo}/issues/comments/${existing.id}`, { body: fullBody });
-      console.log(`Diagnóstico actualizado en el comentario del PR #${pr}`);
-    } else {
-      await ghHttp('POST', `repos/${repo}/issues/${pr}/comments`, { body: fullBody });
-      console.log(`Diagnóstico publicado en el PR #${pr}`);
-    }
-  } catch (e) {
-    console.error(`::warning title=E2E comentario no publicado::${String(e.message || e).slice(0, 300).replace(/\n/g, ' ⏎ ')}`);
-  }
+function envSummary() {
+  return [
+    `GITHUB_ACTIONS=${process.env.GITHUB_ACTIONS ?? 'n/a'}`,
+    `GITHUB_REPOSITORY=${process.env.GITHUB_REPOSITORY ?? 'n/a'}`,
+    `GITHUB_REF=${process.env.GITHUB_REF ?? 'n/a'}`,
+    `GITHUB_RUN_ID=${process.env.GITHUB_RUN_ID ?? 'n/a'}`,
+    `GH_TOKEN_len=${process.env.GH_TOKEN ? String(process.env.GH_TOKEN).length : 0}`,
+    `node=${process.version}`,
+  ].join(' · ');
 }
 
-/**
- * Canal de respaldo que SÍ es legible sin acceso a logs: force-push del
- * diagnóstico (reporte + tail del output) a la rama `ci-e2e-diagnosis`.
- */
-function pushDiagnosisBranch() {
-  if (process.env.GITHUB_ACTIONS !== 'true') return;
-  try {
-    fs.mkdirSync('.ci', { recursive: true });
-    const logTail = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8').slice(-15000) : '(sin log)';
-    fs.writeFileSync(
-      '.ci/e2e-diagnosis.txt',
-      `RUN: ${process.env.GITHUB_RUN_ID || 'n/a'}\nSHA: ${process.env.GITHUB_SHA || 'n/a'}\nREF: ${process.env.GITHUB_REF || 'n/a'}\nFECHA: ${new Date().toISOString()}\n\n${body}\n\n--- TAIL DEL OUTPUT DEL RUNNER ---\n${logTail}\n`
-    );
-    run(['git', 'config', 'user.name', 'Veridia CI']);
-    run(['git', 'config', 'user.email', 'ci@veridia.local']);
-    // -f: .ci/ está en .gitignore de la rama principal (solo se publica
-    // en la rama de diagnóstico).
-    run(['git', 'add', '-f', '.ci/e2e-diagnosis.txt']);
-    run(['git', 'commit', '-m', `chore(ci): E2E diagnóstico run ${process.env.GITHUB_RUN_ID || 'local'}`]);
-    run(['git', 'push', '-f', 'origin', 'HEAD:refs/heads/ci-e2e-diagnosis']);
-    console.log('Diagnóstico publicado en la rama ci-e2e-diagnosis');
-  } catch (e) {
-    console.error(`::warning title=E2E diagnosis-branch no publicada::${String(e.stderr || e.message || e).slice(0, 200).replace(/\n/g, ' ⏎ ')}`);
+/** Canal 1: comentario del PR (reutilizado por el marker). */
+async function publishPrComment() {
+  const repo = process.env.GITHUB_REPOSITORY;
+  if (!repo || !process.env.GH_TOKEN) return 'sin GITHUB_REPOSITORY/GH_TOKEN';
+  const prMatch = String(process.env.GITHUB_REF || '').match(/^refs\/pull\/(\d+)\//);
+  if (!prMatch) return `no es PR (ref=${process.env.GITHUB_REF})`;
+  const pr = prMatch[1];
+  const fullBody = `${MARKER}\n${body}`;
+  const listed = JSON.parse(await ghHttp('GET', `repos/${repo}/issues/${pr}/comments?per_page=50`));
+  const existing = listed.find((c) => (c.body || '').includes('e2e-diagnostics'));
+  if (existing) {
+    await ghHttp('PATCH', `repos/${repo}/issues/comments/${existing.id}`, { body: fullBody });
+    return `comentario #${existing.id} actualizado`;
   }
+  await ghHttp('POST', `repos/${repo}/issues/${pr}/comments`, { body: fullBody });
+  return `comentario creado en PR #${pr}`;
+}
+
+/** Canal 2: sección al final de la descripción del PR. */
+async function publishPrDescription() {
+  const repo = process.env.GITHUB_REPOSITORY;
+  if (!repo || !process.env.GH_TOKEN) return 'sin GITHUB_REPOSITORY/GH_TOKEN';
+  const prMatch = String(process.env.GITHUB_REF || '').match(/^refs\/pull\/(\d+)\//);
+  if (!prMatch) return `no es PR (ref=${process.env.GITHUB_REF})`;
+  const pr = prMatch[1];
+  const prData = JSON.parse(await ghHttp('GET', `repos/${repo}/pulls/${pr}`));
+  const base = (prData.body || '').split('\n<!-- e2e-diag:start -->')[0];
+  const section =
+    `\n<!-- e2e-diag:start -->\n## 🔬 Último diagnóstico E2E (automático)\n\n` +
+    `> run ${process.env.GITHUB_RUN_ID || 'n/a'} · ${new Date().toISOString()}\n> env: ${envSummary()}\n\n` +
+    '```markdown\n' + body.slice(0, 9000) + '\n```\n<!-- e2e-diag:end -->';
+  await ghHttp('PATCH', `repos/${repo}/pulls/${pr}`, { body: base + section });
+  return 'descripción del PR actualizada';
+}
+
+/** Canal 3: force-push a la rama ci-e2e-diagnosis. */
+function pushDiagnosisBranch() {
+  if (process.env.GITHUB_ACTIONS !== 'true') return 'no GITHUB_ACTIONS';
+  fs.mkdirSync('.ci', { recursive: true });
+  const logTail = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8').slice(-15000) : '(sin log)';
+  fs.writeFileSync(
+    '.ci/e2e-diagnosis.txt',
+    `RUN: ${process.env.GITHUB_RUN_ID || 'n/a'}\nSHA: ${process.env.GITHUB_SHA || 'n/a'}\nREF: ${process.env.GITHUB_REF || 'n/a'}\nFECHA: ${new Date().toISOString()}\n\n${body}\n\n--- TAIL DEL OUTPUT DEL RUNNER ---\n${logTail}\n`
+  );
+  run(['git', 'config', 'user.name', 'Veridia CI']);
+  run(['git', 'config', 'user.email', 'ci@veridia.local']);
+  // -f: .ci/ está en .gitignore de la rama principal (solo se publica en la
+  // rama de diagnóstico).
+  run(['git', 'add', '-f', '.ci/e2e-diagnosis.txt']);
+  run(['git', 'commit', '-m', `chore(ci): E2E diagnóstico run ${process.env.GITHUB_RUN_ID || 'local'}`]);
+  run(['git', 'push', '-f', 'origin', 'HEAD:refs/heads/ci-e2e-diagnosis']);
+  return 'rama ci-e2e-diagnosis actualizada';
 }
 
 (async () => {
-  await publishToGithub();
-  pushDiagnosisBranch();
+  const results = {};
+  for (const [name, fn] of [
+    ['comentario', publishPrComment],
+    ['descripcion', publishPrDescription],
+    ['rama-diagnosis', pushDiagnosisBranch],
+  ]) {
+    try {
+      results[name] = `OK: ${await fn()}`;
+      console.log(`[diagnóstico] ${name}: ${results[name]}`);
+    } catch (e) {
+      const msg = String(e.stderr || e.message || e).slice(0, 300).replace(/\n/g, ' ⏎ ');
+      results[name] = `FALLO: ${msg}`;
+      console.log(`[diagnóstico] ${name}: ${results[name]}`);
+    }
+  }
+  // Resumen visible en el check (Web UI) y, si todo falló, en la descripción
+  // del PR como último recurso.
+  const summary = [`env: ${envSummary()}`, ...Object.entries(results).map(([k, v]) => `${k}: ${v}`)].join(' | ');
+  console.error(`::notice title=E2E diagnóstico publish::${summary.replace(/::/g, ': :')}`);
+  const okCount = Object.values(results).filter((v) => v.startsWith('OK')).length;
+  if (okCount === 0) {
+    console.error(`::error title=E2E publish: TODOS los canales fallaron::${summary.replace(/::/g, ': :')}`);
+  }
 })();
