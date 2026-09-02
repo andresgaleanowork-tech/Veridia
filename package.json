@@ -3,33 +3,43 @@
   "private": true,
   "version": "5.3.0",
   "scripts": {
-    "dev:frontend": "pnpm --filter frontend dev",
-    "dev:backend": "pnpm --filter backend dev",
+    "dev:frontend": "pnpm --filter veridia-app dev",
+    "dev:backend": "pnpm --filter @veridia/backend dev",
     "dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\"",
-    "db:push": "pnpm --filter backend db:push",
-    "db:migrate": "pnpm --filter backend db:migrate",
-    "db:studio": "pnpm --filter backend db:studio",
-    "db:seed": "pnpm --filter backend db:seed",
-    "db:generate": "pnpm --filter backend db:generate",
-    "types:sync": "pnpm --filter backend types:export",
-    "build": "pnpm --filter frontend build && pnpm --filter backend build",
-    "build:frontend": "pnpm --filter frontend build",
-    "build:backend": "pnpm --filter backend build",
-    "lint": "pnpm --filter frontend lint && pnpm --filter backend lint",
-    "test": "pnpm --filter frontend test:run && pnpm --filter backend test",
-    "test:frontend": "pnpm --filter frontend test:run",
-    "test:backend": "pnpm --filter backend test"
+    "db:push": "pnpm --filter @veridia/backend db:push",
+    "db:migrate": "pnpm --filter @veridia/backend db:migrate",
+    "db:studio": "pnpm --filter @veridia/backend db:studio",
+    "db:seed": "pnpm --filter @veridia/backend db:seed",
+    "db:generate": "pnpm --filter @veridia/backend db:generate",
+    "types:sync": "pnpm --filter @veridia/backend types:export",
+    "build": "pnpm --filter veridia-app build && pnpm --filter @veridia/backend build",
+    "build:frontend": "pnpm --filter veridia-app build",
+    "build:backend": "pnpm --filter @veridia/backend build",
+    "lint": "pnpm --filter veridia-app lint && pnpm --filter @veridia/backend lint",
+    "test": "pnpm --filter veridia-app test:run && pnpm --filter @veridia/backend test",
+    "test:frontend": "pnpm --filter veridia-app test:run",
+    "test:backend": "pnpm --filter @veridia/backend test"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
     "pnpm": "^9.0.0"
   },
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@9.15.9",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@sulesky/opencode-plugger": "^0.1.4",
     "@sulesky/opencode-plugger-tui": "^0.1.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "valibot": "^1.4.0"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "vite>esbuild": ">=0.19 <1"
+      }
+    }
   }
 }
