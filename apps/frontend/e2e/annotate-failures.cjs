@@ -157,7 +157,9 @@ function pushDiagnosisBranch() {
     );
     run(['git', 'config', 'user.name', 'Veridia CI']);
     run(['git', 'config', 'user.email', 'ci@veridia.local']);
-    run(['git', 'add', '.ci/e2e-diagnosis.txt']);
+    // -f: .ci/ está en .gitignore de la rama principal (solo se publica
+    // en la rama de diagnóstico).
+    run(['git', 'add', '-f', '.ci/e2e-diagnosis.txt']);
     run(['git', 'commit', '-m', `chore(ci): E2E diagnóstico run ${process.env.GITHUB_RUN_ID || 'local'}`]);
     run(['git', 'push', '-f', 'origin', 'HEAD:refs/heads/ci-e2e-diagnosis']);
     console.log('Diagnóstico publicado en la rama ci-e2e-diagnosis');
