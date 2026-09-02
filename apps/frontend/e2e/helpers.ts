@@ -5,8 +5,10 @@ export const ADMIN = { email: 'admin@veridia.tech', password: 'Admin2026!' };
 
 export async function login(page: Page, email = ADMIN.email, password = ADMIN.password) {
   await page.goto('/login');
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Contraseña').fill(password);
+  // exact: getByLabel también hace match por aria-label substring; el botón
+  // "Mostrar contraseña" de la caja rompe el strict mode sin exact.
+  await page.getByLabel('Email', { exact: true }).fill(email);
+  await page.getByLabel('Contraseña', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 }
 
