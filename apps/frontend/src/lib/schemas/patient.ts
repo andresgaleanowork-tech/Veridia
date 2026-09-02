@@ -33,13 +33,18 @@ export const PatientSchema = z.object({
 
 export type Patient = z.infer<typeof PatientSchema>;
 
+// Los inputs vacíos llegan como '' (defaultValues del form). Los
+// normalizamos a undefined para que no fallen la validación.
+const optionalText = (schema: z.ZodTypeAny, message?: string) =>
+  z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), schema);
+
 export const PatientCreateSchema = z.object({
   nombre: z.string().min(1, 'Nombre requerido'),
   apellidos: z.string().min(1, 'Apellidos requeridos'),
   dni: z.string().optional(),
-  fecha_nacimiento: ISODateSchema.optional(),
+  fecha_nacimiento: optionalText(ISODateSchema.optional()),
   sexo: PatientSexSchema.optional(),
-  email: z.string().email('Email inválido').optional(),
+  email: optionalText(z.string().email('Email inválido').optional()),
   telefono: z.string().optional(),
   direccion: z.string().optional(),
   profesion: z.string().optional(),

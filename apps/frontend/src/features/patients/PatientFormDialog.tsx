@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import api from '@/lib/api';
 import { Dialog } from '@/components/ui/Dialog';
+import { useToast } from '@/components/ui/Toast';
 import { PatientCreateSchema, type PatientCreate } from '@/lib/schemas';
 import type { Patient } from '@/types';
 
@@ -18,6 +19,7 @@ interface Props {
 
 export function PatientFormDialog({ open, onClose, initialData = null, title = 'Nuevo Paciente' }: Props) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   const { register, handleSubmit, reset, formState: { errors }, setValue } = useForm<FormData>({
     resolver: zodResolver(PatientCreateSchema),
@@ -74,6 +76,12 @@ export function PatientFormDialog({ open, onClose, initialData = null, title = '
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       reset();
       onClose();
+    },
+    onError: (err: unknown) => {
+      const serverError = (
+        err as { response?: { data?: { error?: string } } }
+      )?.response?.data?.error;
+      addToast('error', serverError || 'Error al guardar el paciente');
     },
   });
 
