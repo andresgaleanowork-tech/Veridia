@@ -23,7 +23,20 @@ test.describe('Pacientes', () => {
     await page.getByPlaceholder('Juan', { exact: true }).fill(nombre);
     await page.getByPlaceholder('García López', { exact: true }).fill('Paciente E2E');
     await page.getByPlaceholder('12345678A', { exact: true }).fill(dni);
-    await page.getByRole('button', { name: 'Crear Paciente' }).click();
+
+    // Espera la respuesta del POST y la expone en el fallo (diagnóstico
+    // directo: sin esto un 403/422/500 era invisible porque el diálogo
+    // no mostraba nada).
+    const [resp] = await Promise.all([
+      page.waitForResponse(
+        (r) => r.url().includes('/api/patients') && r.request().method() === 'POST',
+        { timeout: 15_000 },
+      ),
+      page.getByRole('button', { name: 'Crear Paciente' }).click(),
+    ]);
+    if (resp.status() !== 201) {
+      throw new Error(`POST /patients → ${resp.status()}: ${await resp.text()}`);
+    }
 
     await expect(page.getByText(nombre, { exact: true })).toBeVisible({ timeout: 20_000 });
   });
