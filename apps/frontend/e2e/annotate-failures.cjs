@@ -1,35 +1,45 @@
 /**
- * Emite GitHub Actions annotations con los detalles de cada test E2E
- * fallido (reporte JSON de Playwright) y, si existe, el tramo final del
- * output del runner. Así el resumen del check muestra el fallo sin
- * necesidad de abrir los logs del job.
+ * Diagnóstico E2E para CI:
+ *  1. Emite GitHub Actions annotations (::notice/::error) con stats del
+ *     reporte JSON, cada spec fallida y el tail del output del runner.
+ *  2. En CI, publica/actualiza un issue "E2E CI diagnostics" con el mismo
+ *     contenido (canal legible sin acceso a los logs del job).
  *
  * Uso: node e2e/annotate-failures.cjs [results.json] [e2e-run.log]
  */
 /* eslint-disable no-console -- Su función es imprimir annotations ::error:: para CI. */
 const fs = require('node:fs');
 const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 
 const reportPath = process.argv[2] || path.join(__dirname, '.results', 'results.json');
 const logPath = process.argv[3] || '/tmp/e2e-run.log';
 
-function inline(text, max = 6000) {
+function clean(text, max = 6000) {
   return String(text)
     .replace(/::/g, ': :')
     .split('\n')
     .filter((l) => l.trim())
-    .join(' ⏎ ')
+    .join('\n')
     .slice(-max);
 }
 
-// 1) Reporte JSON: stats + tests fallidos
+function inline(text, max = 6000) {
+  return clean(text, max).replace(/\n/g, ' ⏎ ');
+}
+
+// ---------------------------------------------------------------------------
+// Construir el reporte de diagnóstico
+// ---------------------------------------------------------------------------
+const sections = [];
+
 let failures = 0;
 if (fs.existsSync(reportPath)) {
   try {
     const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
     const s = report.stats || {};
-    console.error(
-      `::notice title=E2E stats::failed=${s.failed ?? 0} expected=${s.expected ?? 0} flaky=${s.flaky ?? 0} skipped=${s.skipped ?? 0} duration=${Math.round((s.duration ?? 0) / 1000)}s`
+    sections.push(
+      `## Stats\n\nfailed=${s.failed ?? 0} · expected=${s.expected ?? 0} · flaky=${s.flaky ?? 0} · skipped=${s.skipped ?? 0} · duración=${Math.round((s.duration ?? 0) / 1000)}s`
     );
 
     function walk(suites, prefix) {
@@ -41,26 +51,82 @@ if (fs.existsSync(reportPath)) {
           if (!failed) continue;
           failures++;
           const raw = failed.error?.message || 'sin mensaje de error';
-          console.error(`::error title=E2E: ${title} › ${spec.title}::${inline(raw, 2000)}`);
+          sections.push(`### ❌ ${title} › ${spec.title}\n\n\`\`\`\n${clean(raw, 2500)}\n\`\`\``);
         }
         walk(suite.suites, title);
       }
     }
     walk(report.suites, '');
     if (failures === 0) {
-      console.error('::warning title=E2E::Reporte JSON sin fallos de specs — el fallo del step no es un test (ver output abajo).');
+      sections.push('> ⚠️ El reporte JSON no registra specs fallidas: el fallo del step no es un test (ver output abajo).');
     }
   } catch (e) {
-    console.error(`::warning title=E2E::No se pudo parsear el reporte JSON: ${e.message}`);
+    sections.push(`⚠️ No se pudo parsear el reporte JSON: ${e.message}`);
   }
 } else {
-  console.error('::error title=E2E::No se generó el reporte JSON (e2e/.results/results.json) — el runner falló antes de escribirlo.');
+  sections.push('❌ No se generó el reporte JSON (`e2e/.results/results.json`): el runner falló antes de escribirlo.');
 }
 
-// 2) Tail del output del runner (últimos 6000 chars limpios)
 if (fs.existsSync(logPath)) {
   const log = fs.readFileSync(logPath, 'utf8');
   if (log.trim()) {
-    console.error(`::error title=E2E output (tail)::. ${inline(log, 6000)}`);
+    sections.push(`## Output del runner (tail)\n\n\`\`\`\n${clean(log, 6000)}\n\`\`\``);
   }
 }
+
+const body = [
+  'Diagnóstico del último fallo de E2E (actualizado automáticamente por CI).',
+  `Run: ${process.env.GITHUB_SERVER_URL || ''}/${process.env.GITHUB_REPOSITORY || ''}/actions/runs/${process.env.GITHUB_RUN_ID || 'local'}`,
+  `SHA: ${process.env.GITHUB_SHA || 'n/a'} · fecha: ${new Date().toISOString()}`,
+  '',
+  ...sections,
+].join('\n');
+
+// ---------------------------------------------------------------------------
+// 1) Annotations
+// ---------------------------------------------------------------------------
+if (fs.existsSync(reportPath)) {
+  try {
+    const s = (JSON.parse(fs.readFileSync(reportPath, 'utf8')).stats) || {};
+    console.error(
+      `::notice title=E2E stats::failed=${s.failed ?? 0} expected=${s.expected ?? 0} flaky=${s.flaky ?? 0} skipped=${s.skipped ?? 0}`
+    );
+  } catch { /* noop */ }
+}
+for (const section of sections) {
+  const firstLine = section.replace(/^#+\s*/, '').split('\n')[0].slice(0, 120);
+  const level = section.startsWith('### ❌') ? 'error' : 'warning';
+  console.error(`::${level} title=${firstLine.replace(/::/g, ': :')}::${inline(section, 2000)}`);
+}
+
+// ---------------------------------------------------------------------------
+// 2) Issue de diagnóstico (solo en CI, nunca rompe el job)
+// ---------------------------------------------------------------------------
+function publishIssue() {
+  if (!process.env.GITHUB_REPOSITORY || !process.env.GH_TOKEN) return;
+  const repo = process.env.GITHUB_REPOSITORY;
+  const gh = (args, input) =>
+    execFileSync('gh', args, {
+      env: { ...process.env },
+      input,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      encoding: 'utf8',
+      timeout: 60_000,
+    });
+  try {
+    gh(['label', 'create', 'ci-e2e-diagnostics', '--force', '--color', 'B60205', '--repo', repo], undefined);
+    const listed = gh(['issue', 'list', '--label', 'ci-e2e-diagnostics', '--state', 'open', '--json', 'number', '--repo', repo], undefined);
+    const existing = JSON.parse(listed || '[]')[0]?.number;
+    if (existing) {
+      gh(['issue', 'edit', String(existing), '--repo', repo, '--body', body], undefined);
+      console.log(`Diagnóstico publicado en issue #${existing}`);
+    } else {
+      const created = gh(['issue', 'create', '--repo', repo, '--label', 'ci-e2e-diagnostics', '--title', `E2E CI diagnostics (run ${process.env.GITHUB_RUN_ID || ''})`, '--body', body], undefined);
+      console.log(`Diagnóstico publicado en ${created.trim()}`);
+    }
+  } catch (e) {
+    console.log(`(no se pudo publicar el issue de diagnóstico: ${String(e.message || e).slice(0, 200)})`);
+  }
+}
+
+publishIssue();
