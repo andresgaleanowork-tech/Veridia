@@ -12,6 +12,7 @@ import { validateEnv } from './config/env.js';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -34,6 +35,10 @@ validateEnv();
 
 const app = express();
 const PORT = process.env.PORT || 3456;
+
+// Trust proxy (Vercel, Nginx, load balancers) so req.ip / req.protocol reflect
+// the original client, not the edge node.
+app.set('trust proxy', 1);
 
 // === SECURITY ===
 const isProduction = process.env.NODE_ENV === 'production';
@@ -74,8 +79,11 @@ app.use(helmet.noSniff());
 app.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }));
 app.use(helmet.frameguard({ action: 'deny' }));
 app.use(helmet.permittedCrossDomainPolicies());
-// No filtrar la URL de la API al navegar a recursos externos.
-app.use(helmet.crossOriginResourcePolicy({ policy: 'same-site' }));
+// En producción la API se sirve detrás del proxy de Vercel. La política
+// "same-site" puede bloquear respuestas cuando el edge reenvía la respuesta
+// al navegador en un origen diferente. "cross-origin" es seguro para una API
+// JSON pura (no hay contenido embebido que proteger).
+app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
 
 // WARNING: In production, CORS_ORIGIN must be set to allowed origins
 app.use(cors({
@@ -89,6 +97,10 @@ app.use(globalLimiter);
 // === BODY PARSERS ===
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// === COOKIE PARSER ===
+// Required for reading refresh-token cookies (__Host-refresh / refresh)
+app.use(cookieParser());
 
 // === CUSTOM MIDDLEWARE ===
 app.use(requestId);

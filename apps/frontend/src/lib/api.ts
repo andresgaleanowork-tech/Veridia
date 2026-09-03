@@ -100,13 +100,11 @@ interface ApiEnvelope<T = unknown> {
 // ---------------------------------------------------------------------------
 const API_BASE = '/api';
 const STORAGE_TOKEN_KEY = 'veridia_token';
-const STORAGE_REFRESH_KEY = 'veridia_refresh_token';
 const STORAGE_REQUEST_ID_KEY = 'veridia_request_id';
 const STORAGE_SESSION_ID_KEY = 'veridia_session_id';
 
 export {
   STORAGE_TOKEN_KEY,
-  STORAGE_REFRESH_KEY,
   STORAGE_REQUEST_ID_KEY,
   STORAGE_SESSION_ID_KEY,
 };
@@ -132,7 +130,10 @@ let csrfTokenPromise: Promise<string> | null = null;
 function fetchCsrfToken(): Promise<string> {
   const sessionId = getSessionId();
   return axios
-    .get(`${API_BASE}/csrf-token`, { headers: { 'x-session-id': sessionId } })
+    .get(`${API_BASE}/csrf-token`, {
+      headers: { 'x-session-id': sessionId },
+      withCredentials: true,
+    })
     .then((res) => {
       const token: unknown = res.data?.csrfToken;
       if (typeof token !== 'string' || !token) throw new Error('Token CSRF inválido');
@@ -264,6 +265,10 @@ export function validateResponse<T>(schema: z.ZodSchema<T>, data: unknown): Vali
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
+  // Enviar cookies (refresh token) con cada request al mismo origen.
+  // El proxy de Vercel reescribe /api/* al backend, así que el browser
+  // ve todo como same-origin y las cookies viajan automáticamente.
+  withCredentials: true,
 });
 
 // ---------------------------------------------------------------------------
@@ -349,11 +354,9 @@ api.interceptors.response.use(
       if (apiErrorCode === 'TOKEN_EXPIRED' && !originalRequest._retry) {
         originalRequest._retry = true;
         try {
-          const refreshToken =
-            typeof window !== 'undefined' ? localStorage.getItem(STORAGE_REFRESH_KEY) : null;
-          if (!refreshToken) throw new Error('No refresh token');
-
-          const res = await axios.post(`${API_BASE}/auth/refresh`, { refreshToken });
+          // El refresh token se envía como cookie httpOnly automáticamente.
+          // No necesitamos leerlo de localStorage.
+          const res = await api.post('/auth/refresh', {}, { _skipRefresh: true } as any);
           const newToken = res.data?.data?.token || res.data?.token;
           if (!newToken) throw new Error('Token no recibido');
 
@@ -365,7 +368,6 @@ api.interceptors.response.use(
         } catch {
           if (typeof window !== 'undefined') {
             localStorage.removeItem(STORAGE_TOKEN_KEY);
-            localStorage.removeItem(STORAGE_REFRESH_KEY);
             window.location.href = '/login';
           }
           return Promise.reject(error);

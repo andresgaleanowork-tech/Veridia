@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import api, { STORAGE_TOKEN_KEY, STORAGE_REFRESH_KEY, STORAGE_REQUEST_ID_KEY } from '@/lib/api';
+import api, { STORAGE_TOKEN_KEY, STORAGE_REQUEST_ID_KEY } from '@/lib/api';
 import type { User, LoginRequest } from '@/types';
 
 function parseJwtExp(token: string): number | null {
@@ -71,7 +71,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_TOKEN_KEY);
-      localStorage.removeItem(STORAGE_REFRESH_KEY);
       localStorage.removeItem(STORAGE_REQUEST_ID_KEY);
     }
     set({ user: null, accessToken: null, isAuthenticated: false });

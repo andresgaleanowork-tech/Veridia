@@ -17,7 +17,18 @@ import { logAudit } from '../utils/audit.js';
 
 const router = Router();
 
-const COOKIE_OPTS = { httpOnly: true, secure: true, sameSite: 'strict' as const, maxAge: 7 * 24 * 60 * 60 * 1000, path: '/' };
+// Nota: no usamos el prefijo __Host- porque la API se sirve detrás del proxy
+// de Vercel (o Nginx). El prefijo __Host- exige que la cookie se establezca
+// desde el mismo host que la sirve, lo cual falla cuando el edge de Vercel
+// reenvía la respuesta del backend en otro origen.
+const isProduction = process.env.NODE_ENV === 'production';
+const COOKIE_OPTS = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: (isProduction ? 'none' : 'lax') as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/',
+};
 
 // POST /api/auth/login
 router.post('/login', validateZod(LoginRequestSchema), async (req, res) => {
@@ -42,7 +53,7 @@ router.post('/login', validateZod(LoginRequestSchema), async (req, res) => {
     const refreshToken = jwt.sign({ id: user.id }, process.env.JWT_REFRESH_SECRET!, refreshOpts);
 
     await logAudit(user.id, 'LOGIN', 'Session', null, req);
-    res.cookie('__Host-refresh', refreshToken, COOKIE_OPTS);
+    res.cookie('refresh', refreshToken, COOKIE_OPTS);
     res.success({ token, user: payload });
   } catch (err) {
     console.error('Login error:', err);
@@ -53,7 +64,7 @@ router.post('/login', validateZod(LoginRequestSchema), async (req, res) => {
 // POST /api/auth/refresh
 router.post('/refresh', async (req, res) => {
   try {
-    const refreshToken = req.cookies?.['__Host-refresh'] || req.body?.refreshToken;
+    const refreshToken = req.cookies?.['refresh'] || req.body?.refreshToken;
     if (!refreshToken) return res.error(401, 'Refresh token requerido');
 
     const blacklisted = await db.select().from(tokenBlacklist).where(eq(tokenBlacklist.token, refreshToken));
@@ -79,7 +90,7 @@ router.post('/refresh', async (req, res) => {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
 
-    res.cookie('__Host-refresh', newRefreshToken, COOKIE_OPTS);
+    res.cookie('refresh', newRefreshToken, COOKIE_OPTS);
     res.success({ token, user: payload });
   } catch (err) {
     res.error(401, 'Refresh token inválido');
@@ -89,14 +100,14 @@ router.post('/refresh', async (req, res) => {
 // POST /api/auth/logout
 router.post('/logout', async (req, res) => {
   try {
-    const refreshToken = req.cookies?.['__Host-refresh'];
+    const refreshToken = req.cookies?.['refresh'];
     if (refreshToken) {
       await db.insert(tokenBlacklist).values({
         token: refreshToken,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       }).onConflictDoNothing();
     }
-    res.clearCookie('__Host-refresh', { path: '/', httpOnly: true, secure: true, sameSite: 'strict' });
+    res.clearCookie('refresh', { path: '/', httpOnly: true, secure: isProduction, sameSite: isProduction ? 'none' : 'lax' });
     res.success({ message: 'Sesión cerrada' });
   } catch (err) {
     res.error(500, 'Error interno');
