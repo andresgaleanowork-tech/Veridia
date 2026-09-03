@@ -1,0 +1,34 @@
+name: Dependabot Auto Approve
+
+# Pre-approves safe (minor/patch) Dependabot PRs so that if a required review
+# rule is enabled on main it is already satisfied. The actual merge is only
+# performed by the "Dependabot Gate" workflow, after pnpm-lock.yaml has been
+# synced and lint/typecheck/build have passed on the final state — so this
+# workflow never merges an unsynced or failing PR.
+
+on: pull_request
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  approve:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: '${{ secrets.GITHUB_TOKEN }}'
+
+      - name: Approve minor/patch updates
+        if: |
+          steps.metadata.outputs.update-type == 'version-update:semver-minor' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-patch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr review --approve "${{ github.event.pull_request.html_url }}" \
+            --body "✅ Minor/patch update pre-approved. Lockfile sync and verification gate run in the Dependabot Gate workflow before merge."

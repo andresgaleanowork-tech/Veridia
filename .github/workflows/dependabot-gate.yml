@@ -1,0 +1,150 @@
+name: Dependabot Gate
+
+# Dependabot bumps apps/*/package.json but cannot update the root pnpm-lock.yaml
+# of this workspace, so `pnpm install --frozen-lockfile` in CI fails. This
+# workflow:
+#   1. Regenerates and pushes pnpm-lock.yaml on the Dependabot branch.
+#   2. Runs the same verification gate as CI (lint -> typecheck -> build) on
+#      the final, lockfile-synced state.
+#   3. For safe minor/patch updates that pass, approves and squash-merges the PR
+#      directly (repo auto-merge is not enabled; a GITHUB_TOKEN push of a
+#      lockfile commit never re-triggers the regular CI workflow, so merging in
+#      the same run is what actually lands a green PR).
+# Major updates get the lockfile sync + a status comment, but stay open for a
+# human to review and merge.
+
+on:
+  pull_request:
+    paths:
+      - 'apps/backend/package.json'
+      - 'apps/frontend/package.json'
+      - 'packages/shared-types/package.json'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: dependabot-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync lockfile
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    outputs:
+      update-type: ${{ steps.metadata.outputs.update-type }}
+    steps:
+      - name: Checkout Dependabot branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: '${{ secrets.GITHUB_TOKEN }}'
+
+      - name: Regenerate pnpm-lock.yaml
+        run: pnpm install
+
+      - name: Verify frozen install
+        run: pnpm install --frozen-lockfile
+
+      - name: Push synced lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet pnpm-lock.yaml; then
+            git add pnpm-lock.yaml
+            git commit -m "chore(deps): sync pnpm-lock.yaml"
+            git push
+            echo "LOCKFILE_SYNCED=true" >> "$GITHUB_ENV"
+          else
+            echo "LOCKFILE_SYNCED=false" >> "$GITHUB_ENV"
+          fi
+
+  verify-and-merge:
+    name: Verify & merge
+    needs: sync
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout synced branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: '${{ secrets.GITHUB_TOKEN }}'
+
+      - name: Install dependencies (frozen)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint frontend (0 warnings)
+        run: pnpm --filter veridia-app exec oxlint --deny-warnings
+
+      - name: Lint backend (max-warnings 0)
+        run: pnpm --filter @veridia/backend exec eslint src --ext .ts --max-warnings 0
+
+      - name: Type check frontend
+        run: pnpm --filter veridia-app exec tsc -b
+
+      - name: Type check backend
+        run: pnpm --filter @veridia/backend exec tsc --noEmit
+
+      - name: Build (frontend + backend)
+        run: pnpm build
+
+      - name: Approve and squash-merge minor/patch updates
+        if: |
+          steps.metadata.outputs.update-type == 'version-update:semver-minor' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-patch'
+        run: |
+          set +e
+          gh pr review --approve "${{ github.event.pull_request.html_url }}" \
+            --body "✅ Lockfile synced and verification gate (lint, typecheck, build) passed. Auto-merging."
+          gh pr merge "${{ github.event.pull_request.html_url }}" --squash --delete-branch
+          if [ $? -ne 0 ]; then
+            echo "::warning::Auto-merge failed (branch protection or auto-merge disabled)."
+            gh pr comment "${{ github.event.pull_request.html_url }}" \
+              --body "✅ Lockfile synced and all checks passed. Auto-merge could not be performed (repository auto-merge is disabled / branch protection requires checks run after the sync). Please merge manually — this PR is green."
+          fi
+          exit 0
+
+      - name: Comment on major updates
+        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        run: |
+          gh pr comment "${{ github.event.pull_request.html_url }}" \
+            --body "🔧 Lockfile synced and verification gate run. This is a **major** version update, so it was **not** auto-merged. Please review breaking changes and merge manually once the check results below are green."
