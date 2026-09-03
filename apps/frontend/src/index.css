@@ -343,4 +343,25 @@
   .animate-scale-in {
     animation: scale-in 0.15s ease-out;
   }
+
+  /* ─── Capacitor native overrides ─────────────────────────────── */
+  /* When the soft keyboard is open, shrink the viewport so fixed
+     elements (e.g. bottom nav) move above the keyboard. */
+  body.keyboard-open {
+    height: 100dvh;
+  }
+  body.keyboard-open .fixed-bottom {
+    position: absolute;
+    bottom: 0;
+  }
+
+  /* Native Android: extra padding for the system status bar */
+  @supports (padding-top: env(safe-area-inset-top)) {
+    .native-header {
+      padding-top: env(safe-area-inset-top);
+    }
+    .native-bottom {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
 }

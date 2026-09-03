@@ -37,3 +37,14 @@ e2e/.auth/
 e2e/.results/
 playwright-report/
 test-results/
+
+# Capacitor / Android
+android/app/src/main/assets/public/
+android/app/build/
+android/.gradle/
+android/capacitor-cordova-android-plugins/build/
+*.apk
+*.aab
+*.jks
+*.keystore
+google-services.json

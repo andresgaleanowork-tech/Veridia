@@ -49,3 +49,14 @@ storybook-static/
 
 # Diagnóstico CI temporal (solo rama ci-e2e-diagnosis)
 .ci/
+
+# Capacitor / Android build artifacts
+*.apk
+*.aab
+*.jks
+*.keystore
+google-services.json
+apps/frontend/android/app/src/main/assets/public/
+apps/frontend/android/app/build/
+apps/frontend/android/.gradle/
+apps/frontend/android/capacitor-cordova-android-plugins/build/

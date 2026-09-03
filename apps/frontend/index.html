@@ -26,7 +26,7 @@
       tiempo de build sería el mismo para todos los usuarios y no aportaría
       seguridad, solo la apariencia de tenerla.
     -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' capacitor://localhost https://localhost; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: capacitor:; font-src 'self' data:; connect-src 'self' https: capacitor: http://localhost; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Veridia HealthTech" />
     <meta property="og:description" content="ERP de nutrición clínica" />

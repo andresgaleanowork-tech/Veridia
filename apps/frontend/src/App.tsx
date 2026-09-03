@@ -14,6 +14,7 @@ import { PortalPlansPage } from '@/features/portal/PortalPlansPage';
 import { PortalJournalPage } from '@/features/portal/PortalJournalPage';
 import { PortalMessagesPage } from '@/features/portal/PortalMessagesPage';
 import { PortalProfilePage } from '@/features/portal/PortalProfilePage';
+import { useNativeBack } from '@/hooks/useNativeBack';
 import { Utensils, BookOpen, BookMarked, Bot, ClipboardList, Scale, Calculator, AlertTriangle, FileText, DollarSign, Calendar, MessageSquare, Settings } from 'lucide-react';
 
 const LoginPage = React.lazy(() => import('@/features/auth/LoginPage').then(m => ({ default: m.LoginPage })));
@@ -65,6 +66,9 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  // Handle Android hardware back button
+  useNativeBack();
+
   const [isOffline, setIsOffline] = useState(
     typeof navigator !== 'undefined' ? !navigator.onLine : false,
   );
