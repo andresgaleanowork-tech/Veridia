@@ -12,6 +12,24 @@ COPY apps/backend/src/ ./src/
 COPY apps/backend/tsconfig.json ./
 RUN npm run build
 
+# --- Dependencies stage: solo lo necesario en runtime -----------------------
+# Se instalan aparte (en vez de reutilizar el node_modules del builder) porque
+# aquel contiene devDependencies —typescript, eslint, vitest, tsx, drizzle-kit,
+# puppeteer…— que no se usan al ejecutar y que engordan la imagen final y su
+# superficie de ataque. `npm ci --omit=dev` respeta el lockfile y baja solo las
+# dependencias de producción.
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+
+COPY apps/backend/package*.json ./
+RUN if [ -f package-lock.json ]; then \
+      npm ci --omit=dev --legacy-peer-deps; \
+    else \
+      npm install --omit=dev --legacy-peer-deps; \
+    fi \
+  && npm cache clean --force
+
 # Production stage: run compiled JS
 FROM node:20-alpine AS runner
 
@@ -20,9 +38,9 @@ WORKDIR /app
 # Run as an unprivileged user
 RUN addgroup -S nodejs && adduser -S nodejs -G nodejs
 
-# Copy built files and production dependencies
+# Copy built files and production-only dependencies
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
 
 # Copy env example for reference

@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "installCommand": "pnpm install --filter veridia-app... --frozen-lockfile",
-  "buildCommand": "pnpm --filter veridia-app build",
-  "outputDirectory": "apps/frontend/dist",
+  "installCommand": "cd ../.. && pnpm install --filter veridia-app... --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm --filter veridia-app build",
+  "outputDirectory": "dist",
   "routes": [
     { "handle": "filesystem" },
     {

@@ -2,7 +2,6 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'url';
-import type { ViteDevServer } from 'vite';
 import path from 'node:path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -28,25 +27,6 @@ async function tryImportStorybookTest() {
   }
 }
 
-function cspNoncePlugin() {
-  let nonce = '';
-  return {
-    name: 'csp-nonce',
-    transformIndexHtml(html: string) {
-      nonce = crypto.randomUUID().replace(/-/g, '').substring(0, 32);
-      return html.replace(/\{\{CSP_NONCE\}\}/g, nonce);
-    },
-    configureServer(server: ViteDevServer) {
-      server.middlewares.use((_req: any, res: any, next: any) => {
-        ;
-        (res as any).locals = {
-          cspNonce: nonce
-        };
-        next();
-      });
-    }
-  };
-}
 export default defineConfig(async () => {
   const projects: any[] = [{
     extends: true,
@@ -87,7 +67,7 @@ export default defineConfig(async () => {
   }
 
   return {
-    plugins: [react(), tailwindcss(), cspNoncePlugin()],
+    plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
         '@': path.join(__dirname, 'src'),
@@ -96,6 +76,10 @@ export default defineConfig(async () => {
     server: {
       port: 5173,
       host: '0.0.0.0',
+      // Vite bloquea por defecto los Host desconocidos. Al servir el dev server
+      // detrás de un proxy (sandboxes de preview, túneles tipo ngrok), hay que
+      // autorizar ese dominio o responde "Blocked request".
+      allowedHosts: ['.e2b.app', '.ngrok-free.app', 'localhost'],
       proxy: {
         '/api': {
           // Docker por defecto; en host/CI se puede apuntar con VITE_PROXY_TARGET

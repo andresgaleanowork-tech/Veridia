@@ -27,8 +27,10 @@ RUN apk add --no-cache curl
 # Copy built static assets from builder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy Nginx configuration
+# Copy Nginx configuration (nginx.conf hace include de security-headers.conf,
+# así que ambos ficheros tienen que estar presentes o nginx no arranca).
 COPY nginx.conf /etc/nginx/nginx.conf
+COPY security-headers.conf /etc/nginx/security-headers.conf
 
 # Expose the port Nginx listens on
 EXPOSE 5173

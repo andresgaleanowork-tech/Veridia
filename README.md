@@ -211,15 +211,60 @@ openssl rand -base64 32   # JWT_SECRET, JWT_REFRESH_SECRET
 
 | Capa | Medida |
 |------|--------|
-| **CSP** | Content-Security-Policy con **nonce por request** (frontend y backend) |
+| **CSP** | `script-src 'self'` sin `unsafe-*`; cabecera HTTP desde nginx (incluye `frame-ancestors 'none'`) y `<meta>` de respaldo. La API responde `default-src 'none'` |
 | **CORS** | Restringido a `CORS_ORIGIN`; bloqueado por defecto en producción |
 | **Rate limiting** | Limiter global + limiter específico de login (memoria) |
-| **CSRF** | Doble token (`/api/csrf-token`) para peticiones mutativas |
+| **CSRF** | Token HMAC **sin estado** (`/api/csrf-token`) para peticiones mutativas |
 | **Auth** | JWT (acceso + refresh), bcrypt `$12`, RBAC 3 roles (admin / nutricionista / secretaria) |
 | **Multi-tenancy** | Middleware de aislamiento por tenant en todas las rutas |
-| **Headers** | Helmet (HSTS en producción, noSniff, referrerPolicy), validación Zod en entradas |
+| **Headers** | Helmet en la API y `security-headers.conf` en nginx: HSTS, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`. Validación Zod en entradas |
 | **PII + IA** | `anonymizeForAI()` redacta datos personales antes de llamar a Gemini |
 | **Auditoría** | Log de acciones en PG + winston con request-id |
+
+### CSRF sin estado
+
+`GET /api/csrf-token` devuelve un token que el cliente reenvía en
+`x-csrf-token` (junto a `x-session-id`) en todos los métodos inseguros.
+
+El token es **autovalidante**, no se guarda en el servidor:
+
+```
+<nonce>.<caduca_en_ms>.<hmacSha256(sessionId.nonce.caduca)>
+```
+
+Cualquier réplica puede verificarlo con la clave de firma (`CSRF_SECRET`, o
+`JWT_SECRET` si no se define). Esto evita los tres fallos de la versión
+anterior, que guardaba los tokens en un `Map` en memoria: 403 aleatorios al
+escalar a más de una instancia, tokens perdidos en cada despliegue y un mapa
+que crecía sin límite porque nadie purgaba las entradas caducadas.
+
+La firma incluye el `sessionId`, así que un token no sirve para otra sesión, y
+se compara en tiempo constante (`crypto.timingSafeEqual`).
+
+### CSP: dónde se define
+
+| Origen | Fichero | Cubre |
+|---|---|---|
+| nginx (producción) | `apps/frontend/security-headers.conf` | La cabecera HTTP real de la SPA |
+| `<meta>` (respaldo) | `apps/frontend/index.html` | Hosting sin control de cabeceras |
+| Helmet | `apps/backend/src/index.ts` | Respuestas de la API (`default-src 'none'`) |
+
+Dos detalles que conviene no revertir sin pensarlo:
+
+- **`frame-ancestors` solo funciona por cabecera HTTP.** Si la política llega
+  por `<meta>`, el navegador la ignora, así que la defensa contra clickjacking
+  depende de que nginx sirva la cabecera (más `X-Frame-Options: DENY`).
+- **No hay nonce.** El anterior se generaba en tiempo de *build*, por lo que
+  era una constante idéntica para todos los usuarios —seguridad aparente, no
+  real— y encima Vite no lo emitía en el `<script>` final. Con un bundle que es
+  un único fichero externo, `script-src 'self'` es más estricto que un nonce
+  fijo. Si algún día hacen falta scripts inline, el nonce debe generarse **por
+  petición** en el servidor que sirve el HTML, no en el build.
+
+> `add_header` en nginx no se hereda: si una `location` declara cualquier
+> `add_header` propio, pierde los del bloque padre. Por eso las cabeceras están
+> en `security-headers.conf` y se hace `include` en cada `location`. Al añadir
+> una nueva, acuérdate del include.
 
 ### ⚠️ Datos de salud (RGPD Art. 9)
 
@@ -255,15 +300,74 @@ La CI (`.github/workflows/ci.yml`) ejecuta lint → typecheck → build → test
 pnpm build:frontend   # genera apps/frontend/dist/
 ```
 
-Conectado GitHub → Vercel, el deploy usa `vercel.json` (raíz del repo):
+Conectado GitHub → Vercel, el deploy usa `vercel.json`. Hay **dos** ficheros,
+uno para cada configuración posible del proyecto en el dashboard:
 
-- `buildCommand: pnpm --filter veridia-app build` y `outputDirectory: apps/frontend/dist`
-  (monorepo: sin esto Vercel no encuentra la build).
-- Rewrite `/api/*` → `${VERIDIA_API_URL}/api/*`: **define la variable
+| Root Directory (dashboard) | Fichero que Vercel lee | `outputDirectory` |
+|---|---|---|
+| vacío / `.` (raíz del repo) | `vercel.json` | `apps/frontend/dist` |
+| `apps/frontend` | `apps/frontend/vercel.json` | `dist` |
+
+Vercel solo lee el `vercel.json` que está **dentro del Root Directory**. Al
+tener los dos, el deploy funciona con cualquiera de las dos configuraciones y
+deja de importar cuál esté seleccionada en el dashboard.
+
+Ambos definen lo mismo:
+
+- `buildCommand: pnpm --filter veridia-app build` (monorepo: sin esto Vercel no
+  encuentra la build).
+- Proxy `/api/*` → `${VERIDIA_API_URL}/api/*`: **define la variable
   `VERIDIA_API_URL` en Vercel (Project → Settings → Environment Variables)**
   con la URL pública de la API (p. ej. `https://api.tudominio.com` — tu
   backend Docker). El proxy se hace en el borde de Vercel, así no hay CORS.
 - Fallback SPA: cualquier ruta no existente sirve `index.html`.
+
+> **Ojo con la interpolación de variables.** Vercel **no** expande `${VAR}` en
+> `rewrites[].destination`; el valor se URL-encodea y acaba como
+> `%7BVERIDIA_API_URL%7D`, rompiendo el proxy en silencio. La expansión solo
+> existe en `routes[].dest` y exige declarar la variable en la lista blanca
+> `env` de esa misma ruta — por eso el fichero usa `routes` y no `rewrites`.
+> Con `routes` hay que añadir `{ "handle": "filesystem" }` antes del fallback
+> SPA, o el `/(.*)` se tragaría también los assets estáticos.
+
+#### Error «No entrypoint found» / build que no encuentra nada
+
+Si el deploy falla con *No entrypoint found*, *No Output Directory named
+"public"* o similar, es que Vercel está intentando **inferir** el framework en
+lugar de usar la configuración del repo. Comprobar, por este orden:
+
+1. **Framework Preset** → `Other` (Project → Settings → Build & Development
+   Settings). Si Vercel detecta un preset que no corresponde, ignora el
+   `buildCommand` del `vercel.json` y busca un entrypoint que aquí no existe.
+2. **Root Directory** → o vacío, o `apps/frontend`; ambos casos están cubiertos
+   por la tabla de arriba.
+3. **Build Command / Output Directory** → dejarlos vacíos (heredan del
+   `vercel.json`) o alinearlos con la tabla. Si están sobrescritos en el
+   dashboard, el dashboard gana.
+4. Ojo con el `index.html` de la **raíz del repo**: es la landing estática
+   comercial, no la SPA. Si el Root Directory es la raíz y Vercel cae en modo
+   "static build" por auto-detección, puede servir ese fichero en vez de
+   `apps/frontend/dist/`. El `outputDirectory` explícito lo evita.
+
+> Con `enableWorkspaceInstall` implícito, Vercel instala desde el **lockfile de
+> la raíz** aunque el Root Directory sea `apps/frontend`. Por eso un
+> `pnpm-lock.yaml` desincronizado (p. ej. un PR de Dependabot que solo toca
+> `apps/*/package.json`) rompe el deploy con `ERR_PNPM_OUTDATED_LOCKFILE`
+> incluso sin tocar el frontend. Ver §12.
+
+#### El backend no se despliega en Vercel
+
+`apps/backend/vercel.json` contiene `git.deploymentEnabled: false` a propósito.
+
+El backend es un servidor Express de larga vida (`app.listen`) pensado para
+Docker: no tiene `api/`, ni `public/`, ni `index.html`, y su build es un `tsc`
+que emite `dist/`. Nada de eso encaja con el modelo de Vercel (estático +
+funciones), así que un proyecto de Vercel apuntando a `apps/backend` falla
+siempre y deja un check en rojo en todos los PR.
+
+Con ese fichero, Vercel deja de crear despliegues automáticos para ese
+proyecto. Si además quieres que desaparezca el check del listado de PR, borra o
+desconecta el proyecto `veridia-backend` en el dashboard de Vercel.
 
 ### Backend (Docker)
 
@@ -296,7 +400,49 @@ Imagen multi-stage (build → runner no-privilegiado) con healthcheck en `/api/h
 
 ---
 
-## 12. Equipo
+## 12. Dependabot y el lockfile del monorepo
+
+`.github/dependabot.yml` declara el ecosistema npm con `directory: /apps/backend`
+y `/apps/frontend`, pero en un workspace pnpm **el único lockfile vive en la
+raíz**. Dependabot actualiza el `package.json` de ese directorio y deja
+`pnpm-lock.yaml` intacto, así que los dos quedan desincronizados y cualquier
+instalación reproducible falla:
+
+```
+ERR_PNPM_OUTDATED_LOCKFILE  Cannot install with "frozen-lockfile"
+because pnpm-lock.yaml is not up to date with apps/backend/package.json
+```
+
+Eso tumba a la vez el job **Lint** de CI (que corre
+`pnpm install --frozen-lockfile` y deja el resto de jobs en `SKIPPED`) y el
+build de **Vercel**, que también instala en modo frozen.
+
+Para arreglar un PR de Dependabot en este repo:
+
+```bash
+git fetch origin
+git checkout dependabot/npm_and_yarn/apps/<app>/<dep>-<version>
+pnpm install            # regenera pnpm-lock.yaml con el nuevo rango
+pnpm install --frozen-lockfile   # debe decir "Lockfile is up to date"
+pnpm test               # 84 (backend) + 110 (frontend)
+git add pnpm-lock.yaml && git commit -m "chore(deps): sync lockfile"
+git push
+```
+
+Usa siempre la versión de pnpm fijada en `packageManager` (9.15.9); otra
+versión puede reescribir el lockfile entero y ensuciar el diff:
+
+```bash
+corepack enable && corepack prepare pnpm@9.15.9 --activate
+```
+
+Un diff sano toca **solo** las líneas de esa dependencia (importer + `packages`
++ `snapshots`). Si `lockfileVersion` cambia o se mueven paquetes no
+relacionados, estás usando otra versión de pnpm.
+
+---
+
+## 13. Equipo
 
 | Nombre | Rol | Contacto |
 |--------|-----|----------|

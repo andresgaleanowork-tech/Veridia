@@ -24,17 +24,15 @@ export function DashboardPage() {
   const [recentPatients, setRecentPatients] = useState<{ id: string; nombre: string; apellidos: string }[]>([]);
   const [todayAppts, setTodayAppts] = useState<{ id: string; hora: string; paciente_nombre: string; estado: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fitnessActive, setFitnessActive] = useState(0);
   const { addToast } = useToast();
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
     try {
-      const [patientsRes, apptsRes, invoicesRes, fitnessRes] = await Promise.allSettled([
+      const [patientsRes, apptsRes, invoicesRes] = await Promise.allSettled([
         api.get('/patients?limit=5'),
         api.get('/appointments/today'),
         api.get('/invoices?estado=Pendiente&limit=1'),
-        api.get('/fitness/connections?limit=1'),
       ]);
 
       if (patientsRes.status === 'fulfilled') {
@@ -51,11 +49,6 @@ export function DashboardPage() {
       if (invoicesRes.status === 'fulfilled') {
         const invoicesEnvelope = invoicesRes.value.data;
         setStats((s) => ({ ...s, pendingInvoices: invoicesEnvelope?.meta?.total ?? 0 }));
-      }
-      if (fitnessRes.status === 'fulfilled') {
-        const fitnessEnvelope = fitnessRes.value.data;
-        const fitnessData = fitnessEnvelope?.data || [];
-        setFitnessActive(fitnessEnvelope?.meta?.total ?? fitnessData.length ?? 0);
       }
     } catch {
       addToast('error', 'Error al cargar dashboard');
@@ -131,10 +124,6 @@ export function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-surface-2 border border-border">
-                <span className="text-sm text-text-3">Conexiones activas</span>
-                <span className="text-sm font-semibold text-text tabular-nums">{fitnessActive}</span>
-              </div>
               <div className="flex items-center justify-between p-3 rounded-lg bg-surface-2 border border-border">
                 <span className="text-sm text-text-3">Plataformas</span>
                 <span className="text-sm font-semibold text-text">5</span>
