@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "pnpm --filter veridia-app build",
-  "outputDirectory": "apps/frontend/dist",
+  "outputDirectory": "dist",
   "routes": [
     { "handle": "filesystem" },
     {

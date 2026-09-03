@@ -255,15 +255,60 @@ La CI (`.github/workflows/ci.yml`) ejecuta lint → typecheck → build → test
 pnpm build:frontend   # genera apps/frontend/dist/
 ```
 
-Conectado GitHub → Vercel, el deploy usa `vercel.json` (raíz del repo):
+Conectado GitHub → Vercel, el deploy usa `vercel.json`. Hay **dos** ficheros,
+uno para cada configuración posible del proyecto en el dashboard:
 
-- `buildCommand: pnpm --filter veridia-app build` y `outputDirectory: apps/frontend/dist`
-  (monorepo: sin esto Vercel no encuentra la build).
-- Rewrite `/api/*` → `${VERIDIA_API_URL}/api/*`: **define la variable
+| Root Directory (dashboard) | Fichero que Vercel lee | `outputDirectory` |
+|---|---|---|
+| vacío / `.` (raíz del repo) | `vercel.json` | `apps/frontend/dist` |
+| `apps/frontend` | `apps/frontend/vercel.json` | `dist` |
+
+Vercel solo lee el `vercel.json` que está **dentro del Root Directory**. Al
+tener los dos, el deploy funciona con cualquiera de las dos configuraciones y
+deja de importar cuál esté seleccionada en el dashboard.
+
+Ambos definen lo mismo:
+
+- `buildCommand: pnpm --filter veridia-app build` (monorepo: sin esto Vercel no
+  encuentra la build).
+- Proxy `/api/*` → `${VERIDIA_API_URL}/api/*`: **define la variable
   `VERIDIA_API_URL` en Vercel (Project → Settings → Environment Variables)**
   con la URL pública de la API (p. ej. `https://api.tudominio.com` — tu
   backend Docker). El proxy se hace en el borde de Vercel, así no hay CORS.
 - Fallback SPA: cualquier ruta no existente sirve `index.html`.
+
+> **Ojo con la interpolación de variables.** Vercel **no** expande `${VAR}` en
+> `rewrites[].destination`; el valor se URL-encodea y acaba como
+> `%7BVERIDIA_API_URL%7D`, rompiendo el proxy en silencio. La expansión solo
+> existe en `routes[].dest` y exige declarar la variable en la lista blanca
+> `env` de esa misma ruta — por eso el fichero usa `routes` y no `rewrites`.
+> Con `routes` hay que añadir `{ "handle": "filesystem" }` antes del fallback
+> SPA, o el `/(.*)` se tragaría también los assets estáticos.
+
+#### Error «No entrypoint found» / build que no encuentra nada
+
+Si el deploy falla con *No entrypoint found*, *No Output Directory named
+"public"* o similar, es que Vercel está intentando **inferir** el framework en
+lugar de usar la configuración del repo. Comprobar, por este orden:
+
+1. **Framework Preset** → `Other` (Project → Settings → Build & Development
+   Settings). Si Vercel detecta un preset que no corresponde, ignora el
+   `buildCommand` del `vercel.json` y busca un entrypoint que aquí no existe.
+2. **Root Directory** → o vacío, o `apps/frontend`; ambos casos están cubiertos
+   por la tabla de arriba.
+3. **Build Command / Output Directory** → dejarlos vacíos (heredan del
+   `vercel.json`) o alinearlos con la tabla. Si están sobrescritos en el
+   dashboard, el dashboard gana.
+4. Ojo con el `index.html` de la **raíz del repo**: es la landing estática
+   comercial, no la SPA. Si el Root Directory es la raíz y Vercel cae en modo
+   "static build" por auto-detección, puede servir ese fichero en vez de
+   `apps/frontend/dist/`. El `outputDirectory` explícito lo evita.
+
+> Con `enableWorkspaceInstall` implícito, Vercel instala desde el **lockfile de
+> la raíz** aunque el Root Directory sea `apps/frontend`. Por eso un
+> `pnpm-lock.yaml` desincronizado (p. ej. un PR de Dependabot que solo toca
+> `apps/*/package.json`) rompe el deploy con `ERR_PNPM_OUTDATED_LOCKFILE`
+> incluso sin tocar el frontend. Ver §12.
 
 ### Backend (Docker)
 
@@ -296,7 +341,49 @@ Imagen multi-stage (build → runner no-privilegiado) con healthcheck en `/api/h
 
 ---
 
-## 12. Equipo
+## 12. Dependabot y el lockfile del monorepo
+
+`.github/dependabot.yml` declara el ecosistema npm con `directory: /apps/backend`
+y `/apps/frontend`, pero en un workspace pnpm **el único lockfile vive en la
+raíz**. Dependabot actualiza el `package.json` de ese directorio y deja
+`pnpm-lock.yaml` intacto, así que los dos quedan desincronizados y cualquier
+instalación reproducible falla:
+
+```
+ERR_PNPM_OUTDATED_LOCKFILE  Cannot install with "frozen-lockfile"
+because pnpm-lock.yaml is not up to date with apps/backend/package.json
+```
+
+Eso tumba a la vez el job **Lint** de CI (que corre
+`pnpm install --frozen-lockfile` y deja el resto de jobs en `SKIPPED`) y el
+build de **Vercel**, que también instala en modo frozen.
+
+Para arreglar un PR de Dependabot en este repo:
+
+```bash
+git fetch origin
+git checkout dependabot/npm_and_yarn/apps/<app>/<dep>-<version>
+pnpm install            # regenera pnpm-lock.yaml con el nuevo rango
+pnpm install --frozen-lockfile   # debe decir "Lockfile is up to date"
+pnpm test               # 84 (backend) + 110 (frontend)
+git add pnpm-lock.yaml && git commit -m "chore(deps): sync lockfile"
+git push
+```
+
+Usa siempre la versión de pnpm fijada en `packageManager` (9.15.9); otra
+versión puede reescribir el lockfile entero y ensuciar el diff:
+
+```bash
+corepack enable && corepack prepare pnpm@9.15.9 --activate
+```
+
+Un diff sano toca **solo** las líneas de esa dependencia (importer + `packages`
++ `snapshots`). Si `lockfileVersion` cambia o se mueven paquetes no
+relacionados, estás usando otra versión de pnpm.
+
+---
+
+## 13. Equipo
 
 | Nombre | Rol | Contacto |
 |--------|-----|----------|
