@@ -156,12 +156,49 @@ jobs:
         with:
           name: frontend-dist
           path: apps/frontend/dist/
-      - name: Deploy to server
+      # El despliegue real todavia no esta conectado: el paso "Deploy to server"
+      # era un placeholder vacio y aun asi se hacia un health check contra
+      # https://api.veridia.tech, que nadie habia desplegado. Resultado: este
+      # workflow fallaba en el 100% de las ejecuciones y dejaba main en rojo
+      # aunque lint, typecheck, tests y ambos builds estuvieran en verde.
+      #
+      # Ahora el despliegue solo se ejecuta si hay un destino configurado. Para
+      # activarlo basta con definir la variable de repositorio
+      # PRODUCTION_HEALTHCHECK_URL (Settings > Secrets and variables > Actions
+      # > Variables) y rellenar el paso de despliegue con el comando real.
+      - name: Comprobar si hay destino de despliegue configurado
+        id: target
+        env:
+          HEALTHCHECK_URL: ${{ vars.PRODUCTION_HEALTHCHECK_URL }}
         run: |
-          echo ":rocket: Deploying to production..."
+          if [ -n "$HEALTHCHECK_URL" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Despliegue omitido::No hay PRODUCTION_HEALTHCHECK_URL configurada. Los artefactos se han construido y subido correctamente; define esa variable de repositorio cuando exista el servidor de produccion."
+          fi
+
+      - name: Deploy to server
+        if: steps.target.outputs.configured == 'true'
+        run: |
+          echo "🚀 Deploying to production..."
           # Add your deployment commands here
           # Example: rsync, docker push, kubectl apply, etc.
+
       - name: Health check
+        if: steps.target.outputs.configured == 'true'
+        env:
+          HEALTHCHECK_URL: ${{ vars.PRODUCTION_HEALTHCHECK_URL }}
         run: |
-          sleep 10
-          curl -f https://api.veridia.tech/api/health || exit 1
+          # Un solo curl justo despues de desplegar es una carrera: el proceso
+          # puede seguir arrancando. Se reintenta con espera entre intentos.
+          for intento in 1 2 3 4 5; do
+            if curl -fsS --max-time 10 "$HEALTHCHECK_URL"; then
+              echo "✅ Health check OK en el intento $intento"
+              exit 0
+            fi
+            echo "Intento $intento fallido; reintentando en 10s..."
+            sleep 10
+          done
+          echo "❌ El health check no respondio tras 5 intentos"
+          exit 1
