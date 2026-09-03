@@ -1,6 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm --filter veridia-app build",
+  "framework": null,
+  "installCommand": "cd ../.. && pnpm install --filter veridia-app... --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm --filter veridia-app build",
   "outputDirectory": "dist",
   "routes": [
     { "handle": "filesystem" },
@@ -9,6 +11,15 @@
       "dest": "${VERIDIA_API_URL}/api/$1",
       "env": ["VERIDIA_API_URL"]
     },
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "src": "/assets/(.*)",
+      "headers": { "cache-control": "public, max-age=31536000, immutable" },
+      "continue": true
+    },
+    {
+      "src": "/(.*)",
+      "headers": { "cache-control": "no-cache" },
+      "dest": "/index.html"
+    }
   ]
 }

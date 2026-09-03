@@ -76,6 +76,10 @@ export default defineConfig(async () => {
     server: {
       port: 5173,
       host: '0.0.0.0',
+      // Vite bloquea por defecto los Host desconocidos. Al servir el dev server
+      // detrás de un proxy (sandboxes de preview, túneles tipo ngrok), hay que
+      // autorizar ese dominio o responde "Blocked request".
+      allowedHosts: ['.e2b.app', '.ngrok-free.app', 'localhost'],
       proxy: {
         '/api': {
           // Docker por defecto; en host/CI se puede apuntar con VITE_PROXY_TARGET
