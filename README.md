@@ -211,15 +211,60 @@ openssl rand -base64 32   # JWT_SECRET, JWT_REFRESH_SECRET
 
 | Capa | Medida |
 |------|--------|
-| **CSP** | Content-Security-Policy con **nonce por request** (frontend y backend) |
+| **CSP** | `script-src 'self'` sin `unsafe-*`; cabecera HTTP desde nginx (incluye `frame-ancestors 'none'`) y `<meta>` de respaldo. La API responde `default-src 'none'` |
 | **CORS** | Restringido a `CORS_ORIGIN`; bloqueado por defecto en producción |
 | **Rate limiting** | Limiter global + limiter específico de login (memoria) |
-| **CSRF** | Doble token (`/api/csrf-token`) para peticiones mutativas |
+| **CSRF** | Token HMAC **sin estado** (`/api/csrf-token`) para peticiones mutativas |
 | **Auth** | JWT (acceso + refresh), bcrypt `$12`, RBAC 3 roles (admin / nutricionista / secretaria) |
 | **Multi-tenancy** | Middleware de aislamiento por tenant en todas las rutas |
-| **Headers** | Helmet (HSTS en producción, noSniff, referrerPolicy), validación Zod en entradas |
+| **Headers** | Helmet en la API y `security-headers.conf` en nginx: HSTS, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`. Validación Zod en entradas |
 | **PII + IA** | `anonymizeForAI()` redacta datos personales antes de llamar a Gemini |
 | **Auditoría** | Log de acciones en PG + winston con request-id |
+
+### CSRF sin estado
+
+`GET /api/csrf-token` devuelve un token que el cliente reenvía en
+`x-csrf-token` (junto a `x-session-id`) en todos los métodos inseguros.
+
+El token es **autovalidante**, no se guarda en el servidor:
+
+```
+<nonce>.<caduca_en_ms>.<hmacSha256(sessionId.nonce.caduca)>
+```
+
+Cualquier réplica puede verificarlo con la clave de firma (`CSRF_SECRET`, o
+`JWT_SECRET` si no se define). Esto evita los tres fallos de la versión
+anterior, que guardaba los tokens en un `Map` en memoria: 403 aleatorios al
+escalar a más de una instancia, tokens perdidos en cada despliegue y un mapa
+que crecía sin límite porque nadie purgaba las entradas caducadas.
+
+La firma incluye el `sessionId`, así que un token no sirve para otra sesión, y
+se compara en tiempo constante (`crypto.timingSafeEqual`).
+
+### CSP: dónde se define
+
+| Origen | Fichero | Cubre |
+|---|---|---|
+| nginx (producción) | `apps/frontend/security-headers.conf` | La cabecera HTTP real de la SPA |
+| `<meta>` (respaldo) | `apps/frontend/index.html` | Hosting sin control de cabeceras |
+| Helmet | `apps/backend/src/index.ts` | Respuestas de la API (`default-src 'none'`) |
+
+Dos detalles que conviene no revertir sin pensarlo:
+
+- **`frame-ancestors` solo funciona por cabecera HTTP.** Si la política llega
+  por `<meta>`, el navegador la ignora, así que la defensa contra clickjacking
+  depende de que nginx sirva la cabecera (más `X-Frame-Options: DENY`).
+- **No hay nonce.** El anterior se generaba en tiempo de *build*, por lo que
+  era una constante idéntica para todos los usuarios —seguridad aparente, no
+  real— y encima Vite no lo emitía en el `<script>` final. Con un bundle que es
+  un único fichero externo, `script-src 'self'` es más estricto que un nonce
+  fijo. Si algún día hacen falta scripts inline, el nonce debe generarse **por
+  petición** en el servidor que sirve el HTML, no en el build.
+
+> `add_header` en nginx no se hereda: si una `location` declara cualquier
+> `add_header` propio, pierde los del bloque padre. Por eso las cabeceras están
+> en `security-headers.conf` y se hace `include` en cada `location`. Al añadir
+> una nueva, acuérdate del include.
 
 ### ⚠️ Datos de salud (RGPD Art. 9)
 

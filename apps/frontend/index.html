@@ -16,7 +16,17 @@
     <meta name="description" content="Veridia HealthTech — ERP de nutrición clínica" />
     <meta name="application-name" content="Veridia HealthTech" />
     <meta name="format-detection" content="telephone=no" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'nonce-{{CSP_NONCE}}'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.usda.gov https://generativelanguage.googleapis.com https://fonts.googleapis.com; worker-src 'self' blob:;">
+    <!--
+      CSP de respaldo (meta). La cabecera real la envía nginx en producción
+      (apps/frontend/nginx.conf), que es la que manda: frame-ancestors y
+      report-* se ignoran cuando la política llega por <meta>.
+
+      Sin 'nonce' a propósito: Vite genera un único <script> externo con hash en
+      el nombre, así que no hay scripts inline que autorizar. Un nonce fijado en
+      tiempo de build sería el mismo para todos los usuarios y no aportaría
+      seguridad, solo la apariencia de tenerla.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Veridia HealthTech" />
     <meta property="og:description" content="ERP de nutrición clínica" />
@@ -25,6 +35,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" nonce="{{CSP_NONCE}}" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -14,7 +14,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import fs from 'fs';
-import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -39,22 +38,30 @@ const PORT = process.env.PORT || 3456;
 // === SECURITY ===
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Per-request nonce used for CSP style-src (matches nonce plugin in vite.config.ts)
-app.use((_req, res, next) => {
-  (res.locals as Record<string, string>).cspNonce = crypto.randomBytes(16).toString('base64');
-  next();
-});
-
+// CSP de la API.
+//
+// Esta política protege las respuestas del backend (errores HTML, cualquier
+// documento que sirva Express). La CSP del frontend la envía nginx, ver
+// apps/frontend/security-headers.conf.
+//
+// La API responde JSON, así que puede permitirse la política más restrictiva
+// posible: nada de scripts, estilos ni marcos. Antes se firmaba un nonce por
+// petición para style-src que ningún documento llegaba a usar, así que solo
+// añadía trabajo de crypto en cada request.
 app.use(helmet.contentSecurityPolicy({
   directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: isProduction ? ["'self'"] : ["'self'", "'unsafe-inline'", "'unsafe-eval'", "http://localhost:5173"],
-    styleSrc: ["'self'", (_req, res) => `'nonce-${(res as unknown as express.Response).locals.cspNonce}'`],
-    imgSrc: ["'self'", "data:"],
-    fontSrc: ["'self'"],
-    connectSrc: isProduction
-      ? ["'self'", "https://api.usda.gov", "https://generativelanguage.googleapis.com", "https://world.openfoodfacts.net", "https://www.themealdb.com"]
-      : ["'self'", "http://localhost:5173", "http://localhost:3457", "ws://localhost:5173"]
+    defaultSrc: ["'none'"],
+    scriptSrc: ["'none'"],
+    styleSrc: ["'none'"],
+    imgSrc: ["'none'"],
+    fontSrc: ["'none'"],
+    // connect-src no aplica a respuestas JSON, pero se declara para que la
+    // política sea explícita si alguna vez se sirve un documento desde aquí.
+    connectSrc: ["'self'"],
+    objectSrc: ["'none'"],
+    baseUri: ["'none'"],
+    formAction: ["'none'"],
+    frameAncestors: ["'none'"],
   }
 }));
 
@@ -65,6 +72,10 @@ if (isProduction) {
 app.use(helmet.xssFilter());
 app.use(helmet.noSniff());
 app.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }));
+app.use(helmet.frameguard({ action: 'deny' }));
+app.use(helmet.permittedCrossDomainPolicies());
+// No filtrar la URL de la API al navegar a recursos externos.
+app.use(helmet.crossOriginResourcePolicy({ policy: 'same-site' }));
 
 // WARNING: In production, CORS_ORIGIN must be set to allowed origins
 app.use(cors({
