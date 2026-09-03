@@ -13,11 +13,9 @@ updates:
     commit-message:
       prefix: "chore(deps):"
       prefix-development: "chore(deps-dev):"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     reviewers:
-      - "veridia-team"
-    assignees:
-      - "veridia-team"
+      - "andresgaleanowork-tech"
     groups:
       drizzle:
         patterns:
@@ -28,6 +26,7 @@ updates:
       express:
         patterns:
           - "express*"
+          - "@types/express*"
         update-types:
           - "minor"
           - "patch"
@@ -36,6 +35,7 @@ updates:
           - "helmet"
           - "cors"
           - "bcrypt"
+          - "@types/bcrypt"
           - "jsonwebtoken"
           - "zod"
         update-types:
@@ -45,6 +45,8 @@ updates:
         patterns:
           - "vitest"
           - "@testing-library*"
+          - "supertest"
+          - "@types/supertest"
           - "tsx"
         update-types:
           - "minor"
@@ -63,11 +65,9 @@ updates:
     commit-message:
       prefix: "chore(deps):"
       prefix-development: "chore(deps-dev):"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     reviewers:
-      - "veridia-team"
-    assignees:
-      - "veridia-team"
+      - "andresgaleanowork-tech"
     groups:
       react:
         patterns:
@@ -104,11 +104,30 @@ updates:
       build:
         patterns:
           - "vite*"
+          - "@vitejs*"
           - "typescript"
+          - "oxlint"
           - "eslint*"
         update-types:
           - "minor"
           - "patch"
+
+  # Shared package dependencies
+  - package-ecosystem: "npm"
+    directory: "/packages/shared-types"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    labels:
+      - "dependencies"
+      - "shared"
+    commit-message:
+      prefix: "chore(deps):"
+      prefix-development: "chore(deps-dev):"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "andresgaleanowork-tech"
 
   # GitHub Actions dependencies
   - package-ecosystem: "github-actions"
@@ -121,5 +140,7 @@ updates:
       - "dependencies"
       - "github-actions"
     commit-message:
-      prefix: "chore(deps):"
-    open-pull-requests-limit: 5
+      prefix: "ci(deps):"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "andresgaleanowork-tech"
