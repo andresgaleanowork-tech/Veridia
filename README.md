@@ -310,6 +310,20 @@ lugar de usar la configuración del repo. Comprobar, por este orden:
 > `apps/*/package.json`) rompe el deploy con `ERR_PNPM_OUTDATED_LOCKFILE`
 > incluso sin tocar el frontend. Ver §12.
 
+#### El backend no se despliega en Vercel
+
+`apps/backend/vercel.json` contiene `git.deploymentEnabled: false` a propósito.
+
+El backend es un servidor Express de larga vida (`app.listen`) pensado para
+Docker: no tiene `api/`, ni `public/`, ni `index.html`, y su build es un `tsc`
+que emite `dist/`. Nada de eso encaja con el modelo de Vercel (estático +
+funciones), así que un proyecto de Vercel apuntando a `apps/backend` falla
+siempre y deja un check en rojo en todos los PR.
+
+Con ese fichero, Vercel deja de crear despliegues automáticos para ese
+proyecto. Si además quieres que desaparezca el check del listado de PR, borra o
+desconecta el proyecto `veridia-backend` en el dashboard de Vercel.
+
 ### Backend (Docker)
 
 ```bash
